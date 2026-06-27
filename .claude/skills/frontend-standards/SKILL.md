@@ -130,10 +130,21 @@ export function ProductCard({ product }) { // single item rendering
 }
 ```
 
+### File Size Limits
+
+| File type | Max lines | Signal when exceeded |
+|---|---|---|
+| Component file | **150 lines** | Doing too much — split into smaller components |
+| Page file (`page.tsx`) | **100 lines** | Not delegating enough to feature components |
+| Hook file | **100 lines** | Multiple concerns — split into focused hooks |
+| Service / utility | **300 lines** | Group only closely related helpers |
+
+Line count is a symptom, not the rule — but it's a reliable trigger. When a file grows past its limit, look for a natural seam to extract.
+
 ### When to Split a Component
 
 Split when any of these are true:
-- Component exceeds ~80 lines of JSX
+- Component file exceeds **150 lines**
 - Same UI pattern appears in 2+ places
 - Part of the component has different `loading`/`error` states
 - A section needs its own `use client` boundary
