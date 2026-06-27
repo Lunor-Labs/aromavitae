@@ -1,0 +1,167 @@
+@import "tailwindcss";
+
+/* =============================================
+   AromaVitae Design System — Tailwind v4 Theme
+   ============================================= */
+
+@theme inline {
+  /* Brand Colors */
+  --color-forest: #1B3A2D;
+  --color-forest-light: #2A5A42;
+  --color-forest-hover: #234B38;
+  --color-gold: #C5A55A;
+  --color-gold-light: #D4B96E;
+  --color-gold-dark: #A88B3D;
+  --color-cream: #F5F0E8;
+  --color-cream-dark: #E8E0D0;
+  --color-warm-white: #FAF8F4;
+  --color-charcoal: #2C2C2C;
+  --color-muted: #7A7A6A;
+  --color-border: #D4CFC4;
+
+  /* Typography */
+  --font-heading: var(--font-playfair);
+  --font-body: var(--font-ubuntu);
+}
+
+/* =============================================
+   Base Styles
+   ============================================= */
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  background-color: var(--color-warm-white);
+  color: var(--color-charcoal);
+  font-family: var(--font-body), system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* =============================================
+   Scroll-triggered Animations
+   ============================================= */
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes slideInLeft {
+  from {
+    opacity: 0;
+    transform: translateX(-40px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes slideInRight {
+  from {
+    opacity: 0;
+    transform: translateX(40px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes marquee {
+  from { transform: translateX(0); }
+  to { transform: translateX(-50%); }
+}
+
+.animate-fade-in-up {
+  animation: fadeInUp 0.7s ease-out forwards;
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.6s ease-out forwards;
+}
+
+.animate-slide-in-left {
+  animation: slideInLeft 0.7s ease-out forwards;
+}
+
+.animate-slide-in-right {
+  animation: slideInRight 0.7s ease-out forwards;
+}
+
+.animate-marquee {
+  animation: marquee 30s linear infinite;
+}
+
+/* Intersection Observer driven — initially hidden */
+.reveal {
+  opacity: 0;
+  transform: translateY(30px);
+  transition: opacity 0.7s ease-out, transform 0.7s ease-out;
+}
+
+.reveal.revealed {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* =============================================
+   Ornamental Decorations
+   ============================================= */
+
+.ornament-divider {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+}
+
+.ornament-divider::before,
+.ornament-divider::after {
+  content: "";
+  width: 40px;
+  height: 1px;
+  background-color: var(--color-gold);
+}
+
+.ornament-diamond {
+  width: 8px;
+  height: 8px;
+  background-color: var(--color-gold);
+  transform: rotate(45deg);
+}
+
+/* =============================================
+   Custom Scrollbar
+   ============================================= */
+
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--color-cream);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--color-gold);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--color-gold-dark);
+}

@@ -1,0 +1,182 @@
+"use client";
+
+import { useState, useEffect, useCallback } from "react";
+import Image from "next/image";
+import { cn } from "@/lib/utils";
+import type { Testimonial } from "@/types/product";
+
+const TESTIMONIALS: Testimonial[] = [
+  {
+    id: "1",
+    quote:
+      "The quality is unmatched. The aroma, the packaging, the taste—everything speaks premium. Aromavitae brings the true essence of Sri Lanka to the world.",
+    author: "Sarah M.",
+    location: "Australia",
+    rating: 5,
+  },
+  {
+    id: "2",
+    quote:
+      "I've tried many cinnamon brands but nothing comes close to AromaVitae's Ceylon Cinnamon. The fragrance alone tells you it's the real deal. Absolutely love it!",
+    author: "James R.",
+    location: "United Kingdom",
+    rating: 5,
+  },
+  {
+    id: "3",
+    quote:
+      "The Ceylon Oud perfume is divine. It's subtle, long-lasting, and truly unique. I get compliments every time I wear it. A hidden gem from Sri Lanka!",
+    author: "Amira K.",
+    location: "UAE",
+    rating: 5,
+  },
+  {
+    id: "4",
+    quote:
+      "Ordered the gift set for my mother and she was absolutely thrilled. The presentation is gorgeous and the quality of spices is outstanding. Will order again!",
+    author: "David L.",
+    location: "Canada",
+    rating: 5,
+  },
+];
+
+const AUTO_PLAY_INTERVAL = 5000;
+
+export function Testimonials() {
+  const [current, setCurrent] = useState(0);
+  const [isTransitioning, setIsTransitioning] = useState(false);
+
+  const goTo = useCallback(
+    (index: number) => {
+      if (isTransitioning) return;
+      setIsTransitioning(true);
+      setCurrent(index);
+      setTimeout(() => setIsTransitioning(false), 500);
+    },
+    [isTransitioning]
+  );
+
+  const next = useCallback(() => {
+    goTo((current + 1) % TESTIMONIALS.length);
+  }, [current, goTo]);
+
+  const prev = useCallback(() => {
+    goTo((current - 1 + TESTIMONIALS.length) % TESTIMONIALS.length);
+  }, [current, goTo]);
+
+  useEffect(() => {
+    const timer = setInterval(next, AUTO_PLAY_INTERVAL);
+    return () => clearInterval(timer);
+  }, [next]);
+
+  const testimonial = TESTIMONIALS[current];
+
+  return (
+    <section className="py-16 md:py-24 bg-warm-white reveal">
+      <div className="max-w-[1400px] mx-auto px-6">
+        {/* Section Heading */}
+        <h2 className="font-heading text-3xl md:text-4xl font-bold text-charcoal text-center mb-12">
+          Loved by Customers Worldwide
+        </h2>
+
+        <div className="grid md:grid-cols-5 gap-8 items-center">
+          {/* Testimonial Content — 3 cols */}
+          <div className="md:col-span-3 relative">
+            {/* Navigation Arrows */}
+            <button
+              onClick={prev}
+              className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-4 md:-translate-x-8
+                         w-10 h-10 rounded-full border border-border bg-warm-white
+                         flex items-center justify-center text-charcoal
+                         hover:bg-cream hover:border-gold transition-all duration-200 z-10"
+              aria-label="Previous testimonial"
+            >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+              </svg>
+            </button>
+            <button
+              onClick={next}
+              className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-4 md:translate-x-8
+                         w-10 h-10 rounded-full border border-border bg-warm-white
+                         flex items-center justify-center text-charcoal
+                         hover:bg-cream hover:border-gold transition-all duration-200 z-10"
+              aria-label="Next testimonial"
+            >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+              </svg>
+            </button>
+
+            {/* Testimonial Card */}
+            <div
+              className={cn(
+                "text-center px-12 md:px-16 transition-all duration-500",
+                isTransitioning ? "opacity-0 translate-y-2" : "opacity-100 translate-y-0"
+              )}
+            >
+              {/* Quote marks */}
+              <span className="font-heading text-6xl text-gold/30 leading-none block mb-2">&ldquo;</span>
+
+              <p className="text-charcoal text-sm md:text-base leading-relaxed italic mb-6">
+                {testimonial.quote}
+              </p>
+
+              {/* Stars */}
+              <div className="flex justify-center gap-1 mb-3">
+                {Array.from({ length: testimonial.rating }).map((_, i) => (
+                  <svg key={i} className="w-4 h-4 text-gold" fill="currentColor" viewBox="0 0 20 20">
+                    <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                  </svg>
+                ))}
+              </div>
+
+              <p className="text-sm font-medium text-charcoal">
+                – {testimonial.author}, {testimonial.location}
+              </p>
+            </div>
+
+            {/* Dots */}
+            <div className="flex justify-center gap-2 mt-8">
+              {TESTIMONIALS.map((_, i) => (
+                <button
+                  key={i}
+                  onClick={() => goTo(i)}
+                  className={cn(
+                    "w-2.5 h-2.5 rounded-full transition-all duration-300",
+                    i === current
+                      ? "bg-gold w-6"
+                      : "bg-charcoal/20 hover:bg-charcoal/40"
+                  )}
+                  aria-label={`Go to testimonial ${i + 1}`}
+                />
+              ))}
+            </div>
+          </div>
+
+          {/* Product Images — 2 cols */}
+          <div className="hidden md:grid md:col-span-2 grid-cols-2 gap-4">
+            <div className="relative aspect-[3/4] rounded-lg overflow-hidden bg-cream">
+              <Image
+                src="/images/products/perfume.png"
+                alt="Ceylon Oud Perfume"
+                fill
+                className="object-cover"
+                sizes="200px"
+              />
+            </div>
+            <div className="relative aspect-[3/4] rounded-lg overflow-hidden bg-cream mt-8">
+              <Image
+                src="/images/products/clove.png"
+                alt="Premium Clove"
+                fill
+                className="object-cover"
+                sizes="200px"
+              />
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}
