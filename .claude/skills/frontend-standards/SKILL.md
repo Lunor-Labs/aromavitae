@@ -90,6 +90,97 @@ export function ProductCard({ product, onSelect }: ProductCardProps) {
 - No logic beyond rendering and calling hooks
 - Extract reusable UI to `components/ui/`
 
+## Modular Component Design
+
+**Core principle:** Every component does one thing and can be understood in isolation.
+
+### Component Hierarchy
+
+```
+components/ui/          ← Primitives: Button, Input, Badge, Modal, Skeleton
+components/features/    ← Composed from primitives: ProductCard, OrderSummary
+app/**/page.tsx         ← Pages: compose feature components, own layout
+```
+
+Build up: primitives → feature components → pages. Never skip levels (pages importing raw HTML instead of using ui/ primitives).
+
+### Single Responsibility
+
+```tsx
+// ❌ Too much — renders, fetches, and handles business logic
+export function ProductPage() {
+  const [products, setProducts] = useState([]);
+  useEffect(() => { fetch('/api/products').then(...) }, []);
+  const handleDiscount = (id) => { /* business logic */ };
+  return <div>...200 lines...</div>;
+}
+
+// ✅ Split by concern
+export function ProductPage() {           // layout only
+  return <main><ProductList /></main>;
+}
+
+export function ProductList() {           // data + list rendering
+  const { products, loading } = useProducts();
+  return products.map(p => <ProductCard key={p.id} product={p} />);
+}
+
+export function ProductCard({ product }) { // single item rendering
+  return <div>...</div>;
+}
+```
+
+### When to Split a Component
+
+Split when any of these are true:
+- Component exceeds ~80 lines of JSX
+- Same UI pattern appears in 2+ places
+- Part of the component has different `loading`/`error` states
+- A section needs its own `use client` boundary
+
+### Presentational vs Container Components
+
+```tsx
+// Presentational — pure rendering, no data fetching, easily testable
+export function PriceTag({ amount, currency = 'USD' }: PriceTagProps) {
+  return <span className="font-mono">{formatPrice(amount, currency)}</span>;
+}
+
+// Container — owns data fetching via hooks, passes data down
+export function ProductPriceWidget({ productId }: { productId: string }) {
+  const { price, loading } = useProductPrice(productId);
+  if (loading) return <Skeleton className="w-20 h-5" />;
+  return <PriceTag amount={price} />;
+}
+```
+
+- Prefer presentational components — they're easier to test and reuse
+- Container components only at feature boundaries, not nested inside other containers
+- Never fetch data inside a presentational component
+
+### Composition over Props Drilling
+
+```tsx
+// ❌ Prop drilling — passing props 3+ levels deep
+<Page user={user}>
+  <Layout user={user}>
+    <Header user={user} />
+  </Layout>
+</Page>
+
+// ✅ Composition — pass components as children/slots
+<Page>
+  <Layout header={<Header />}>
+    <Content />
+  </Layout>
+</Page>
+
+// ✅ Context — for truly global state (auth, theme)
+const { user } = useAuth(); // inside Header, reads from AuthContext
+```
+
+Prop drilling beyond 2 levels is a signal to use composition or context.
+
 ## TypeScript Rules
 
 ```ts
