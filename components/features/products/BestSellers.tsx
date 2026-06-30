@@ -2,65 +2,11 @@ import Link from "next/link";
 import { ProductCard } from "@/components/ui/ProductCard";
 import type { Product } from "@/types/product";
 
-const BEST_SELLERS: Product[] = [
-  {
-    id: "1",
-    name: "Ceylon Cinnamon Premium Quality",
-    price: 1450,
-    currency: "LKR",
-    rating: 5,
-    reviewCount: 128,
-    image: "/images/products/cinnamon.png",
-    badge: "Best Seller",
-    category: "spices",
-  },
-  {
-    id: "2",
-    name: "Clove Whole Premium Quality",
-    price: 1350,
-    currency: "LKR",
-    rating: 4.5,
-    reviewCount: 96,
-    image: "/images/products/clove.png",
-    badge: "Best Seller",
-    category: "spices",
-  },
-  {
-    id: "3",
-    name: "Cardamom Green Premium Quality",
-    price: 1750,
-    currency: "LKR",
-    rating: 5,
-    reviewCount: 123,
-    image: "/images/products/cardamom.png",
-    badge: "Best Seller",
-    category: "spices",
-  },
-  {
-    id: "4",
-    name: "Black Pepper Whole Premium Quality",
-    price: 1750,
-    currency: "LKR",
-    rating: 4.5,
-    reviewCount: 118,
-    image: "/images/products/pepper.png",
-    badge: "Best Seller",
-    category: "spices",
-  },
-  {
-    id: "5",
-    name: "Ceylon Oud Pure Perfume 12ml",
-    price: 9950,
-    currency: "LKR",
-    rating: 5,
-    reviewCount: 87,
-    image: "/images/products/perfume.png",
-    badge: "Best Seller",
-    category: "perfumes",
-  },
-];
+interface Props {
+  products: Product[];
+}
 
-export function BestSellers() {
+export function BestSellers({ products }: Props) {
   return (
     <section className="py-16 md:py-24 bg-cream-dark reveal">
       <div className="max-w-[1400px] mx-auto px-6">
@@ -76,7 +22,7 @@ export function BestSellers() {
 
         {/* Products Grid */}
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 md:gap-6">
-          {BEST_SELLERS.map((product) => (
+          {products.map((product) => (
             <ProductCard key={product.id} product={product} />
           ))}
         </div>

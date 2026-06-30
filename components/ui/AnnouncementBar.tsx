@@ -1,12 +1,11 @@
-export function AnnouncementBar() {
-  const messages = [
-    "Rooted in Tradition. Refined for Today.",
-    "Premium Spices & Sri Lankan Agarwood Perfumes",
-    "Worldwide Shipping",
-    "100% Natural",
-    "Export Quality",
-  ];
+import type { AnnouncementContent } from "@/types/content";
 
+interface Props {
+  content: AnnouncementContent;
+}
+
+export function AnnouncementBar({ content }: Props) {
+  const messages = content.messages;
   const repeated = [...messages, ...messages];
 
   return (

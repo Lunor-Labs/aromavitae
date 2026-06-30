@@ -4,45 +4,16 @@ import { useState, useEffect, useCallback } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
+import type { HeroContent } from "@/types/content";
 
-interface HeroSlide {
-  heading: string;
-  subheading: string;
-  image: string;
-  ctaPrimary: { label: string; href: string };
-  ctaSecondary: { label: string; href: string };
+interface Props {
+  content: HeroContent;
 }
 
-const SLIDES: HeroSlide[] = [
-  {
-    heading: "The True Aroma\nof Ceylon Heritage",
-    subheading:
-      "From the lush lands of Sri Lanka comes nature's finest spices and timeless agarwood perfumes — crafted with passion, purity, and centuries of tradition.",
-    image: "/images/hero/hero-banner.png",
-    ctaPrimary: { label: "EXPLORE COLLECTION", href: "/shop" },
-    ctaSecondary: { label: "SHOP NOW", href: "/shop" },
-  },
-  {
-    heading: "Ceylon's Finest\nSpice Collection",
-    subheading:
-      "Premium cinnamon, cardamom, clove, and black pepper — hand-picked from the spice gardens of Ceylon for unmatched purity and flavour.",
-    image: "/images/hero/hero-banner.png",
-    ctaPrimary: { label: "DISCOVER SPICES", href: "/spices" },
-    ctaSecondary: { label: "VIEW ALL", href: "/shop" },
-  },
-  {
-    heading: "Timeless Agarwood\nPerfumes",
-    subheading:
-      "Experience the mystique of Sri Lankan agarwood — rare, luxurious, and crafted into perfumes that captivate the senses.",
-    image: "/images/hero/hero-banner.png",
-    ctaPrimary: { label: "EXPLORE PERFUMES", href: "/perfumes" },
-    ctaSecondary: { label: "LEARN MORE", href: "/heritage" },
-  },
-];
+export function HeroSection({ content }: Props) {
+  const slides = content.slides;
+  const autoPlayMs = content.autoPlayMs ?? 6000;
 
-const AUTO_PLAY_INTERVAL = 6000;
-
-export function HeroSection() {
   const [current, setCurrent] = useState(0);
   const [isTransitioning, setIsTransitioning] = useState(false);
 
@@ -57,19 +28,21 @@ export function HeroSection() {
   );
 
   const nextSlide = useCallback(() => {
-    goToSlide((current + 1) % SLIDES.length);
-  }, [current, goToSlide]);
+    if (slides.length === 0) return;
+    goToSlide((current + 1) % slides.length);
+  }, [current, goToSlide, slides.length]);
 
   useEffect(() => {
-    const timer = setInterval(nextSlide, AUTO_PLAY_INTERVAL);
+    if (slides.length <= 1) return;
+    const timer = setInterval(nextSlide, autoPlayMs);
     return () => clearInterval(timer);
-  }, [nextSlide]);
+  }, [nextSlide, autoPlayMs, slides.length]);
 
-  const slide = SLIDES[current];
+  if (slides.length === 0) return null;
+  const slide = slides[current];
 
   return (
     <section className="relative w-full h-[500px] md:h-[600px] lg:h-[650px] overflow-hidden">
-      {/* Background Image */}
       <div className="absolute inset-0">
         <Image
           src={slide.image}
@@ -82,13 +55,11 @@ export function HeroSection() {
         <div className="absolute inset-0 bg-gradient-to-r from-warm-white/90 via-warm-white/50 to-transparent" />
       </div>
 
-      {/* Ornamental Corners */}
       <div className="absolute top-4 left-4 w-16 h-16 border-t-2 border-l-2 border-gold/30" />
       <div className="absolute top-4 right-4 w-16 h-16 border-t-2 border-r-2 border-gold/30" />
       <div className="absolute bottom-4 left-4 w-16 h-16 border-b-2 border-l-2 border-gold/30" />
       <div className="absolute bottom-4 right-4 w-16 h-16 border-b-2 border-r-2 border-gold/30" />
 
-      {/* Content */}
       <div className="relative z-10 max-w-[1400px] mx-auto px-6 h-full flex items-center">
         <div
           className={cn(
@@ -102,7 +73,6 @@ export function HeroSection() {
             {slide.heading}
           </h1>
 
-          {/* Gold divider */}
           <div className="my-5 flex items-center gap-3">
             <div className="w-12 h-[1px] bg-gold" />
             <div className="w-2 h-2 bg-gold rotate-45" />
@@ -133,9 +103,8 @@ export function HeroSection() {
         </div>
       </div>
 
-      {/* Dot Pagination */}
       <div className="absolute bottom-8 left-1/2 -translate-x-1/2 flex gap-3 z-20">
-        {SLIDES.map((_, i) => (
+        {slides.map((_, i) => (
           <button
             key={i}
             onClick={() => goToSlide(i)}

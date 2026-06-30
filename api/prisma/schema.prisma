@@ -1,0 +1,61 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+model Product {
+  id          String   @id @default(cuid())
+  name        String
+  price       Int                          // whole units of `currency` (e.g. 1450 LKR)
+  currency    String   @default("LKR")
+  rating      Float
+  reviewCount Int      @map("review_count")
+  image       String
+  badge       String?
+  category    String
+  sortOrder   Int      @default(0) @map("sort_order")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  @@index([category])
+  @@map("products")
+}
+
+model Category {
+  id        String   @id @default(cuid())
+  name      String
+  image     String
+  href      String
+  sortOrder Int      @default(0) @map("sort_order")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("categories")
+}
+
+model Testimonial {
+  id        String   @id @default(cuid())
+  quote     String
+  author    String
+  location  String
+  rating    Int
+  sortOrder Int      @default(0) @map("sort_order")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("testimonials")
+}
+
+// Hero, Story, Navbar, Footer, AnnouncementBar, GiftSetsBanner each stored as one row
+model Singleton {
+  key       String   @id                   // 'hero' | 'story' | 'navbar' | 'footer' | 'announcement' | 'giftSetsBanner'
+  data      Json
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("singletons")
+}

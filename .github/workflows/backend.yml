@@ -1,0 +1,89 @@
+name: Deploy backend (Render)
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "api/**"
+      - ".github/workflows/backend.yml"
+  workflow_dispatch: {}
+
+concurrency:
+  group: deploy-backend
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment: production
+    defaults:
+      run:
+        working-directory: api
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+          cache-dependency-path: api/package-lock.json
+
+      - name: Install + verify
+        run: |
+          npm ci
+          npx prisma validate
+          npm run typecheck
+
+      - name: Sync env vars to Render
+        env:
+          RENDER_API_KEY: ${{ secrets.RENDER_API_KEY }}
+          RENDER_SERVICE_ID: ${{ secrets.RENDER_SERVICE_ID }}
+        run: |
+          jq -n \
+            --arg DATABASE_URL              "${{ secrets.DATABASE_URL }}" \
+            --arg DIRECT_URL                "${{ secrets.DIRECT_URL }}" \
+            --arg SUPABASE_URL              "${{ secrets.SUPABASE_URL }}" \
+            --arg SUPABASE_ANON_KEY         "${{ secrets.SUPABASE_ANON_KEY }}" \
+            --arg SUPABASE_SERVICE_ROLE_KEY "${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}" \
+            --arg SUPABASE_JWT_SECRET       "${{ secrets.SUPABASE_JWT_SECRET }}" \
+            --arg SUPABASE_STORAGE_BUCKET   "${{ vars.SUPABASE_STORAGE_BUCKET }}" \
+            --arg ADMIN_EMAILS              "${{ secrets.ADMIN_EMAILS }}" \
+            --arg FRONTEND_URL              "${{ vars.FRONTEND_URL }}" \
+            --arg GITHUB_REPO               "${{ vars.GITHUB_REPO }}" \
+            --arg GITHUB_PAT                "${{ secrets.GITHUB_PAT }}" \
+            --arg NODE_ENV                  "production" \
+            --arg LOG_LEVEL                 "info" \
+            '[
+              {"key":"DATABASE_URL","value":$DATABASE_URL},
+              {"key":"DIRECT_URL","value":$DIRECT_URL},
+              {"key":"SUPABASE_URL","value":$SUPABASE_URL},
+              {"key":"SUPABASE_ANON_KEY","value":$SUPABASE_ANON_KEY},
+              {"key":"SUPABASE_SERVICE_ROLE_KEY","value":$SUPABASE_SERVICE_ROLE_KEY},
+              {"key":"SUPABASE_JWT_SECRET","value":$SUPABASE_JWT_SECRET},
+              {"key":"SUPABASE_STORAGE_BUCKET","value":$SUPABASE_STORAGE_BUCKET},
+              {"key":"ADMIN_EMAILS","value":$ADMIN_EMAILS},
+              {"key":"FRONTEND_URL","value":$FRONTEND_URL},
+              {"key":"GITHUB_REPO","value":$GITHUB_REPO},
+              {"key":"GITHUB_PAT","value":$GITHUB_PAT},
+              {"key":"NODE_ENV","value":$NODE_ENV},
+              {"key":"LOG_LEVEL","value":$LOG_LEVEL}
+            ]' > envs.json
+
+          curl -fsS -X PUT \
+            -H "Authorization: Bearer ${RENDER_API_KEY}" \
+            -H "Accept: application/json" \
+            -H "Content-Type: application/json" \
+            --data @envs.json \
+            "https://api.render.com/v1/services/${RENDER_SERVICE_ID}/env-vars"
+
+      - name: Trigger deploy
+        env:
+          RENDER_API_KEY: ${{ secrets.RENDER_API_KEY }}
+          RENDER_SERVICE_ID: ${{ secrets.RENDER_SERVICE_ID }}
+        run: |
+          curl -fsS -X POST \
+            -H "Authorization: Bearer ${RENDER_API_KEY}" \
+            -H "Accept: application/json" \
+            -H "Content-Type: application/json" \
+            --data '{"clearCache":"do_not_clear"}' \
+            "https://api.render.com/v1/services/${RENDER_SERVICE_ID}/deploys"
