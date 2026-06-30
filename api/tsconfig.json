@@ -11,6 +11,7 @@
     "rootDir": "src",
     "baseUrl": ".",
     "paths": { "@/*": ["src/*"] },
+    "ignoreDeprecations": "6.0",
     "declaration": false,
     "sourceMap": true
   },
