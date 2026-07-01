@@ -19,7 +19,7 @@ export default function CategoriesPage() {
 
   // eslint-disable-next-line react-hooks/set-state-in-effect
   useEffect(() => { void reload(); }, [reload]);
-
+//comment
   const save = async () => {
     if (!api || !editing) return;
     const { id, ...rest } = editing;
