@@ -1,19 +1,55 @@
-import type { ContentPayload } from "@/types/content";
+import type {
+  ContentPayload,
+  AnnouncementContent,
+  FooterContent,
+  GiftSetsBannerContent,
+  HeroContent,
+  NavbarContent,
+  StoryContent,
+} from "@/types/content";
 
-const API_URL = process.env.API_URL ?? process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:4000";
+const API_URL = process.env.API_URL ?? process.env.NEXT_PUBLIC_API_URL ?? "";
 
 type Envelope<T> = { data: T };
 
+const FALLBACK_CONTENT: ContentPayload = {
+  products: [],
+  categories: [],
+  testimonials: [],
+  singletons: {
+    hero: { slides: [] } as HeroContent,
+    story: {
+      ourStory: { eyebrow: "", heading: "", body: "", ctaLabel: "", ctaHref: "" },
+      heritage: { eyebrow: "", heading: "", body: "", ctaLabel: "", ctaHref: "", badges: [] },
+    } as StoryContent,
+    navbar: { brand: { name: "", tagline: "" }, links: [], cta: { label: "", href: "" } } as NavbarContent,
+    footer: {
+      brand: { name: "", tagline: "", description: "" },
+      columns: [],
+      contact: { phone: "", email: "", location: "" },
+      newsletter: { title: "", body: "" },
+      social: [],
+      payments: [],
+      legal: { copyright: "" },
+    } as FooterContent,
+    announcement: { messages: [] } as AnnouncementContent,
+    giftSetsBanner: { eyebrow: "", heading: "", body: "", image: "", ctaLabel: "", ctaHref: "" } as GiftSetsBannerContent,
+  },
+};
+
 export async function fetchContent(): Promise<ContentPayload> {
-  const res = await fetch(`${API_URL}/api/v1/content`, {
-    next: { revalidate: 60, tags: ["content"] },
-    signal: AbortSignal.timeout(10_000),
-  });
-  if (!res.ok) {
-    throw new Error(`Failed to load content: ${res.status}`);
+  if (!API_URL) return FALLBACK_CONTENT;
+  try {
+    const res = await fetch(`${API_URL}/api/v1/content`, {
+      next: { revalidate: 60, tags: ["content"] },
+      signal: AbortSignal.timeout(10_000),
+    });
+    if (!res.ok) throw new Error(`Failed to load content: ${res.status}`);
+    const json = (await res.json()) as Envelope<ContentPayload>;
+    return json.data;
+  } catch {
+    return FALLBACK_CONTENT;
   }
-  const json = (await res.json()) as Envelope<ContentPayload>;
-  return json.data;
 }
 
 // ---- Admin browser client (signed requests) ----
