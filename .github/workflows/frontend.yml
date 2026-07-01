@@ -1,21 +1,28 @@
-name: Deploy frontend (GitHub Pages)
+name: Deploy Frontend (Vercel)
 
 on:
   push:
-    branches: [main]
+    branches: [main, fb-admin]
     paths-ignore:
       - "api/**"
       - ".github/workflows/backend.yml"
   workflow_dispatch: {}
 
+env:
+  VERCEL_PROJECT_NAME: aromavitae
+
 concurrency:
-  group: deploy-frontend
+  group: deploy-frontend-${{ github.ref_name }}
   cancel-in-progress: false
 
 jobs:
-  build:
+  # ─── Preview deploy (feature branches) ──────────────────────────
+  deploy-preview:
+    if: github.ref_name != 'main'
     runs-on: ubuntu-latest
-    environment: production
+    environment: dev
+    permissions:
+      contents: read
     steps:
       - uses: actions/checkout@v4
 
@@ -28,28 +35,59 @@ jobs:
       - run: npm run lint
       - run: npm run typecheck
 
+      - name: Install Vercel CLI
+        run: npm install --global vercel@latest
+
+      - name: Link Vercel project
+        run: vercel link --yes --project=${{ env.VERCEL_PROJECT_NAME }} --token=${{ secrets.VERCEL_TOKEN }}
+
+      - name: Pull Vercel environment info
+        run: vercel pull --yes --environment=preview --token=${{ secrets.VERCEL_TOKEN }}
+
       - name: Build
         env:
           NEXT_PUBLIC_SUPABASE_URL: ${{ vars.NEXT_PUBLIC_SUPABASE_URL }}
           NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
-          NEXT_PUBLIC_API_URL: ${{ vars.API_URL }}
           API_URL: ${{ vars.API_URL }}
-          BASE_PATH: ${{ vars.BASE_PATH }}
-        run: npm run build
+        run: vercel build --token=${{ secrets.VERCEL_TOKEN }}
 
-      - uses: actions/upload-pages-artifact@v3
-        with:
-          path: out/
+      - name: Deploy (Preview)
+        run: vercel deploy --prebuilt --token=${{ secrets.VERCEL_TOKEN }}
 
-  deploy:
-    needs: build
+  # ─── Production deploy (main only) ──────────────────────────────
+  deploy-prod:
+    if: github.ref_name == 'main'
     runs-on: ubuntu-latest
+    environment: prod
     permissions:
-      pages: write
-      id-token: write
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
+      contents: read
     steps:
-      - uses: actions/deploy-pages@v4
-        id: deployment
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+
+      - run: npm ci
+      - run: npm run lint
+      - run: npm run typecheck
+
+      - name: Install Vercel CLI
+        run: npm install --global vercel@latest
+
+      - name: Link Vercel project
+        run: vercel link --yes --project=${{ env.VERCEL_PROJECT_NAME }} --token=${{ secrets.VERCEL_TOKEN }}
+
+      - name: Pull Vercel environment info
+        run: vercel pull --yes --environment=production --token=${{ secrets.VERCEL_TOKEN }}
+
+      - name: Build
+        env:
+          NEXT_PUBLIC_SUPABASE_URL: ${{ vars.NEXT_PUBLIC_SUPABASE_URL }}
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
+          API_URL: ${{ vars.API_URL }}
+        run: vercel build --prod --token=${{ secrets.VERCEL_TOKEN }}
+
+      - name: Deploy (Production)
+        run: vercel deploy --prebuilt --prod --token=${{ secrets.VERCEL_TOKEN }}
