@@ -7,6 +7,7 @@ type Envelope<T> = { data: T };
 export async function fetchContent(): Promise<ContentPayload> {
   const res = await fetch(`${API_URL}/api/v1/content`, {
     next: { revalidate: 60, tags: ["content"] },
+    signal: AbortSignal.timeout(10_000),
   });
   if (!res.ok) {
     throw new Error(`Failed to load content: ${res.status}`);
