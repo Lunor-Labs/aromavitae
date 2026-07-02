@@ -74,38 +74,40 @@ export default function ProductsPage() {
       </div>
 
       {loading ? <p>Loading…</p> : (
-        <table className="w-full bg-white border border-slate-200 rounded-lg overflow-hidden text-sm">
-          <thead className="bg-slate-50 text-slate-600 text-xs uppercase tracking-wider">
-            <tr>
-              <th className="text-left p-3">Image</th>
-              <th className="text-left p-3">Name</th>
-              <th className="text-left p-3">Category</th>
-              <th className="text-right p-3">Price</th>
-              <th className="text-right p-3">Order</th>
-              <th className="p-3" />
-            </tr>
-          </thead>
-          <tbody>
-            {items.map((p) => (
-              <tr key={p.id} className="border-t border-slate-100">
-                <td className="p-3">
-                  {p.image ? (
-                    // eslint-disable-next-line @next/next/no-img-element
-                    <img src={p.image} alt="" className="w-10 h-10 object-cover rounded" />
-                  ) : null}
-                </td>
-                <td className="p-3">{p.name}</td>
-                <td className="p-3 text-slate-600">{p.category}</td>
-                <td className="p-3 text-right">{p.currency} {p.price.toLocaleString()}</td>
-                <td className="p-3 text-right text-slate-500">{(p as Product & { sortOrder?: number }).sortOrder ?? 0}</td>
-                <td className="p-3 text-right">
-                  <button onClick={() => setEditing(p)} className="text-forest text-xs mr-3">Edit</button>
-                  <button onClick={() => remove(p.id)} className="text-red-600 text-xs">Delete</button>
-                </td>
+        <div className="overflow-x-auto rounded-lg border border-slate-200">
+          <table className="w-full bg-white text-sm">
+            <thead className="bg-slate-50 text-slate-600 text-xs uppercase tracking-wider">
+              <tr>
+                <th className="text-left p-3">Image</th>
+                <th className="text-left p-3">Name</th>
+                <th className="text-left p-3 hidden sm:table-cell">Category</th>
+                <th className="text-right p-3">Price</th>
+                <th className="text-right p-3 hidden md:table-cell">Order</th>
+                <th className="p-3" />
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {items.map((p) => (
+                <tr key={p.id} className="border-t border-slate-100">
+                  <td className="p-3">
+                    {p.image ? (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img src={p.image} alt="" className="w-10 h-10 object-cover rounded" />
+                    ) : null}
+                  </td>
+                  <td className="p-3 max-w-[120px] truncate">{p.name}</td>
+                  <td className="p-3 text-slate-600 hidden sm:table-cell">{p.category}</td>
+                  <td className="p-3 text-right whitespace-nowrap">{p.currency} {p.price.toLocaleString()}</td>
+                  <td className="p-3 text-right text-slate-500 hidden md:table-cell">{(p as Product & { sortOrder?: number }).sortOrder ?? 0}</td>
+                  <td className="p-3 text-right whitespace-nowrap">
+                    <button onClick={() => setEditing(p)} className="text-forest text-xs mr-3">Edit</button>
+                    <button onClick={() => remove(p.id)} className="text-red-600 text-xs">Delete</button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       )}
 
       {editing && (
