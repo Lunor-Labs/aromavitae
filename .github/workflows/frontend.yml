@@ -49,6 +49,7 @@ jobs:
           NEXT_PUBLIC_SUPABASE_URL: ${{ vars.NEXT_PUBLIC_SUPABASE_URL }}
           NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
           API_URL: ${{ vars.API_URL }}
+          NEXT_PUBLIC_API_URL: ${{ vars.API_URL }}
         run: vercel build --token=${{ secrets.VERCEL_TOKEN }}
 
       - name: Deploy (Preview)
@@ -87,6 +88,7 @@ jobs:
           NEXT_PUBLIC_SUPABASE_URL: ${{ vars.NEXT_PUBLIC_SUPABASE_URL }}
           NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
           API_URL: ${{ vars.API_URL }}
+          NEXT_PUBLIC_API_URL: ${{ vars.API_URL }}
         run: vercel build --prod --token=${{ secrets.VERCEL_TOKEN }}
 
       - name: Deploy (Production)

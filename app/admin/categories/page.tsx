@@ -11,15 +11,22 @@ export default function CategoriesPage() {
   const { api } = useAdminApi();
   const [items, setItems] = useState<Category[]>([]);
   const [editing, setEditing] = useState<Partial<Category> | null>(null);
+  const [loading, setLoading] = useState(true);
 
   const reload = useCallback(async () => {
     if (!api) return;
-    setItems(await api.get<Category[]>("/categories"));
+    setLoading(true);
+    try {
+      setItems(await api.get<Category[]>("/categories"));
+    } catch {
+      // API error — table stays empty
+    } finally {
+      setLoading(false);
+    }
   }, [api]);
 
   // eslint-disable-next-line react-hooks/set-state-in-effect
   useEffect(() => { void reload(); }, [reload]);
-//comment
   const save = async () => {
     if (!api || !editing) return;
     const { id, ...rest } = editing;
@@ -44,6 +51,7 @@ export default function CategoriesPage() {
         <button onClick={() => setEditing({ ...empty })} className="px-4 py-2 bg-forest text-white text-sm rounded">+ New</button>
       </div>
 
+      {loading ? <p>Loading…</p> : (
       <table className="w-full bg-white border border-slate-200 rounded-lg text-sm">
         <thead className="bg-slate-50 text-xs uppercase text-slate-600">
           <tr>
@@ -70,6 +78,7 @@ export default function CategoriesPage() {
           ))}
         </tbody>
       </table>
+      )}
 
       {editing && (
         <div className="fixed inset-0 bg-black/40 flex items-center justify-center p-4 z-50">

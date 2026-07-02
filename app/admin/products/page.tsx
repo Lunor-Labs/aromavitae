@@ -25,9 +25,14 @@ export default function ProductsPage() {
   const reload = useCallback(async () => {
     if (!api) return;
     setLoading(true);
-    const data = await api.get<Product[]>("/products");
-    setItems(data);
-    setLoading(false);
+    try {
+      const data = await api.get<Product[]>("/products");
+      setItems(data);
+    } catch {
+      // API error — table stays empty
+    } finally {
+      setLoading(false);
+    }
   }, [api]);
 
   useEffect(() => {

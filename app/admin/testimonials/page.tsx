@@ -10,10 +10,18 @@ export default function TestimonialsPage() {
   const { api } = useAdminApi();
   const [items, setItems] = useState<Testimonial[]>([]);
   const [editing, setEditing] = useState<Partial<Testimonial> | null>(null);
+  const [loading, setLoading] = useState(true);
 
   const reload = useCallback(async () => {
     if (!api) return;
-    setItems(await api.get<Testimonial[]>("/testimonials"));
+    setLoading(true);
+    try {
+      setItems(await api.get<Testimonial[]>("/testimonials"));
+    } catch {
+      // API error — stays empty
+    } finally {
+      setLoading(false);
+    }
   }, [api]);
 
   // eslint-disable-next-line react-hooks/set-state-in-effect
@@ -43,6 +51,7 @@ export default function TestimonialsPage() {
         <button onClick={() => setEditing({ ...empty })} className="px-4 py-2 bg-forest text-white text-sm rounded">+ New</button>
       </div>
 
+      {loading ? <p>Loading…</p> : (
       <div className="space-y-3">
         {items.map((t) => (
           <div key={t.id} className="bg-white border border-slate-200 rounded-lg p-4 flex justify-between items-start gap-4">
@@ -57,6 +66,7 @@ export default function TestimonialsPage() {
           </div>
         ))}
       </div>
+      )}
 
       {editing && (
         <div className="fixed inset-0 bg-black/40 flex items-center justify-center p-4 z-50">
