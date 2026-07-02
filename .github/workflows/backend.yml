@@ -2,7 +2,7 @@ name: Deploy backend (Render)
 
 on:
   push:
-    branches: [main]
+    branches: [main, fb-admin]
     paths:
       - "api/**"
       - ".github/workflows/backend.yml"

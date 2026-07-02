@@ -18,10 +18,20 @@ import { uploadsRouter } from '@/routes/uploads';
 export const app = express();
 
 app.disable('x-powered-by');
+// Render terminates TLS at its proxy; needed for express-rate-limit to read the real client IP
+app.set('trust proxy', 1);
 app.use(helmet());
+
+const allowedOrigins = [env.FRONTEND_URL, 'http://localhost:3000'];
+const vercelPreviewPattern = /^https:\/\/[a-z0-9-]+\.vercel\.app$/;
+
 app.use(
   cors({
-    origin: env.FRONTEND_URL,
+    origin(origin, callback) {
+      const allowed =
+        !origin || allowedOrigins.includes(origin) || vercelPreviewPattern.test(origin);
+      callback(null, allowed);
+    },
     credentials: true,
   })
 );
