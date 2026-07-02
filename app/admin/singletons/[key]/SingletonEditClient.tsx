@@ -183,7 +183,7 @@ function GiftSetsBannerEditor({ value, onChange, api }: { value: GiftSetsBannerC
       <Field label="Heading" value={v.heading ?? ""} onChange={(val) => set({ heading: val })} />
       <TextareaField label="Body" value={v.body ?? ""} onChange={(val) => set({ body: val })} />
       <ImageUploader api={api} value={v.image ?? ""} onChange={(url) => set({ image: url })} label="Image" />
-      <div className="grid grid-cols-2 gap-3">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
         <Field label="CTA Label" value={v.ctaLabel ?? ""} onChange={(val) => set({ ctaLabel: val })} />
         <Field label="CTA Link (href)" value={v.ctaHref ?? ""} onChange={(val) => set({ ctaHref: val })} />
       </div>
@@ -238,7 +238,7 @@ function HeroEditor({ value, onChange, api }: { value: HeroContent; onChange: (v
                 value={slide.image}
                 onChange={(url) => { const next = [...slides]; next[i] = { ...slide, image: url }; setSlides(next); }}
               />
-              <div className="grid grid-cols-2 gap-4 pt-1">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-1">
                 <div className="space-y-2">
                   <p className="text-xs font-medium text-slate-500 uppercase tracking-wider">Primary CTA</p>
                   <Field
@@ -284,7 +284,7 @@ function StoryPanelSection({ label, value, onChange }: { label: string; value: S
       <Field label="Eyebrow" value={value?.eyebrow ?? ""} onChange={(val) => onChange({ ...value, eyebrow: val })} />
       <Field label="Heading" value={value?.heading ?? ""} onChange={(val) => onChange({ ...value, heading: val })} />
       <TextareaField label="Body" value={value?.body ?? ""} onChange={(val) => onChange({ ...value, body: val })} />
-      <div className="grid grid-cols-2 gap-3">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
         <Field label="CTA Label" value={value?.ctaLabel ?? ""} onChange={(val) => onChange({ ...value, ctaLabel: val })} />
         <Field label="CTA Link (href)" value={value?.ctaHref ?? ""} onChange={(val) => onChange({ ...value, ctaHref: val })} />
       </div>
@@ -309,7 +309,7 @@ function StoryEditor({ value, onChange }: { value: StoryContent; onChange: (v: u
         <Field label="Eyebrow" value={heritage.eyebrow ?? ""} onChange={(val) => onChange({ ...v, heritage: { ...heritage, eyebrow: val } })} />
         <Field label="Heading" value={heritage.heading ?? ""} onChange={(val) => onChange({ ...v, heritage: { ...heritage, heading: val } })} />
         <TextareaField label="Body" value={heritage.body ?? ""} onChange={(val) => onChange({ ...v, heritage: { ...heritage, body: val } })} />
-        <div className="grid grid-cols-2 gap-3">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <Field label="CTA Label" value={heritage.ctaLabel ?? ""} onChange={(val) => onChange({ ...v, heritage: { ...heritage, ctaLabel: val } })} />
           <Field label="CTA Link (href)" value={heritage.ctaHref ?? ""} onChange={(val) => onChange({ ...v, heritage: { ...heritage, ctaHref: val } })} />
         </div>
@@ -319,7 +319,7 @@ function StoryEditor({ value, onChange }: { value: StoryContent; onChange: (v: u
           <div className="space-y-2">
             {(heritage.badges ?? []).map((badge, i) => (
               <div key={i} className="flex gap-2 items-end">
-                <div className="flex-1 grid grid-cols-2 gap-2">
+                <div className="flex-1 grid grid-cols-1 sm:grid-cols-2 gap-2">
                   <div>
                     <label className="block text-xs font-medium text-slate-600 mb-1">Icon</label>
                     <select
@@ -373,7 +373,7 @@ function NavbarEditor({ value, onChange }: { value: NavbarContent; onChange: (v:
     <div className="space-y-6">
       <div className="border border-slate-200 rounded-lg p-4 space-y-3">
         <p className="text-sm font-medium text-slate-700">Brand</p>
-        <div className="grid grid-cols-2 gap-3">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <Field label="Name" value={v.brand?.name ?? ""} onChange={(val) => onChange({ ...v, brand: { ...v.brand, name: val } })} />
           <Field label="Tagline" value={v.brand?.tagline ?? ""} onChange={(val) => onChange({ ...v, brand: { ...v.brand, tagline: val } })} />
         </div>
@@ -395,7 +395,7 @@ function NavbarEditor({ value, onChange }: { value: NavbarContent; onChange: (v:
                   <span className="text-xs font-medium text-slate-500">Link {i + 1}</span>
                   <RemoveButton onClick={() => onChange({ ...v, links: links.filter((_, j) => j !== i) })} />
                 </div>
-                <div className="grid grid-cols-2 gap-2">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                   <Field label="Label" value={link.label} onChange={(val) => updateLink({ label: val })} />
                   <Field label="Href" value={link.href} onChange={(val) => updateLink({ href: val })} />
                 </div>
@@ -405,7 +405,7 @@ function NavbarEditor({ value, onChange }: { value: NavbarContent; onChange: (v:
                     <p className="text-xs text-slate-400 font-medium">Dropdown items</p>
                     {link.children.map((child, ci) => (
                       <div key={ci} className="flex gap-2 items-end">
-                        <div className="flex-1 grid grid-cols-2 gap-2">
+                        <div className="flex-1 grid grid-cols-1 sm:grid-cols-2 gap-2">
                           <Field label="Label" value={child.label} onChange={(val) => {
                             const children = [...(link.children ?? [])];
                             children[ci] = { ...child, label: val };
@@ -446,7 +446,7 @@ function NavbarEditor({ value, onChange }: { value: NavbarContent; onChange: (v:
 
       <div className="border border-slate-200 rounded-lg p-4 space-y-3">
         <p className="text-sm font-medium text-slate-700">CTA Button</p>
-        <div className="grid grid-cols-2 gap-3">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <Field label="Label" value={v.cta?.label ?? ""} onChange={(val) => onChange({ ...v, cta: { ...v.cta, label: val } })} />
           <Field label="Href" value={v.cta?.href ?? ""} onChange={(val) => onChange({ ...v, cta: { ...v.cta, href: val } })} />
         </div>
@@ -488,7 +488,7 @@ function FooterEditor({ value, onChange }: { value: FooterContent; onChange: (v:
               <div className="space-y-2">
                 {col.links.map((link, li) => (
                   <div key={li} className="flex gap-2 items-end">
-                    <div className="flex-1 grid grid-cols-2 gap-2">
+                    <div className="flex-1 grid grid-cols-1 sm:grid-cols-2 gap-2">
                       <Field label="Label" value={link.label} onChange={(val) => {
                         const next = [...columns];
                         const links = [...col.links]; links[li] = { ...link, label: val };
@@ -542,7 +542,7 @@ function FooterEditor({ value, onChange }: { value: FooterContent; onChange: (v:
         <div className="space-y-2">
           {social.map((s, i) => (
             <div key={i} className="flex gap-2 items-end">
-              <div className="flex-1 grid grid-cols-2 gap-2">
+              <div className="flex-1 grid grid-cols-1 sm:grid-cols-2 gap-2">
                 <Field label="Label" value={s.label} onChange={(val) => {
                   const next = [...social]; next[i] = { ...s, label: val }; onChange({ ...v, social: next });
                 }} />

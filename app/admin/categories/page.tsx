@@ -52,32 +52,34 @@ export default function CategoriesPage() {
       </div>
 
       {loading ? <p>Loading…</p> : (
-      <table className="w-full bg-white border border-slate-200 rounded-lg text-sm">
-        <thead className="bg-slate-50 text-xs uppercase text-slate-600">
-          <tr>
-            <th className="text-left p-3">Image</th>
-            <th className="text-left p-3">Name</th>
-            <th className="text-left p-3">Link</th>
-            <th className="p-3" />
-          </tr>
-        </thead>
-        <tbody>
-          {items.map((c) => (
-            <tr key={c.id} className="border-t border-slate-100">
-              <td className="p-3">
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={c.image} alt="" className="w-10 h-10 object-cover rounded" />
-              </td>
-              <td className="p-3">{c.name}</td>
-              <td className="p-3 text-slate-600">{c.href}</td>
-              <td className="p-3 text-right">
-                <button onClick={() => setEditing(c)} className="text-forest text-xs mr-3">Edit</button>
-                <button onClick={() => remove(c.id)} className="text-red-600 text-xs">Delete</button>
-              </td>
+      <div className="overflow-x-auto rounded-lg border border-slate-200">
+        <table className="w-full bg-white text-sm">
+          <thead className="bg-slate-50 text-xs uppercase text-slate-600">
+            <tr>
+              <th className="text-left p-3">Image</th>
+              <th className="text-left p-3">Name</th>
+              <th className="text-left p-3 hidden sm:table-cell">Link</th>
+              <th className="p-3" />
             </tr>
-          ))}
-        </tbody>
-      </table>
+          </thead>
+          <tbody>
+            {items.map((c) => (
+              <tr key={c.id} className="border-t border-slate-100">
+                <td className="p-3">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img src={c.image} alt="" className="w-10 h-10 object-cover rounded" />
+                </td>
+                <td className="p-3">{c.name}</td>
+                <td className="p-3 text-slate-600 hidden sm:table-cell max-w-[180px] truncate">{c.href}</td>
+                <td className="p-3 text-right whitespace-nowrap">
+                  <button onClick={() => setEditing(c)} className="text-forest text-xs mr-3">Edit</button>
+                  <button onClick={() => remove(c.id)} className="text-red-600 text-xs">Delete</button>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
       )}
 
       {editing && (
