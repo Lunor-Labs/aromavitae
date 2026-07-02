@@ -29,6 +29,10 @@ jobs:
           cache-dependency-path: api/package-lock.json
 
       - name: Install + verify
+        env:
+          # Dummy values — prisma validate only resolves env() refs, it never connects
+          DATABASE_URL: postgresql://user:pass@localhost:5432/db
+          DIRECT_URL: postgresql://user:pass@localhost:5432/db
         run: |
           npm install
           npx prisma validate
