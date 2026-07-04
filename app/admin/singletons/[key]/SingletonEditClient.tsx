@@ -12,7 +12,6 @@ import type {
   FooterContent,
   AnnouncementContent,
   GiftSetsBannerContent,
-  CtaLink,
 } from "@/types/content";
 
 const TITLES: Record<string, string> = {

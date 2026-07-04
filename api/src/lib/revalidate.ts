@@ -1,7 +1,7 @@
 import { env } from '@/config/env';
 import { logger } from '@/lib/logger';
 
-export async function revalidateFrontend(_paths: string[] = ['/']): Promise<void> {
+export async function revalidateFrontend(): Promise<void> {
   if (!env.GITHUB_PAT || !env.GITHUB_REPO) {
     logger.debug('GITHUB_PAT/GITHUB_REPO not set — skipping rebuild trigger');
     return;
