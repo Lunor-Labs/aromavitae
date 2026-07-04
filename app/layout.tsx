@@ -2,6 +2,10 @@ import type { Metadata } from "next";
 import { Playfair_Display, Ubuntu } from "next/font/google";
 import "./globals.css";
 
+import { AnnouncementBar } from "@/components/ui/AnnouncementBar";
+import { Navbar } from "@/components/features/navbar/Navbar";
+import { Footer } from "@/components/features/footer/Footer";
+
 const playfair = Playfair_Display({
   variable: "--font-playfair",
   subsets: ["latin"],
@@ -53,7 +57,12 @@ export default function RootLayout({
       lang="en"
       className={`${playfair.variable} ${ubuntu.variable} h-full`}
     >
-      <body className="min-h-full flex flex-col antialiased">{children}</body>
+      <body className="min-h-full flex flex-col antialiased">
+        <AnnouncementBar />
+        <Navbar />
+        <main className="flex-1">{children}</main>
+        <Footer />
+      </body>
     </html>
   );
 }
