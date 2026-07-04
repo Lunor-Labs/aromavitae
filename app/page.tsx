@@ -6,8 +6,12 @@ import { TrustBadges } from "@/components/ui/TrustBadges";
 import { GiftSetsBanner } from "@/components/features/gifts/GiftSetsBanner";
 import { Testimonials } from "@/components/features/testimonials/Testimonials";
 import { ScrollRevealWrapper } from "@/components/ui/ScrollRevealWrapper";
+import { fetchContent } from "@/lib/api";
 
-export default function HomePage() {
+export default async function HomePage() {
+  const content = await fetchContent();
+  const { products, categories, testimonials, singletons } = content;
+
   return (
     <>
       <HeroSection />

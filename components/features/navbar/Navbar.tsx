@@ -43,10 +43,10 @@ export function Navbar() {
         <Link href="/" className="flex items-center gap-3 shrink-0">
           <div className="flex flex-col">
             <span className="font-heading text-2xl font-bold text-forest tracking-wide">
-              AROMAVITAE
+              {brand.name}
             </span>
             <span className="text-[10px] text-muted tracking-[0.2em] -mt-1">
-              Nature&apos;s Finest. Ceylon&apos;s Pride.
+              {brand.tagline}
             </span>
           </div>
         </Link>

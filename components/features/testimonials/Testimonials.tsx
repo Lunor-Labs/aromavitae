@@ -5,44 +5,13 @@ import Image from "next/image";
 import { cn } from "@/lib/utils";
 import type { Testimonial } from "@/types/product";
 
-const TESTIMONIALS: Testimonial[] = [
-  {
-    id: "1",
-    quote:
-      "The quality is unmatched. The aroma, the packaging, the taste—everything speaks premium. Aromavitae brings the true essence of Sri Lanka to the world.",
-    author: "Sarah M.",
-    location: "Australia",
-    rating: 5,
-  },
-  {
-    id: "2",
-    quote:
-      "I've tried many cinnamon brands but nothing comes close to AromaVitae's Ceylon Cinnamon. The fragrance alone tells you it's the real deal. Absolutely love it!",
-    author: "James R.",
-    location: "United Kingdom",
-    rating: 5,
-  },
-  {
-    id: "3",
-    quote:
-      "The Ceylon Oud perfume is divine. It's subtle, long-lasting, and truly unique. I get compliments every time I wear it. A hidden gem from Sri Lanka!",
-    author: "Amira K.",
-    location: "UAE",
-    rating: 5,
-  },
-  {
-    id: "4",
-    quote:
-      "Ordered the gift set for my mother and she was absolutely thrilled. The presentation is gorgeous and the quality of spices is outstanding. Will order again!",
-    author: "David L.",
-    location: "Canada",
-    rating: 5,
-  },
-];
+interface Props {
+  testimonials: Testimonial[];
+}
 
 const AUTO_PLAY_INTERVAL = 5000;
 
-export function Testimonials() {
+export function Testimonials({ testimonials }: Props) {
   const [current, setCurrent] = useState(0);
   const [isTransitioning, setIsTransitioning] = useState(false);
 
@@ -57,32 +26,33 @@ export function Testimonials() {
   );
 
   const next = useCallback(() => {
-    goTo((current + 1) % TESTIMONIALS.length);
-  }, [current, goTo]);
+    if (testimonials.length === 0) return;
+    goTo((current + 1) % testimonials.length);
+  }, [current, goTo, testimonials.length]);
 
   const prev = useCallback(() => {
-    goTo((current - 1 + TESTIMONIALS.length) % TESTIMONIALS.length);
-  }, [current, goTo]);
+    if (testimonials.length === 0) return;
+    goTo((current - 1 + testimonials.length) % testimonials.length);
+  }, [current, goTo, testimonials.length]);
 
   useEffect(() => {
+    if (testimonials.length <= 1) return;
     const timer = setInterval(next, AUTO_PLAY_INTERVAL);
     return () => clearInterval(timer);
-  }, [next]);
+  }, [next, testimonials.length]);
 
-  const testimonial = TESTIMONIALS[current];
+  if (testimonials.length === 0) return null;
+  const testimonial = testimonials[current];
 
   return (
     <section className="py-16 md:py-24 bg-warm-white reveal">
       <div className="max-w-[1400px] mx-auto px-6">
-        {/* Section Heading */}
         <h2 className="font-heading text-3xl md:text-4xl font-bold text-charcoal text-center mb-12">
           Loved by Customers Worldwide
         </h2>
 
         <div className="grid md:grid-cols-5 gap-8 items-center">
-          {/* Testimonial Content — 3 cols */}
           <div className="md:col-span-3 relative">
-            {/* Navigation Arrows */}
             <button
               onClick={prev}
               className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-4 md:-translate-x-8
@@ -108,21 +78,18 @@ export function Testimonials() {
               </svg>
             </button>
 
-            {/* Testimonial Card */}
             <div
               className={cn(
                 "text-center px-12 md:px-16 transition-all duration-500",
                 isTransitioning ? "opacity-0 translate-y-2" : "opacity-100 translate-y-0"
               )}
             >
-              {/* Quote marks */}
               <span className="font-heading text-6xl text-gold/30 leading-none block mb-2">&ldquo;</span>
 
               <p className="text-charcoal text-sm md:text-base leading-relaxed italic mb-6">
                 {testimonial.quote}
               </p>
 
-              {/* Stars */}
               <div className="flex justify-center gap-1 mb-3">
                 {Array.from({ length: testimonial.rating }).map((_, i) => (
                   <svg key={i} className="w-4 h-4 text-gold" fill="currentColor" viewBox="0 0 20 20">
@@ -136,9 +103,8 @@ export function Testimonials() {
               </p>
             </div>
 
-            {/* Dots */}
             <div className="flex justify-center gap-2 mt-8">
-              {TESTIMONIALS.map((_, i) => (
+              {testimonials.map((_, i) => (
                 <button
                   key={i}
                   onClick={() => goTo(i)}
@@ -154,7 +120,6 @@ export function Testimonials() {
             </div>
           </div>
 
-          {/* Product Images — 2 cols */}
           <div className="hidden md:grid md:col-span-2 grid-cols-2 gap-4">
             <div className="relative aspect-[3/4] rounded-lg overflow-hidden bg-cream">
               <Image

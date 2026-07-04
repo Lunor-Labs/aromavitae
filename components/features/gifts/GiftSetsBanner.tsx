@@ -1,15 +1,20 @@
 import Image from "next/image";
 import Link from "next/link";
+import type { GiftSetsBannerContent } from "@/types/content";
 
-export function GiftSetsBanner() {
+interface Props {
+  content: GiftSetsBannerContent;
+}
+
+export function GiftSetsBanner({ content }: Props) {
   return (
     <section className="reveal">
       <div className="grid md:grid-cols-2">
         {/* Left — Image */}
         <div className="relative h-[300px] md:h-[400px] bg-cream overflow-hidden">
           <Image
-            src="/images/products/cardamom.png"
-            alt="Premium gift set with spice jars and cinnamon"
+            src={content.image}
+            alt={content.heading}
             fill
             className="object-cover"
             sizes="(max-width: 768px) 100vw, 50vw"
@@ -18,7 +23,6 @@ export function GiftSetsBanner() {
 
         {/* Right — CTA Panel */}
         <div className="relative bg-forest p-10 md:p-16 flex flex-col justify-center overflow-hidden">
-          {/* Decorative geometric pattern */}
           <div className="absolute inset-0 opacity-[0.07]">
             <svg className="w-full h-full" viewBox="0 0 400 400" fill="none">
               <pattern id="geo" x="0" y="0" width="40" height="40" patternUnits="userSpaceOnUse">
@@ -32,21 +36,20 @@ export function GiftSetsBanner() {
 
           <div className="relative z-10">
             <span className="text-gold text-xs tracking-[0.3em] uppercase font-medium mb-3 block">
-              THE PERFECT GIFT OF NATURE
+              {content.eyebrow}
             </span>
             <h2 className="font-heading text-3xl md:text-4xl font-bold text-warm-white leading-tight mb-4">
-              Premium Gift Sets
+              {content.heading}
             </h2>
             <p className="text-warm-white/70 text-sm leading-relaxed mb-8 max-w-md">
-              Elegantly curated gift sets featuring our finest spices and
-              agarwood perfumes.
+              {content.body}
             </p>
             <Link
-              href="/gift-sets"
+              href={content.ctaHref}
               className="inline-flex px-7 py-3 border border-gold text-gold text-xs font-medium
                          tracking-[0.2em] hover:bg-gold hover:text-forest transition-all duration-300"
             >
-              EXPLORE GIFT SETS
+              {content.ctaLabel}
             </Link>
           </div>
         </div>

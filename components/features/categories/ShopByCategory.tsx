@@ -2,15 +2,11 @@ import Image from "next/image";
 import Link from "next/link";
 import type { Category } from "@/types/product";
 
-const CATEGORIES: Category[] = [
-  { id: "1", name: "CINNAMON", image: "/images/products/cinnamon.png", href: "/shop/cinnamon" },
-  { id: "2", name: "CLOVE", image: "/images/products/clove.png", href: "/shop/clove" },
-  { id: "3", name: "CARDAMOM", image: "/images/products/cardamom.png", href: "/shop/cardamom" },
-  { id: "4", name: "BLACK PEPPER", image: "/images/products/pepper.png", href: "/shop/black-pepper" },
-  { id: "5", name: "AGARWOOD PERFUME", image: "/images/products/perfume.png", href: "/shop/perfumes" },
-];
+interface Props {
+  categories: Category[];
+}
 
-export function ShopByCategory() {
+export function ShopByCategory({ categories }: Props) {
   return (
     <section className="py-16 md:py-24 bg-warm-white reveal">
       <div className="max-w-[1400px] mx-auto px-6">
@@ -34,7 +30,7 @@ export function ShopByCategory() {
 
           {/* Right — Category Cards (horizontal scroll) */}
           <div className="flex gap-5 overflow-x-auto pb-4 -mx-6 px-6 md:mx-0 md:px-0 snap-x snap-mandatory scrollbar-hide">
-            {CATEGORIES.map((cat) => (
+            {categories.map((cat) => (
               <Link
                 key={cat.id}
                 href={cat.href}
