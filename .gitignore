@@ -39,3 +39,11 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# api sub-project
+api/node_modules
+api/dist
+api/.env
+
+# ai tooling
+.claude
