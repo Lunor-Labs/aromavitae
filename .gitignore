@@ -40,6 +40,8 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 
+.vercel
+
 # api sub-project
 api/node_modules
 api/dist

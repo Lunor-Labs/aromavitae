@@ -67,7 +67,7 @@ const SOCIAL_LINKS = [
   },
 ];
 
-export function Footer() {
+export function Footer({ content }: Props) {
   const [email, setEmail] = useState("");
 
   const handleSubscribe = (e: React.FormEvent) => {
@@ -83,18 +83,17 @@ export function Footer() {
           <div className="lg:col-span-1">
             <Link href="/" className="block mb-4">
               <span className="font-heading text-xl font-bold text-warm-white tracking-wide">
-                AROMAVITAE
+                {content.brand.name}
               </span>
               <span className="block text-[9px] text-gold tracking-[0.2em] -mt-0.5">
-                Nature&apos;s Finest. Ceylon&apos;s Pride.
+                {content.brand.tagline}
               </span>
             </Link>
             <p className="text-xs leading-relaxed text-warm-white/60 mb-6">
-              Premium spices and Sri Lankan agarwood perfumes, crafted with
-              tradition, purity, and passion.
+              {content.brand.description}
             </p>
             <div className="flex gap-3">
-              {SOCIAL_LINKS.map((social) => (
+              {content.social.map((social) => (
                 <a
                   key={social.label}
                   href={social.href}
@@ -102,7 +101,7 @@ export function Footer() {
                              text-warm-white/60 hover:text-gold hover:border-gold transition-all duration-200"
                   aria-label={social.label}
                 >
-                  {social.icon}
+                  {SOCIAL_ICONS[social.label] ?? null}
                 </a>
               ))}
             </div>
@@ -199,10 +198,10 @@ export function Footer() {
           {/* Newsletter + Payments */}
           <div>
             <h3 className="text-xs font-bold text-warm-white tracking-[0.2em] mb-4">
-              STAY CONNECTED
+              {content.newsletter.title}
             </h3>
             <p className="text-xs text-warm-white/60 mb-4 leading-relaxed">
-              Subscribe for exclusive offers, new arrivals &amp; stories.
+              {content.newsletter.body}
             </p>
             <form onSubmit={handleSubscribe} className="flex mb-6">
               <input
@@ -236,15 +235,24 @@ export function Footer() {
                 </div>
               ))}
             </div>
+
+            {/* Contact */}
+            <div className="mt-6 space-y-2">
+              <h3 className="text-xs font-bold text-warm-white tracking-[0.2em] mb-3">
+                CONTACT
+              </h3>
+              <div className="text-xs text-warm-white/60">{content.contact.phone}</div>
+              <div className="text-xs text-warm-white/60">{content.contact.email}</div>
+              <div className="text-xs text-warm-white/60">{content.contact.location}</div>
+            </div>
           </div>
         </div>
       </div>
 
-      {/* Bottom Bar */}
       <div className="border-t border-warm-white/10">
         <div className="max-w-[1400px] mx-auto px-6 py-4">
           <p className="text-center text-[11px] text-warm-white/40">
-            © 2025 Aromavitae (Pvt) Ltd. All Rights Reserved.
+            {content.legal.copyright}
           </p>
         </div>
       </div>
