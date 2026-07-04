@@ -2,6 +2,11 @@
 
 import Link from "next/link";
 import { useState } from "react";
+import type { FooterContent } from "@/types/content";
+
+interface Props {
+  content: FooterContent;
+}
 
 const QUICK_LINKS = [
   { label: "Products", href: "/products" },
@@ -29,6 +34,7 @@ const FOOTER_LINKS = {
 };
 
 const SOCIAL_LINKS = [
+  // NOTE: also used to build SOCIAL_ICONS lookup below
   {
     label: "Facebook",
     href: "#",
@@ -66,6 +72,10 @@ const SOCIAL_LINKS = [
     ),
   },
 ];
+
+const SOCIAL_ICONS: Record<string, React.ReactNode> = Object.fromEntries(
+  SOCIAL_LINKS.map((s) => [s.label, s.icon])
+);
 
 export function Footer({ content }: Props) {
   const [email, setEmail] = useState("");

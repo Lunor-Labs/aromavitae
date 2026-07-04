@@ -5,6 +5,7 @@ import "./globals.css";
 import { AnnouncementBar } from "@/components/ui/AnnouncementBar";
 import { Navbar } from "@/components/features/navbar/Navbar";
 import { Footer } from "@/components/features/footer/Footer";
+import { fetchContent } from "@/lib/api";
 
 const playfair = Playfair_Display({
   variable: "--font-playfair",
@@ -47,21 +48,24 @@ export const metadata: Metadata = {
   robots: { index: true, follow: true },
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const content = await fetchContent();
+  const { singletons } = content;
+
   return (
     <html
       lang="en"
       className={`${playfair.variable} ${ubuntu.variable} h-full`}
     >
       <body className="min-h-full flex flex-col antialiased">
-        <AnnouncementBar />
+        <AnnouncementBar content={singletons.announcement} />
         <Navbar />
         <main className="flex-1">{children}</main>
-        <Footer />
+        <Footer content={singletons.footer} />
       </body>
     </html>
   );

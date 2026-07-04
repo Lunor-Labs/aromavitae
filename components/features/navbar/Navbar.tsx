@@ -6,12 +6,15 @@ import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
 
 const NAV_LINKS = [
+  { label: "HOME", href: "/" },
   { label: "PRODUCTS", href: "/products" },
   { label: "GALLERY", href: "/gallery" },
   { label: "ABOUT US", href: "/about" },
   { label: "CONTACT US", href: "/contact" },
   { label: "BLOG", href: "/blog" },
 ];
+
+const brand = { name: "AromaVitae", tagline: "NATURE'S FINEST · CEYLON'S PRIDE" };
 
 export function Navbar() {
   const pathname = usePathname();

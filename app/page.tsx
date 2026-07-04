@@ -14,15 +14,16 @@ export default async function HomePage() {
 
   return (
     <>
-      <HeroSection />
+      <HeroSection content={singletons.hero} />
       <ScrollRevealWrapper>
-        <StoryHeritage />
-        <BestSellers />
-        <ShopByCategory />
+        <StoryHeritage content={singletons.story} />
+        <BestSellers products={products} />
+        <ShopByCategory categories={categories} />
         <TrustBadges />
-        <GiftSetsBanner />
-        <Testimonials />
+        <GiftSetsBanner content={singletons.giftSetsBanner} />
+        <Testimonials testimonials={testimonials} />
       </ScrollRevealWrapper>
     </>
   );
 }
+
