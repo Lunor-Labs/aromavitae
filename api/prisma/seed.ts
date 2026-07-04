@@ -3,16 +3,20 @@ import { PrismaClient } from '@prisma/client';
 
 const prisma = new PrismaClient();
 
+// Supabase Storage public URL builder (mirrors lib/storage.ts on the frontend)
+const STORAGE_BASE = `${process.env.SUPABASE_URL}/storage/v1/object/public/${process.env.SUPABASE_STORAGE_BUCKET ?? 'aromavitae'}`;
+const asset = (path: string) => `${STORAGE_BASE}/${path}`;
+
 async function main() {
   console.log('Seeding...');
 
   // ---- Products (prices stored as whole LKR units) ----
   const products = [
-    { id: 'seed-prod-1', name: 'Ceylon Cinnamon Premium Quality',    price: 1450, rating: 5,   reviewCount: 128, image: '/images/products/cinnamon.png', badge: 'Best Seller', category: 'spices',   sortOrder: 1 },
-    { id: 'seed-prod-2', name: 'Clove Whole Premium Quality',        price: 1350, rating: 4.5, reviewCount: 96,  image: '/images/products/clove.png',    badge: 'Best Seller', category: 'spices',   sortOrder: 2 },
-    { id: 'seed-prod-3', name: 'Cardamom Green Premium Quality',     price: 1750, rating: 5,   reviewCount: 123, image: '/images/products/cardamom.png', badge: 'Best Seller', category: 'spices',   sortOrder: 3 },
-    { id: 'seed-prod-4', name: 'Black Pepper Whole Premium Quality', price: 1750, rating: 4.5, reviewCount: 118, image: '/images/products/pepper.png',   badge: 'Best Seller', category: 'spices',   sortOrder: 4 },
-    { id: 'seed-prod-5', name: 'Ceylon Oud Pure Perfume 12ml',       price: 9950, rating: 5,   reviewCount: 87,  image: '/images/products/perfume.png',  badge: 'Best Seller', category: 'perfumes', sortOrder: 5 },
+    { id: 'seed-prod-1', name: 'Ceylon Cinnamon Premium Quality',    price: 1450, rating: 5,   reviewCount: 128, image: asset('products/cinnamon.png'), badge: 'Best Seller', category: 'spices',   sortOrder: 1 },
+    { id: 'seed-prod-2', name: 'Clove Whole Premium Quality',        price: 1350, rating: 4.5, reviewCount: 96,  image: asset('products/clove.png'),    badge: 'Best Seller', category: 'spices',   sortOrder: 2 },
+    { id: 'seed-prod-3', name: 'Cardamom Green Premium Quality',     price: 1750, rating: 5,   reviewCount: 123, image: asset('products/cardamom.png'), badge: 'Best Seller', category: 'spices',   sortOrder: 3 },
+    { id: 'seed-prod-4', name: 'Black Pepper Whole Premium Quality', price: 1750, rating: 4.5, reviewCount: 118, image: asset('products/pepper.png'),   badge: 'Best Seller', category: 'spices',   sortOrder: 4 },
+    { id: 'seed-prod-5', name: 'Ceylon Oud Pure Perfume 12ml',       price: 9950, rating: 5,   reviewCount: 87,  image: asset('products/perfume.png'),  badge: 'Best Seller', category: 'perfumes', sortOrder: 5 },
   ];
   for (const p of products) {
     await prisma.product.upsert({ where: { id: p.id }, update: p, create: { ...p, currency: 'LKR' } });
@@ -20,11 +24,11 @@ async function main() {
 
   // ---- Categories ----
   const categories = [
-    { id: 'seed-cat-1', name: 'CINNAMON',         image: '/images/products/cinnamon.png', href: '/shop/cinnamon',     sortOrder: 1 },
-    { id: 'seed-cat-2', name: 'CLOVE',            image: '/images/products/clove.png',    href: '/shop/clove',        sortOrder: 2 },
-    { id: 'seed-cat-3', name: 'CARDAMOM',         image: '/images/products/cardamom.png', href: '/shop/cardamom',     sortOrder: 3 },
-    { id: 'seed-cat-4', name: 'BLACK PEPPER',     image: '/images/products/pepper.png',   href: '/shop/black-pepper', sortOrder: 4 },
-    { id: 'seed-cat-5', name: 'AGARWOOD PERFUME', image: '/images/products/perfume.png',  href: '/shop/perfumes',     sortOrder: 5 },
+    { id: 'seed-cat-1', name: 'CINNAMON',         image: asset('products/cinnamon.png'), href: '/shop/cinnamon',     sortOrder: 1 },
+    { id: 'seed-cat-2', name: 'CLOVE',            image: asset('products/clove.png'),    href: '/shop/clove',        sortOrder: 2 },
+    { id: 'seed-cat-3', name: 'CARDAMOM',         image: asset('products/cardamom.png'), href: '/shop/cardamom',     sortOrder: 3 },
+    { id: 'seed-cat-4', name: 'BLACK PEPPER',     image: asset('products/pepper.png'),   href: '/shop/black-pepper', sortOrder: 4 },
+    { id: 'seed-cat-5', name: 'AGARWOOD PERFUME', image: asset('products/perfume.png'),  href: '/shop/perfumes',     sortOrder: 5 },
   ];
   for (const c of categories) {
     await prisma.category.upsert({ where: { id: c.id }, update: c, create: c });
@@ -45,9 +49,9 @@ async function main() {
   const singletons: Record<string, unknown> = {
     hero: {
       slides: [
-        { heading: 'The True Aroma\nof Ceylon Heritage',  subheading: "From the lush lands of Sri Lanka comes nature's finest spices and timeless agarwood perfumes — crafted with passion, purity, and centuries of tradition.", image: '/images/hero/hero-banner.png', ctaPrimary: { label: 'EXPLORE COLLECTION', href: '/shop' }, ctaSecondary: { label: 'SHOP NOW', href: '/shop' } },
-        { heading: "Ceylon's Finest\nSpice Collection",   subheading: 'Premium cinnamon, cardamom, clove, and black pepper — hand-picked from the spice gardens of Ceylon for unmatched purity and flavour.', image: '/images/hero/hero-banner.png', ctaPrimary: { label: 'DISCOVER SPICES', href: '/spices' }, ctaSecondary: { label: 'VIEW ALL', href: '/shop' } },
-        { heading: 'Timeless Agarwood\nPerfumes',         subheading: 'Experience the mystique of Sri Lankan agarwood — rare, luxurious, and crafted into perfumes that captivate the senses.', image: '/images/hero/hero-banner.png', ctaPrimary: { label: 'EXPLORE PERFUMES', href: '/perfumes' }, ctaSecondary: { label: 'LEARN MORE', href: '/heritage' } },
+        { heading: 'The True Aroma\nof Ceylon Heritage',  subheading: "From the lush lands of Sri Lanka comes nature's finest spices and timeless agarwood perfumes — crafted with passion, purity, and centuries of tradition.", image: asset('hero/hero-banner.png'), ctaPrimary: { label: 'EXPLORE COLLECTION', href: '/shop' }, ctaSecondary: { label: 'SHOP NOW', href: '/shop' } },
+        { heading: "Ceylon's Finest\nSpice Collection",   subheading: 'Premium cinnamon, cardamom, clove, and black pepper — hand-picked from the spice gardens of Ceylon for unmatched purity and flavour.', image: asset('hero/hero-banner.png'), ctaPrimary: { label: 'DISCOVER SPICES', href: '/spices' }, ctaSecondary: { label: 'VIEW ALL', href: '/shop' } },
+        { heading: 'Timeless Agarwood\nPerfumes',         subheading: 'Experience the mystique of Sri Lankan agarwood — rare, luxurious, and crafted into perfumes that captivate the senses.', image: asset('hero/hero-banner.png'), ctaPrimary: { label: 'EXPLORE PERFUMES', href: '/perfumes' }, ctaSecondary: { label: 'LEARN MORE', href: '/heritage' } },
       ],
       autoPlayMs: 6000,
     },
@@ -147,7 +151,7 @@ async function main() {
       eyebrow: 'THE PERFECT GIFT OF NATURE',
       heading: 'Premium Gift Sets',
       body: 'Elegantly curated gift sets featuring our finest spices and agarwood perfumes.',
-      image: '/images/products/cardamom.png',
+      image: asset('products/cardamom.png'),
       ctaLabel: 'EXPLORE GIFT SETS',
       ctaHref: '/gift-sets',
     },

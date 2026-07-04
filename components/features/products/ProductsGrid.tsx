@@ -2,6 +2,7 @@
 
 import { useState, useMemo } from "react";
 import { cn } from "@/lib/utils";
+import { assetUrl } from "@/lib/storage";
 import { ProductCard } from "@/components/ui/ProductCard";
 import type { Product } from "@/types/product";
 
@@ -13,7 +14,7 @@ const ALL_PRODUCTS: Product[] = [
     currency: "LKR",
     rating: 5,
     reviewCount: 128,
-    image: "/images/products/cinnamon.png",
+    image: assetUrl("products/cinnamon.png"),
     badge: "Best Seller",
     category: "Spices",
   },
@@ -24,7 +25,7 @@ const ALL_PRODUCTS: Product[] = [
     currency: "LKR",
     rating: 4.5,
     reviewCount: 96,
-    image: "/images/products/clove.png",
+    image: assetUrl("products/clove.png"),
     badge: "Best Seller",
     category: "Spices",
   },
@@ -35,7 +36,7 @@ const ALL_PRODUCTS: Product[] = [
     currency: "LKR",
     rating: 5,
     reviewCount: 123,
-    image: "/images/products/cardamom.png",
+    image: assetUrl("products/cardamom.png"),
     badge: "Popular",
     category: "Spices",
   },
@@ -46,7 +47,7 @@ const ALL_PRODUCTS: Product[] = [
     currency: "LKR",
     rating: 4.5,
     reviewCount: 118,
-    image: "/images/products/pepper.png",
+    image: assetUrl("products/pepper.png"),
     category: "Spices",
   },
   {
@@ -56,7 +57,7 @@ const ALL_PRODUCTS: Product[] = [
     currency: "LKR",
     rating: 5,
     reviewCount: 87,
-    image: "/images/products/perfume.png",
+    image: assetUrl("products/perfume.png"),
     badge: "Premium",
     category: "Perfumes",
   },
@@ -67,7 +68,7 @@ const ALL_PRODUCTS: Product[] = [
     currency: "LKR",
     rating: 5,
     reviewCount: 64,
-    image: "/images/products/cinnamon.png",
+    image: assetUrl("products/cinnamon.png"),
     badge: "Gift",
     category: "Gift Sets",
   },
@@ -78,7 +79,7 @@ const ALL_PRODUCTS: Product[] = [
     currency: "LKR",
     rating: 4,
     reviewCount: 55,
-    image: "/images/products/pepper.png",
+    image: assetUrl("products/pepper.png"),
     category: "Spices",
   },
   {
@@ -88,7 +89,7 @@ const ALL_PRODUCTS: Product[] = [
     currency: "LKR",
     rating: 5,
     reviewCount: 42,
-    image: "/images/products/perfume.png",
+    image: assetUrl("products/perfume.png"),
     badge: "Luxury",
     category: "Perfumes",
   },

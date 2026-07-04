@@ -3,6 +3,7 @@
 import { useState, useMemo } from "react";
 import Image from "next/image";
 import { cn } from "@/lib/utils";
+import { assetUrl } from "@/lib/storage";
 
 interface GalleryImage {
   id: string;
@@ -15,52 +16,52 @@ interface GalleryImage {
 const GALLERY_IMAGES: GalleryImage[] = [
   {
     id: "1",
-    src: "/images/products/cinnamon.png",
+    src: assetUrl("products/cinnamon.png"),
     alt: "Premium Ceylon Cinnamon sticks",
     category: "Products",
     span: "tall",
   },
   {
     id: "2",
-    src: "/images/products/perfume.png",
+    src: assetUrl("products/perfume.png"),
     alt: "Agarwood Oud Perfume bottle",
     category: "Products",
   },
   {
     id: "3",
-    src: "/images/products/clove.png",
+    src: assetUrl("products/clove.png"),
     alt: "Hand-picked Ceylon cloves",
     category: "Ingredients",
   },
   {
     id: "4",
-    src: "/images/products/pepper.png",
+    src: assetUrl("products/pepper.png"),
     alt: "Premium black pepper",
     category: "Ingredients",
     span: "wide",
   },
   {
     id: "5",
-    src: "/images/products/cardamom.png",
+    src: assetUrl("products/cardamom.png"),
     alt: "Green cardamom pods",
     category: "Ingredients",
   },
   {
     id: "6",
-    src: "/images/products/cinnamon.png",
+    src: assetUrl("products/cinnamon.png"),
     alt: "Ceylon Cinnamon — the golden spice",
     category: "Products",
     span: "tall",
   },
   {
     id: "7",
-    src: "/images/products/perfume.png",
+    src: assetUrl("products/perfume.png"),
     alt: "Luxury Oud fragrance collection",
     category: "Products",
   },
   {
     id: "8",
-    src: "/images/products/pepper.png",
+    src: assetUrl("products/pepper.png"),
     alt: "Whole black peppercorns",
     category: "Ingredients",
   },

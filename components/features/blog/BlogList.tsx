@@ -3,6 +3,7 @@
 import { useState, useMemo } from "react";
 import Image from "next/image";
 import { cn } from "@/lib/utils";
+import { assetUrl } from "@/lib/storage";
 
 interface BlogPost {
   id: string;
@@ -21,7 +22,7 @@ const BLOG_POSTS: BlogPost[] = [
     title: "The Golden Legacy of Ceylon Cinnamon: Why It's the World's Finest",
     excerpt:
       "Discover what makes true Ceylon cinnamon — known as 'Cinnamomum verum' — superior to its common cousin, Cassia. From its delicate layers to its subtle sweetness, learn why connoisseurs and chefs worldwide seek out this Sri Lankan treasure.",
-    image: "/images/products/cinnamon.png",
+    image: assetUrl("products/cinnamon.png"),
     category: "Spices",
     date: "June 28, 2026",
     readTime: "5 min read",
@@ -32,7 +33,7 @@ const BLOG_POSTS: BlogPost[] = [
     title: "Agarwood: The Liquid Gold of Perfumery",
     excerpt:
       "Journey into the mystical world of agarwood — one of the most precious natural fragrances on Earth. Learn about its ancient origins, the painstaking process of extraction, and why our Ceylon Oud captures the essence of this rare treasure.",
-    image: "/images/products/perfume.png",
+    image: assetUrl("products/perfume.png"),
     category: "Wellness",
     date: "June 15, 2026",
     readTime: "7 min read",
@@ -42,7 +43,7 @@ const BLOG_POSTS: BlogPost[] = [
     title: "5 Authentic Sri Lankan Recipes Using Premium Spices",
     excerpt:
       "Transform your kitchen with these five classic Sri Lankan recipes that showcase the incredible depth of flavour our premium spices bring. From fragrant rice to rich curries, each recipe is simple yet extraordinary.",
-    image: "/images/products/cardamom.png",
+    image: assetUrl("products/cardamom.png"),
     category: "Recipes",
     date: "June 2, 2026",
     readTime: "8 min read",
@@ -52,7 +53,7 @@ const BLOG_POSTS: BlogPost[] = [
     title: "Behind the Scenes: How We Source Our Spices",
     excerpt:
       "Take a virtual tour of the spice gardens and farming communities we partner with in Sri Lanka. See how traditional methods and modern quality standards come together to produce the finest spices.",
-    image: "/images/products/clove.png",
+    image: assetUrl("products/clove.png"),
     category: "Behind the Scenes",
     date: "May 20, 2026",
     readTime: "4 min read",
@@ -62,7 +63,7 @@ const BLOG_POSTS: BlogPost[] = [
     title: "The Health Benefits of Turmeric: Science Meets Tradition",
     excerpt:
       "For centuries, turmeric has been revered in Ayurvedic medicine. Now modern science is confirming what Sri Lankan healers have known all along. Explore the proven health benefits of this golden spice.",
-    image: "/images/products/pepper.png",
+    image: assetUrl("products/pepper.png"),
     category: "Wellness",
     date: "May 5, 2026",
     readTime: "6 min read",
@@ -72,7 +73,7 @@ const BLOG_POSTS: BlogPost[] = [
     title: "The Perfect Gift: Curating Luxury Spice Sets",
     excerpt:
       "Looking for a unique, meaningful gift? Learn how our luxury spice gift sets are curated and designed to delight — from the hand-selected spices to the elegant packaging that makes unwrapping a sensory experience.",
-    image: "/images/products/cardamom.png",
+    image: assetUrl("products/cardamom.png"),
     category: "Behind the Scenes",
     date: "April 18, 2026",
     readTime: "3 min read",

@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback } from "react";
 import Image from "next/image";
 import { cn } from "@/lib/utils";
+import { assetUrl } from "@/lib/storage";
 import type { Testimonial } from "@/types/product";
 
 interface Props {
@@ -123,7 +124,7 @@ export function Testimonials({ testimonials }: Props) {
           <div className="hidden md:grid md:col-span-2 grid-cols-2 gap-4">
             <div className="relative aspect-[3/4] rounded-lg overflow-hidden bg-cream">
               <Image
-                src="/images/products/perfume.png"
+                src={assetUrl("products/perfume.png")}
                 alt="Ceylon Oud Perfume"
                 fill
                 className="object-cover"
@@ -132,7 +133,7 @@ export function Testimonials({ testimonials }: Props) {
             </div>
             <div className="relative aspect-[3/4] rounded-lg overflow-hidden bg-cream mt-8">
               <Image
-                src="/images/products/clove.png"
+                src={assetUrl("products/clove.png")}
                 alt="Premium Clove"
                 fill
                 className="object-cover"
