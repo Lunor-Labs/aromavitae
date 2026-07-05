@@ -48,4 +48,13 @@ export class ProductController {
       next(err);
     }
   };
+
+  reorder = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      await this.service.reorder((req.body as { ids: string[] }).ids);
+      res.status(204).send();
+    } catch (err) {
+      next(err);
+    }
+  };
 }

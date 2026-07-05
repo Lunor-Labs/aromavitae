@@ -22,4 +22,12 @@ export class TestimonialRepository {
   delete(id: string): Promise<Testimonial> {
     return prisma.testimonial.delete({ where: { id } });
   }
+
+  async reorder(ids: string[]): Promise<void> {
+    await prisma.$transaction(
+      ids.map((id, index) =>
+        prisma.testimonial.update({ where: { id }, data: { sortOrder: index } })
+      )
+    );
+  }
 }

@@ -167,10 +167,6 @@ function GiftSetsBannerEditor({ value, onChange, api }: { value: GiftSetsBannerC
       <Field label="Heading" value={v.heading ?? ""} onChange={(val) => set({ heading: val })} />
       <TextareaField label="Body" value={v.body ?? ""} onChange={(val) => set({ body: val })} />
       <ImageUploader api={api} value={v.image ?? ""} onChange={(url) => set({ image: url })} label="Image" />
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-        <Field label="CTA Label" value={v.ctaLabel ?? ""} onChange={(val) => set({ ctaLabel: val })} />
-        <Field label="CTA Link (href)" value={v.ctaHref ?? ""} onChange={(val) => set({ ctaHref: val })} />
-      </div>
     </div>
   );
 }
@@ -221,14 +217,16 @@ function FooterEditor({ value, onChange }: { value: FooterContent; onChange: (v:
         <p className="text-xs text-slate-500 mb-3">Paste a URL for each platform you want to show. Blank rows are hidden in the footer.</p>
         <div className="space-y-2">
           {SOCIAL_PLATFORMS.map((p) => (
-            <div key={p.key} className="flex items-center gap-3 border border-slate-200 rounded-lg px-3 py-2">
-              <span className="w-8 h-8 shrink-0 flex items-center justify-center text-slate-600">{p.icon}</span>
-              <span className="w-24 text-sm text-slate-700 shrink-0">{p.label}</span>
+            <div key={p.key} className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3 border border-slate-200 rounded-lg px-3 py-2">
+              <div className="flex items-center gap-3 sm:w-40 shrink-0">
+                <span className="w-8 h-8 shrink-0 flex items-center justify-center text-slate-600">{p.icon}</span>
+                <span className="text-sm text-slate-700">{p.label}</span>
+              </div>
               <input
                 value={socialByKey(p.key)}
                 onChange={(e) => setSocial(p.key, e.target.value)}
-                placeholder={`https://…/${p.key}`}
-                className="flex-1 px-3 py-2 border border-slate-300 rounded text-sm focus:outline-none focus:border-forest"
+                placeholder={`Full URL or domain (e.g. ${p.key}.com/aromavitae)`}
+                className="flex-1 w-full min-w-0 px-3 py-2 border border-slate-300 rounded text-sm focus:outline-none focus:border-forest"
               />
             </div>
           ))}

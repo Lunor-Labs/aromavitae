@@ -45,11 +45,11 @@ export function GiftSetsBanner({ content }: Props) {
               {content.body}
             </p>
             <Link
-              href={content.ctaHref}
+              href="/products"
               className="inline-flex px-7 py-3 border border-gold text-gold text-xs font-medium
                          tracking-[0.2em] hover:bg-gold hover:text-forest transition-all duration-300"
             >
-              {content.ctaLabel}
+              SHOP NOW
             </Link>
           </div>
         </div>

@@ -39,4 +39,10 @@ export class TestimonialService {
     logger.info({ id }, 'Testimonial deleted');
     await revalidateFrontend();
   }
+
+  async reorder(ids: string[]): Promise<void> {
+    await this.repo.reorder(ids);
+    logger.info({ count: ids.length }, 'Testimonials reordered');
+    await revalidateFrontend();
+  }
 }

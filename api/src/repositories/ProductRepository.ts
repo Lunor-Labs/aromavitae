@@ -22,4 +22,12 @@ export class ProductRepository {
   delete(id: string): Promise<Product> {
     return prisma.product.delete({ where: { id } });
   }
+
+  async reorder(ids: string[]): Promise<void> {
+    await prisma.$transaction(
+      ids.map((id, index) =>
+        prisma.product.update({ where: { id }, data: { sortOrder: index } })
+      )
+    );
+  }
 }

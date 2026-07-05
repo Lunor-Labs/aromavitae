@@ -22,4 +22,12 @@ export class OutletRepository {
   delete(id: string): Promise<Outlet> {
     return prisma.outlet.delete({ where: { id } });
   }
+
+  async reorder(ids: string[]): Promise<void> {
+    await prisma.$transaction(
+      ids.map((id, index) =>
+        prisma.outlet.update({ where: { id }, data: { sortOrder: index } })
+      )
+    );
+  }
 }

@@ -12,7 +12,7 @@ const SLIDES: HeroSlide[] = [
     heading: "Nature's Finest,\nCeylon's Pride",
     subheading:
       "Discover the timeless aroma of Sri Lanka — premium spices and agarwood perfumes handcrafted with passion.",
-    image: "/images/hero/hero-1.jpg",
+    image: "/images/hero/hero-banner.png",
     ctaPrimary: { label: "SHOP SPICES", href: "/products" },
     ctaSecondary: { label: "EXPLORE PERFUMES", href: "/products" },
   },

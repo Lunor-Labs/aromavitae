@@ -39,4 +39,10 @@ export class ProductService {
     logger.info({ id }, 'Product deleted');
     await revalidateFrontend();
   }
+
+  async reorder(ids: string[]): Promise<void> {
+    await this.repo.reorder(ids);
+    logger.info({ count: ids.length }, 'Products reordered');
+    await revalidateFrontend();
+  }
 }

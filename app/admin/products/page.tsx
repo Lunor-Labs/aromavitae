@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { useAdminApi } from "@/hooks/useAdminApi";
 import { ImageUploader } from "@/components/admin/ImageUploader";
+import { SortableList, DragHandle } from "@/components/admin/SortableList";
 import type { Product } from "@/types/product";
 
 const empty: Omit<Product, "id"> = {
@@ -85,6 +86,17 @@ export default function ProductsPage() {
     void reload();
   };
 
+  const onReorder = async (next: Product[]) => {
+    if (!api) return;
+    const prev = items;
+    setItems(next);
+    try {
+      await api.patch("/products/reorder", { ids: next.map((p) => p.id) });
+    } catch {
+      setItems(prev);
+    }
+  };
+
   if (!api) return <p>Loading…</p>;
 
   return (
@@ -100,39 +112,47 @@ export default function ProductsPage() {
       </div>
 
       {loading ? <p>Loading…</p> : (
-        <div className="overflow-x-auto rounded-lg border border-slate-200">
-          <table className="w-full bg-white text-sm">
-            <thead className="bg-slate-50 text-slate-600 text-xs uppercase tracking-wider">
-              <tr>
-                <th className="text-left p-3">Image</th>
-                <th className="text-left p-3">Name</th>
-                <th className="text-left p-3 hidden sm:table-cell">Category</th>
-                <th className="text-right p-3">Price</th>
-                <th className="text-right p-3 hidden md:table-cell">Order</th>
-                <th className="p-3" />
-              </tr>
-            </thead>
-            <tbody>
-              {items.map((p) => (
-                <tr key={p.id} className="border-t border-slate-100">
-                  <td className="p-3">
-                    {p.image ? (
-                      // eslint-disable-next-line @next/next/no-img-element
-                      <img src={p.image} alt="" className="w-10 h-10 object-cover rounded" />
-                    ) : null}
-                  </td>
-                  <td className="p-3 max-w-[120px] truncate">{p.name}</td>
-                  <td className="p-3 text-slate-600 hidden sm:table-cell">{p.category}</td>
-                  <td className="p-3 text-right whitespace-nowrap">{p.currency} {p.price.toLocaleString()}</td>
-                  <td className="p-3 text-right text-slate-500 hidden md:table-cell">{(p as Product & { sortOrder?: number }).sortOrder ?? 0}</td>
-                  <td className="p-3 text-right whitespace-nowrap">
-                    <button onClick={() => startEdit(p)} className="text-forest text-xs mr-3">Edit</button>
-                    <button onClick={() => remove(p.id)} className="text-red-600 text-xs">Delete</button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+        <div className="overflow-x-auto rounded-lg border border-slate-200 bg-white">
+          <div className="grid grid-cols-[32px_60px_1fr_120px_120px_100px] gap-3 items-center px-3 py-3 bg-slate-50 text-xs uppercase tracking-wider text-slate-600 border-b border-slate-200">
+            <span />
+            <span>Image</span>
+            <span>Name</span>
+            <span className="hidden sm:block">Category</span>
+            <span className="text-right">Price</span>
+            <span />
+          </div>
+          <SortableList
+            items={items}
+            onReorder={onReorder}
+            renderItem={(p, sortable) => (
+              <div
+                ref={sortable.setNodeRef}
+                style={sortable.style}
+                className="grid grid-cols-[32px_60px_1fr_120px_120px_100px] gap-3 items-center px-3 py-3 border-b border-slate-100 bg-white"
+              >
+                <DragHandle handle={sortable.handle} />
+                {p.image ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img src={p.image} alt="" className="w-10 h-10 object-cover rounded" />
+                ) : (
+                  <span />
+                )}
+                <span className="truncate">{p.name}</span>
+                <span className="text-slate-600 hidden sm:block truncate">{p.category}</span>
+                <span className="text-right whitespace-nowrap">
+                  {p.currency} {p.price.toLocaleString()}
+                </span>
+                <span className="text-right whitespace-nowrap">
+                  <button onClick={() => startEdit(p)} className="text-forest text-xs mr-3">
+                    Edit
+                  </button>
+                  <button onClick={() => remove(p.id)} className="text-red-600 text-xs">
+                    Delete
+                  </button>
+                </span>
+              </div>
+            )}
+          />
         </div>
       )}
 
@@ -149,7 +169,6 @@ export default function ProductsPage() {
               <Field label="Category" required value={editing.category ?? ""} onChange={(v) => setEditing({ ...editing, category: v })} />
               <Field label="Badge (optional)" value={editing.badge ?? ""} onChange={(v) => setEditing({ ...editing, badge: v })} />
               <ImageUploader api={api} value={editing.image ?? ""} onChange={(v) => setEditing({ ...editing, image: v })} label="Image *" />
-              <NumberField label="Sort order" value={(editing as { sortOrder?: number }).sortOrder ?? 0} onChange={(v) => setEditing({ ...editing, ...{ sortOrder: v } } as Partial<Product>)} />
             </div>
             {saveError && <p className="mt-4 text-sm text-red-600">{saveError}</p>}
             <div className="flex justify-end gap-2 mt-6">

@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { useAdminApi } from "@/hooks/useAdminApi";
 import { ImageUploader } from "@/components/admin/ImageUploader";
+import { SortableList, DragHandle } from "@/components/admin/SortableList";
 import type { Outlet } from "@/types/product";
 
 const empty: Omit<Outlet, "id"> = {
@@ -77,6 +78,17 @@ export default function OutletsPage() {
     void reload();
   };
 
+  const onReorder = async (next: Outlet[]) => {
+    if (!api) return;
+    const prev = items;
+    setItems(next);
+    try {
+      await api.patch("/outlets/reorder", { ids: next.map((o) => o.id) });
+    } catch {
+      setItems(prev);
+    }
+  };
+
   if (!api) return <p>Loading…</p>;
 
   return (
@@ -87,36 +99,38 @@ export default function OutletsPage() {
       </div>
 
       {loading ? <p>Loading…</p> : (
-      <div className="overflow-x-auto rounded-lg border border-slate-200">
-        <table className="w-full bg-white text-sm">
-          <thead className="bg-slate-50 text-xs uppercase text-slate-600">
-            <tr>
-              <th className="text-left p-3">Image</th>
-              <th className="text-left p-3">Name</th>
-              <th className="text-left p-3 hidden md:table-cell">Address</th>
-              <th className="text-left p-3 hidden sm:table-cell">Phone</th>
-              <th className="p-3" />
-            </tr>
-          </thead>
-          <tbody>
-            {items.map((o) => (
-              <tr key={o.id} className="border-t border-slate-100">
-                <td className="p-3">
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img src={o.image} alt="" className="w-10 h-10 object-cover rounded" />
-                </td>
-                <td className="p-3">{o.name}</td>
-                <td className="p-3 text-slate-600 hidden md:table-cell max-w-[240px] truncate">{o.address}</td>
-                <td className="p-3 text-slate-600 hidden sm:table-cell whitespace-nowrap">{o.phone}</td>
-                <td className="p-3 text-right whitespace-nowrap">
+        <div className="overflow-x-auto rounded-lg border border-slate-200 bg-white">
+          <div className="grid grid-cols-[32px_60px_1fr_1fr_120px_100px] gap-3 items-center px-3 py-3 bg-slate-50 text-xs uppercase tracking-wider text-slate-600 border-b border-slate-200">
+            <span />
+            <span>Image</span>
+            <span>Name</span>
+            <span className="hidden md:block">Address</span>
+            <span className="hidden sm:block">Phone</span>
+            <span />
+          </div>
+          <SortableList
+            items={items}
+            onReorder={onReorder}
+            renderItem={(o, sortable) => (
+              <div
+                ref={sortable.setNodeRef}
+                style={sortable.style}
+                className="grid grid-cols-[32px_60px_1fr_1fr_120px_100px] gap-3 items-center px-3 py-3 border-b border-slate-100 bg-white"
+              >
+                <DragHandle handle={sortable.handle} />
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src={o.image} alt="" className="w-10 h-10 object-cover rounded" />
+                <span className="truncate">{o.name}</span>
+                <span className="text-slate-600 hidden md:block truncate">{o.address}</span>
+                <span className="text-slate-600 hidden sm:block whitespace-nowrap truncate">{o.phone}</span>
+                <span className="text-right whitespace-nowrap">
                   <button onClick={() => startEdit(o)} className="text-forest text-xs mr-3">Edit</button>
                   <button onClick={() => remove(o.id)} className="text-red-600 text-xs">Delete</button>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
+                </span>
+              </div>
+            )}
+          />
+        </div>
       )}
 
       {editing && (
@@ -129,7 +143,6 @@ export default function OutletsPage() {
               <Field label="Phone" required value={editing.phone ?? ""} onChange={(v) => setEditing({ ...editing, phone: v })} />
               <TextareaField label="Description" required value={editing.description ?? ""} onChange={(v) => setEditing({ ...editing, description: v })} />
               <ImageUploader api={api} value={editing.image ?? ""} onChange={(v) => setEditing({ ...editing, image: v })} label="Store photo *" />
-              <NumberField label="Sort order" value={editing.sortOrder ?? 0} onChange={(v) => setEditing({ ...editing, sortOrder: v })} />
             </div>
             {saveError && <p className="mt-4 text-sm text-red-600">{saveError}</p>}
             <div className="flex justify-end gap-2 mt-6">
@@ -158,14 +171,6 @@ function TextareaField({ label, value, onChange, required }: { label: string; va
     <div>
       <label className="block text-xs font-medium text-slate-600 mb-1">{label}{required && " *"}</label>
       <textarea value={value} onChange={(e) => onChange(e.target.value)} rows={4} required={required} className="w-full px-3 py-2 border border-slate-300 rounded text-sm resize-y" />
-    </div>
-  );
-}
-function NumberField({ label, value, onChange }: { label: string; value: number; onChange: (v: number) => void }) {
-  return (
-    <div>
-      <label className="block text-xs font-medium text-slate-600 mb-1">{label}</label>
-      <input type="number" value={value} onChange={(e) => onChange(Number(e.target.value))} className="w-full px-3 py-2 border border-slate-300 rounded text-sm" />
     </div>
   );
 }

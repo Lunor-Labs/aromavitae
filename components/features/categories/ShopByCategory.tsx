@@ -4,10 +4,10 @@ import type { Category } from "@/types/product";
 
 // TODO(admin): editorial content to be supplied — replace category name/image/href below.
 const CATEGORIES: Category[] = [
-  { id: "spices", name: "CEYLON SPICES", image: "/images/categories/spices.jpg", href: "/products" },
-  { id: "perfumes", name: "AGARWOOD PERFUMES", image: "/images/categories/perfumes.jpg", href: "/products" },
-  { id: "gifts", name: "GIFT SETS", image: "/images/categories/gifts.jpg", href: "/products" },
-  { id: "new", name: "NEW ARRIVALS", image: "/images/categories/new.jpg", href: "/products" },
+  { id: "spices", name: "CEYLON SPICES", image: "/images/products/cinnamon.png", href: "/products" },
+  { id: "perfumes", name: "AGARWOOD PERFUMES", image: "/images/products/perfume.png", href: "/products" },
+  { id: "gifts", name: "GIFT SETS", image: "/images/products/cardamom.png", href: "/products" },
+  { id: "new", name: "NEW ARRIVALS", image: "/images/products/clove.png", href: "/products" },
 ];
 
 export function ShopByCategory() {

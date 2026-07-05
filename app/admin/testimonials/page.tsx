@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { useAdminApi } from "@/hooks/useAdminApi";
+import { SortableList, DragHandle } from "@/components/admin/SortableList";
 import type { Testimonial } from "@/types/product";
 
 const empty: Omit<Testimonial, "id"> = { quote: "", author: "", location: "", rating: 5 };
@@ -67,6 +68,17 @@ export default function TestimonialsPage() {
     void reload();
   };
 
+  const onReorder = async (next: Testimonial[]) => {
+    if (!api) return;
+    const prev = items;
+    setItems(next);
+    try {
+      await api.patch("/testimonials/reorder", { ids: next.map((t) => t.id) });
+    } catch {
+      setItems(prev);
+    }
+  };
+
   if (!api) return <p>Loading…</p>;
 
   return (
@@ -77,20 +89,33 @@ export default function TestimonialsPage() {
       </div>
 
       {loading ? <p>Loading…</p> : (
-      <div className="space-y-3">
-        {items.map((t) => (
-          <div key={t.id} className="bg-white border border-slate-200 rounded-lg p-4 flex justify-between items-start gap-4">
-            <div>
-              <p className="text-sm italic text-slate-700 mb-2">&ldquo;{t.quote}&rdquo;</p>
-              <p className="text-xs text-slate-500">— {t.author}, {t.location} · {t.rating}★</p>
-            </div>
-            <div className="shrink-0">
-              <button onClick={() => startEdit(t)} className="text-forest text-xs mr-3">Edit</button>
-              <button onClick={() => remove(t.id)} className="text-red-600 text-xs">Delete</button>
-            </div>
-          </div>
-        ))}
-      </div>
+        <div className="space-y-3">
+          <SortableList
+            items={items}
+            onReorder={onReorder}
+            renderItem={(t, sortable) => (
+              <div
+                ref={sortable.setNodeRef}
+                style={sortable.style}
+                className="bg-white border border-slate-200 rounded-lg p-4 flex justify-between items-start gap-4"
+              >
+                <div className="flex items-start gap-3 flex-1 min-w-0">
+                  <div className="pt-1">
+                    <DragHandle handle={sortable.handle} />
+                  </div>
+                  <div className="min-w-0">
+                    <p className="text-sm italic text-slate-700 mb-2">&ldquo;{t.quote}&rdquo;</p>
+                    <p className="text-xs text-slate-500">— {t.author}, {t.location} · {t.rating}★</p>
+                  </div>
+                </div>
+                <div className="shrink-0">
+                  <button onClick={() => startEdit(t)} className="text-forest text-xs mr-3">Edit</button>
+                  <button onClick={() => remove(t.id)} className="text-red-600 text-xs">Delete</button>
+                </div>
+              </div>
+            )}
+          />
+        </div>
       )}
 
       {editing && (
@@ -111,7 +136,6 @@ export default function TestimonialsPage() {
               <Field label="Author" required value={editing.author ?? ""} onChange={(v) => setEditing({ ...editing, author: v })} />
               <Field label="Location" required value={editing.location ?? ""} onChange={(v) => setEditing({ ...editing, location: v })} />
               <NumberField label="Rating (1-5)" value={editing.rating ?? 5} onChange={(v) => setEditing({ ...editing, rating: v })} />
-              <NumberField label="Sort order" value={(editing as { sortOrder?: number }).sortOrder ?? 0} onChange={(v) => setEditing({ ...editing, ...{ sortOrder: v } } as Partial<Testimonial>)} />
             </div>
             {saveError && <p className="mt-4 text-sm text-red-600">{saveError}</p>}
             <div className="flex justify-end gap-2 mt-6">

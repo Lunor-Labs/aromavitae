@@ -39,4 +39,10 @@ export class OutletService {
     logger.info({ id }, 'Outlet deleted');
     await revalidateFrontend();
   }
+
+  async reorder(ids: string[]): Promise<void> {
+    await this.repo.reorder(ids);
+    logger.info({ count: ids.length }, 'Outlets reordered');
+    await revalidateFrontend();
+  }
 }
