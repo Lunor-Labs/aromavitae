@@ -2,17 +2,6 @@ import type { Metadata } from "next";
 import { Playfair_Display, Ubuntu } from "next/font/google";
 import "./globals.css";
 
-import { AnnouncementBar } from "@/components/ui/AnnouncementBar";
-import { Navbar } from "@/components/features/navbar/Navbar";
-import { Footer } from "@/components/features/footer/Footer";
-import { fetchContent } from "@/lib/api";
-
-// Content is fetched from the API on every request. Without this the build
-// short-circuits `fetchContent()` (see lib/api.ts) and Next.js has no signal
-// to mark the layout dynamic — it would prerender an empty shell and serve
-// that in prod, hiding every API-driven image.
-export const dynamic = "force-dynamic";
-
 const playfair = Playfair_Display({
   variable: "--font-playfair",
   subsets: ["latin"],
@@ -54,25 +43,17 @@ export const metadata: Metadata = {
   robots: { index: true, follow: true },
 };
 
-export default async function RootLayout({
+export default function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const content = await fetchContent();
-  const { singletons } = content;
-
   return (
     <html
       lang="en"
       className={`${playfair.variable} ${ubuntu.variable} h-full`}
     >
-      <body className="min-h-full flex flex-col antialiased">
-        <AnnouncementBar content={singletons.announcement} />
-        <Navbar />
-        <main className="flex-1">{children}</main>
-        <Footer content={singletons.footer} />
-      </body>
+      <body className="min-h-full flex flex-col antialiased">{children}</body>
     </html>
   );
 }

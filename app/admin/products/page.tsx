@@ -21,6 +21,8 @@ export default function ProductsPage() {
   const [items, setItems] = useState<Product[]>([]);
   const [editing, setEditing] = useState<Partial<Product> | null>(null);
   const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [saveError, setSaveError] = useState<string | null>(null);
 
   const reload = useCallback(async () => {
     if (!api) return;
@@ -40,16 +42,40 @@ export default function ProductsPage() {
     void reload();
   }, [reload]);
 
+  const startEdit = (p: Partial<Product>) => {
+    setSaveError(null);
+    setEditing(p);
+  };
+
   const save = async () => {
     if (!api || !editing) return;
-    const { id, ...rest } = editing;
-    if (id) {
-      await api.put(`/products/${id}`, rest);
-    } else {
-      await api.post("/products", rest);
+    setSaveError(null);
+
+    const missing: string[] = [];
+    if (!editing.name?.trim()) missing.push("Name");
+    if (!editing.image?.trim()) missing.push("Image");
+    if (!editing.category?.trim()) missing.push("Category");
+    if (!editing.currency?.trim()) missing.push("Currency");
+    if (missing.length > 0) {
+      setSaveError(`Please fill in: ${missing.join(", ")}`);
+      return;
     }
-    setEditing(null);
-    void reload();
+
+    setSaving(true);
+    try {
+      const { id, ...rest } = editing;
+      if (id) {
+        await api.put(`/products/${id}`, rest);
+      } else {
+        await api.post("/products", rest);
+      }
+      setEditing(null);
+      void reload();
+    } catch (e) {
+      setSaveError(e instanceof Error ? e.message : "Save failed");
+    } finally {
+      setSaving(false);
+    }
   };
 
   const remove = async (id: string) => {
@@ -66,7 +92,7 @@ export default function ProductsPage() {
       <div className="flex items-center justify-between mb-6">
         <h1 className="text-2xl font-semibold">Products</h1>
         <button
-          onClick={() => setEditing({ ...empty })}
+          onClick={() => startEdit({ ...empty })}
           className="px-4 py-2 bg-forest text-white text-sm rounded hover:bg-forest-light"
         >
           + New product
@@ -100,7 +126,7 @@ export default function ProductsPage() {
                   <td className="p-3 text-right whitespace-nowrap">{p.currency} {p.price.toLocaleString()}</td>
                   <td className="p-3 text-right text-slate-500 hidden md:table-cell">{(p as Product & { sortOrder?: number }).sortOrder ?? 0}</td>
                   <td className="p-3 text-right whitespace-nowrap">
-                    <button onClick={() => setEditing(p)} className="text-forest text-xs mr-3">Edit</button>
+                    <button onClick={() => startEdit(p)} className="text-forest text-xs mr-3">Edit</button>
                     <button onClick={() => remove(p.id)} className="text-red-600 text-xs">Delete</button>
                   </td>
                 </tr>
@@ -115,19 +141,22 @@ export default function ProductsPage() {
           <div className="bg-white rounded-lg p-6 w-full max-w-lg max-h-[90vh] overflow-y-auto">
             <h2 className="text-lg font-semibold mb-4">{editing.id ? "Edit" : "New"} product</h2>
             <div className="space-y-3">
-              <Field label="Name" value={editing.name ?? ""} onChange={(v) => setEditing({ ...editing, name: v })} />
+              <Field label="Name" required value={editing.name ?? ""} onChange={(v) => setEditing({ ...editing, name: v })} />
               <NumberField label="Price (LKR)" value={editing.price ?? 0} onChange={(v) => setEditing({ ...editing, price: v })} />
-              <Field label="Currency" value={editing.currency ?? "LKR"} onChange={(v) => setEditing({ ...editing, currency: v })} />
+              <Field label="Currency" required value={editing.currency ?? "LKR"} onChange={(v) => setEditing({ ...editing, currency: v })} />
               <NumberField label="Rating (0-5)" value={editing.rating ?? 5} onChange={(v) => setEditing({ ...editing, rating: v })} step={0.5} />
               <NumberField label="Review count" value={editing.reviewCount ?? 0} onChange={(v) => setEditing({ ...editing, reviewCount: v })} />
-              <Field label="Category" value={editing.category ?? ""} onChange={(v) => setEditing({ ...editing, category: v })} />
+              <Field label="Category" required value={editing.category ?? ""} onChange={(v) => setEditing({ ...editing, category: v })} />
               <Field label="Badge (optional)" value={editing.badge ?? ""} onChange={(v) => setEditing({ ...editing, badge: v })} />
-              <ImageUploader api={api} value={editing.image ?? ""} onChange={(v) => setEditing({ ...editing, image: v })} />
+              <ImageUploader api={api} value={editing.image ?? ""} onChange={(v) => setEditing({ ...editing, image: v })} label="Image *" />
               <NumberField label="Sort order" value={(editing as { sortOrder?: number }).sortOrder ?? 0} onChange={(v) => setEditing({ ...editing, ...{ sortOrder: v } } as Partial<Product>)} />
             </div>
+            {saveError && <p className="mt-4 text-sm text-red-600">{saveError}</p>}
             <div className="flex justify-end gap-2 mt-6">
-              <button onClick={() => setEditing(null)} className="px-4 py-2 text-sm">Cancel</button>
-              <button onClick={save} className="px-4 py-2 bg-forest text-white text-sm rounded">Save</button>
+              <button onClick={() => { setEditing(null); setSaveError(null); }} className="px-4 py-2 text-sm" disabled={saving}>Cancel</button>
+              <button onClick={save} disabled={saving} className="px-4 py-2 bg-forest text-white text-sm rounded disabled:opacity-50">
+                {saving ? "Saving…" : "Save"}
+              </button>
             </div>
           </div>
         </div>
@@ -136,11 +165,11 @@ export default function ProductsPage() {
   );
 }
 
-function Field({ label, value, onChange }: { label: string; value: string; onChange: (v: string) => void }) {
+function Field({ label, value, onChange, required }: { label: string; value: string; onChange: (v: string) => void; required?: boolean }) {
   return (
     <div>
-      <label className="block text-xs font-medium text-slate-600 mb-1">{label}</label>
-      <input value={value} onChange={(e) => onChange(e.target.value)} className="w-full px-3 py-2 border border-slate-300 rounded text-sm" />
+      <label className="block text-xs font-medium text-slate-600 mb-1">{label}{required && " *"}</label>
+      <input value={value} onChange={(e) => onChange(e.target.value)} required={required} className="w-full px-3 py-2 border border-slate-300 rounded text-sm" />
     </div>
   );
 }

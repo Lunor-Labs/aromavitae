@@ -2,9 +2,29 @@ import Image from "next/image";
 import Link from "next/link";
 import type { StoryContent } from "@/types/content";
 
-interface Props {
-  content: StoryContent;
-}
+// TODO(admin): editorial content to be supplied — replace copy / image / badges below.
+const STORY: StoryContent = {
+  ourStory: {
+    eyebrow: "OUR STORY",
+    heading: "Rooted in\nSri Lankan tradition",
+    body: "For generations, our family has walked the misty hills and coastal plantations of Ceylon, curating the island's finest spices and its rarest agarwood. Every jar and vial carries that heritage.",
+    ctaLabel: "READ MORE",
+    ctaHref: "/about",
+    image: "/images/story/story-bg.jpg",
+  },
+  heritage: {
+    eyebrow: "HERITAGE",
+    heading: "Crafted with care, aged with time",
+    body: "Small-batch, hand-selected, and slow-cured — our products are made the way they always have been.",
+    ctaLabel: "EXPLORE OUR HERITAGE",
+    ctaHref: "/about",
+    badges: [
+      { icon: "book", label: "Centuries of tradition" },
+      { icon: "leaf", label: "100% natural" },
+      { icon: "shield", label: "Purity assured" },
+    ],
+  },
+};
 
 const ICON_PATHS: Record<string, string> = {
   book: "M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253",
@@ -21,8 +41,8 @@ function BadgeIcon({ name }: { name: string }) {
   );
 }
 
-export function StoryHeritage({ content }: Props) {
-  const { ourStory, heritage } = content;
+export function StoryHeritage() {
+  const { ourStory, heritage } = STORY;
 
   return (
     <section className="reveal">

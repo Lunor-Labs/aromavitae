@@ -10,12 +10,9 @@ export default function AdminDashboard() {
       <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
         {[
           { title: "Products", href: "/admin/products", description: "Manage the Best Sellers list" },
-          { title: "Categories", href: "/admin/categories", description: "Shop by Category tiles" },
+          { title: "Outlets", href: "/admin/outlets", description: "Physical store locations" },
           { title: "Testimonials", href: "/admin/testimonials", description: "Customer quotes" },
-          { title: "Hero", href: "/admin/singletons/hero", description: "Hero carousel slides" },
-          { title: "Story", href: "/admin/singletons/story", description: "Our Story + Heritage panel" },
-          { title: "Navbar", href: "/admin/singletons/navbar", description: "Top navigation links" },
-          { title: "Footer", href: "/admin/singletons/footer", description: "Footer columns + contact" },
+          { title: "Footer", href: "/admin/singletons/footer", description: "Contact details + social links" },
           { title: "Announcement", href: "/admin/singletons/announcement", description: "Marquee bar messages" },
           { title: "Gift Sets Banner", href: "/admin/singletons/giftSetsBanner", description: "Mid-page banner" },
         ].map((card) => (

@@ -13,15 +13,15 @@ export const dynamic = "force-dynamic";
 
 export default async function HomePage() {
   const content = await fetchContent();
-  const { products, categories, testimonials, outlets, singletons } = content;
+  const { products, testimonials, outlets, singletons } = content;
 
   return (
     <>
-      <HeroSection content={singletons.hero} />
+      <HeroSection />
       <ScrollRevealWrapper>
-        <StoryHeritage content={singletons.story} />
+        <StoryHeritage />
         <BestSellers products={products} />
-        <ShopByCategory categories={categories} />
+        <ShopByCategory />
         <TrustBadges />
         <GiftSetsBanner content={singletons.giftSetsBanner} />
         <OutletsPreview outlets={outlets} />
@@ -30,4 +30,3 @@ export default async function HomePage() {
     </>
   );
 }
-

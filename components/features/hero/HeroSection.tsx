@@ -4,15 +4,24 @@ import { useState, useEffect, useCallback } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
-import type { HeroContent } from "@/types/content";
+import type { HeroSlide } from "@/types/content";
 
-interface Props {
-  content: HeroContent;
-}
+// TODO(admin): editorial content to be supplied — replace slides / autoplay below.
+const SLIDES: HeroSlide[] = [
+  {
+    heading: "Nature's Finest,\nCeylon's Pride",
+    subheading:
+      "Discover the timeless aroma of Sri Lanka — premium spices and agarwood perfumes handcrafted with passion.",
+    image: "/images/hero/hero-1.jpg",
+    ctaPrimary: { label: "SHOP SPICES", href: "/products" },
+    ctaSecondary: { label: "EXPLORE PERFUMES", href: "/products" },
+  },
+];
+const AUTOPLAY_MS = 6000;
 
-export function HeroSection({ content }: Props) {
-  const slides = content.slides;
-  const autoPlayMs = content.autoPlayMs ?? 6000;
+export function HeroSection() {
+  const slides = SLIDES;
+  const autoPlayMs = AUTOPLAY_MS;
 
   const [current, setCurrent] = useState(0);
   const [isTransitioning, setIsTransitioning] = useState(false);

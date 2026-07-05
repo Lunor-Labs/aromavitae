@@ -55,13 +55,13 @@ export interface FooterColumn {
 }
 
 export interface FooterContent {
-  brand: { name: string; tagline: string; description: string };
-  columns: FooterColumn[];
+  brand?: { name: string; tagline: string; description: string };
+  columns?: FooterColumn[];
   contact: { phone: string; email: string; location: string };
-  newsletter: { title: string; body: string };
+  newsletter?: { title: string; body: string };
   social: CtaLink[];
-  payments: string[];
-  legal: { copyright: string };
+  payments?: string[];
+  legal?: { copyright: string };
 }
 
 export interface AnnouncementContent {
