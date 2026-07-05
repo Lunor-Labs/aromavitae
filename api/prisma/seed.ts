@@ -49,9 +49,9 @@ async function main() {
   const singletons: Record<string, unknown> = {
     hero: {
       slides: [
-        { heading: 'The True Aroma\nof Ceylon Heritage',  subheading: "From the lush lands of Sri Lanka comes nature's finest spices and timeless agarwood perfumes — crafted with passion, purity, and centuries of tradition.", image: asset('hero/hero-banner.png'), ctaPrimary: { label: 'EXPLORE COLLECTION', href: '/shop' }, ctaSecondary: { label: 'SHOP NOW', href: '/shop' } },
-        { heading: "Ceylon's Finest\nSpice Collection",   subheading: 'Premium cinnamon, cardamom, clove, and black pepper — hand-picked from the spice gardens of Ceylon for unmatched purity and flavour.', image: asset('hero/hero-banner.png'), ctaPrimary: { label: 'DISCOVER SPICES', href: '/spices' }, ctaSecondary: { label: 'VIEW ALL', href: '/shop' } },
-        { heading: 'Timeless Agarwood\nPerfumes',         subheading: 'Experience the mystique of Sri Lankan agarwood — rare, luxurious, and crafted into perfumes that captivate the senses.', image: asset('hero/hero-banner.png'), ctaPrimary: { label: 'EXPLORE PERFUMES', href: '/perfumes' }, ctaSecondary: { label: 'LEARN MORE', href: '/heritage' } },
+        { heading: 'The True Aroma\nof Ceylon Heritage',  subheading: "From the lush lands of Sri Lanka comes nature's finest spices and timeless agarwood perfumes — crafted with passion, purity, and centuries of tradition.", image: '/images/hero/hero-banner.png', ctaPrimary: { label: 'EXPLORE COLLECTION', href: '/shop' }, ctaSecondary: { label: 'SHOP NOW', href: '/shop' } },
+        { heading: "Ceylon's Finest\nSpice Collection",   subheading: 'Premium cinnamon, cardamom, clove, and black pepper — hand-picked from the spice gardens of Ceylon for unmatched purity and flavour.', image: '/images/hero/hero-banner.png', ctaPrimary: { label: 'DISCOVER SPICES', href: '/spices' }, ctaSecondary: { label: 'VIEW ALL', href: '/shop' } },
+        { heading: 'Timeless Agarwood\nPerfumes',         subheading: 'Experience the mystique of Sri Lankan agarwood — rare, luxurious, and crafted into perfumes that captivate the senses.', image: '/images/hero/hero-banner.png', ctaPrimary: { label: 'EXPLORE PERFUMES', href: '/perfumes' }, ctaSecondary: { label: 'LEARN MORE', href: '/heritage' } },
       ],
       autoPlayMs: 6000,
     },

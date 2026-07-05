@@ -10,7 +10,8 @@
     "start": "next start",
     "lint": "eslint",
     "typecheck": "tsc --noEmit",
-    "sync:storage": "node --env-file=.env.local scripts/sync-storage.mjs"
+    "sync:storage": "node --env-file=.env.local scripts/sync-storage.mjs",
+    "patch:hero-story": "npm --prefix api run patch:hero-story"
   },
   "dependencies": {
     "@supabase/ssr": "^0.5.2",
