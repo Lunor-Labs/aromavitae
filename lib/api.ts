@@ -7,8 +7,39 @@ import type {
   NavbarContent,
   StoryContent,
 } from "@/types/content";
+import { STORAGE_BASE_URL } from "@/lib/storage";
 
 const API_URL = process.env.API_URL ?? process.env.NEXT_PUBLIC_API_URL ?? "";
+
+/**
+ * Convert relative image paths (e.g. "/images/products/cinnamon.png") that
+ * were baked into the DB seed into full Supabase Storage public URLs.
+ * Already-absolute URLs (https://...) are left untouched.
+ */
+function resolveImageUrl(url: string): string {
+  if (!url) return url;
+  if (url.startsWith("http")) return url;
+  // "/images/products/foo.png" → "products/foo.png"
+  const stripped = url.replace(/^\/images\//, "");
+  return `${STORAGE_BASE_URL}/${stripped}`;
+}
+
+/** Walk the content payload and resolve every image field. */
+function normalizeImages(data: ContentPayload): ContentPayload {
+  return {
+    ...data,
+    products: data.products.map((p) => ({ ...p, image: resolveImageUrl(p.image) })),
+    categories: data.categories.map((c) => ({ ...c, image: resolveImageUrl(c.image) })),
+    singletons: {
+      ...data.singletons,
+      // hero and story images are served from public/ — not resolved to Supabase
+      giftSetsBanner: {
+        ...data.singletons.giftSetsBanner,
+        image: resolveImageUrl(data.singletons.giftSetsBanner.image),
+      },
+    },
+  };
+}
 
 type Envelope<T> = { data: T };
 
@@ -46,11 +77,11 @@ export async function fetchContent(): Promise<ContentPayload> {
   try {
     const res = await fetch(`${API_URL}/api/v1/content`, {
       cache: "no-store",
-      signal: AbortSignal.timeout(10_000),
+      signal: AbortSignal.timeout(30_000),
     });
     if (!res.ok) throw new Error(`Failed to load content: ${res.status}`);
     const json = (await res.json()) as Envelope<ContentPayload>;
-    return json.data;
+    return normalizeImages(json.data);
   } catch {
     return FALLBACK_CONTENT;
   }

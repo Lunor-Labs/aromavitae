@@ -24,6 +24,7 @@ export interface StoryPanel {
   body: string;
   ctaLabel: string;
   ctaHref: string;
+  image?: string;
 }
 
 export interface StoryBadge {

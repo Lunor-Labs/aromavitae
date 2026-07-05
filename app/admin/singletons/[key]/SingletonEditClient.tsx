@@ -287,6 +287,11 @@ function StoryPanelSection({ label, value, onChange }: { label: string; value: S
         <Field label="CTA Label" value={value?.ctaLabel ?? ""} onChange={(val) => onChange({ ...value, ctaLabel: val })} />
         <Field label="CTA Link (href)" value={value?.ctaHref ?? ""} onChange={(val) => onChange({ ...value, ctaHref: val })} />
       </div>
+      <Field
+        label="Background Image (public path, e.g. /images/story/story-bg.jpg)"
+        value={value?.image ?? ""}
+        onChange={(val) => onChange({ ...value, image: val })}
+      />
     </div>
   );
 }

@@ -9,7 +9,8 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "sync:storage": "node --env-file=.env.local scripts/sync-storage.mjs"
   },
   "dependencies": {
     "@supabase/ssr": "^0.5.2",
