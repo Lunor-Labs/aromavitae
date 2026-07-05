@@ -7,6 +7,12 @@ import { Navbar } from "@/components/features/navbar/Navbar";
 import { Footer } from "@/components/features/footer/Footer";
 import { fetchContent } from "@/lib/api";
 
+// Content is fetched from the API on every request. Without this the build
+// short-circuits `fetchContent()` (see lib/api.ts) and Next.js has no signal
+// to mark the layout dynamic — it would prerender an empty shell and serve
+// that in prod, hiding every API-driven image.
+export const dynamic = "force-dynamic";
+
 const playfair = Playfair_Display({
   variable: "--font-playfair",
   subsets: ["latin"],

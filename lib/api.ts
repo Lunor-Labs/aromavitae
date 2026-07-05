@@ -70,9 +70,10 @@ const FALLBACK_CONTENT: ContentPayload = {
 
 export async function fetchContent(): Promise<ContentPayload> {
   if (!API_URL) return FALLBACK_CONTENT;
-  // Skip the API round-trip during `next build`. The API isn't reachable from
-  // Vercel's build runner, and the page is force-dynamic anyway — real content
-  // is fetched on every request at runtime.
+  // Skip the API round-trip during `next build`. Callers MUST opt into dynamic
+  // rendering (`export const dynamic = "force-dynamic"` in app/layout.tsx and
+  // app/page.tsx) — otherwise Next.js caches this empty fallback into the
+  // static prerender and every API-driven image disappears in prod.
   if (process.env.NEXT_PHASE === "phase-production-build") return FALLBACK_CONTENT;
   try {
     const res = await fetch(`${API_URL}/api/v1/content`, {

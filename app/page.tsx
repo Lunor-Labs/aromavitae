@@ -8,6 +8,8 @@ import { Testimonials } from "@/components/features/testimonials/Testimonials";
 import { ScrollRevealWrapper } from "@/components/ui/ScrollRevealWrapper";
 import { fetchContent } from "@/lib/api";
 
+export const dynamic = "force-dynamic";
+
 export default async function HomePage() {
   const content = await fetchContent();
   const { products, categories, testimonials, singletons } = content;
