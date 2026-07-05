@@ -4,6 +4,7 @@ import { BestSellers } from "@/components/features/products/BestSellers";
 import { ShopByCategory } from "@/components/features/categories/ShopByCategory";
 import { TrustBadges } from "@/components/ui/TrustBadges";
 import { GiftSetsBanner } from "@/components/features/gifts/GiftSetsBanner";
+import { OutletsPreview } from "@/components/features/outlets/OutletsPreview";
 import { Testimonials } from "@/components/features/testimonials/Testimonials";
 import { ScrollRevealWrapper } from "@/components/ui/ScrollRevealWrapper";
 import { fetchContent } from "@/lib/api";
@@ -12,7 +13,7 @@ export const dynamic = "force-dynamic";
 
 export default async function HomePage() {
   const content = await fetchContent();
-  const { products, categories, testimonials, singletons } = content;
+  const { products, categories, testimonials, outlets, singletons } = content;
 
   return (
     <>
@@ -23,6 +24,7 @@ export default async function HomePage() {
         <ShopByCategory categories={categories} />
         <TrustBadges />
         <GiftSetsBanner content={singletons.giftSetsBanner} />
+        <OutletsPreview outlets={outlets} />
         <Testimonials testimonials={testimonials} />
       </ScrollRevealWrapper>
     </>

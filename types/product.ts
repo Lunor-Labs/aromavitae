@@ -25,6 +25,16 @@ export interface Testimonial {
   rating: number;
 }
 
+export interface Outlet {
+  id: string;
+  name: string;
+  address: string;
+  phone: string;
+  description: string;
+  image: string;
+  sortOrder?: number;
+}
+
 export interface NavLink {
   label: string;
   href: string;

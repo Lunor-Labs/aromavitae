@@ -28,8 +28,10 @@ function resolveImageUrl(url: string): string {
 function normalizeImages(data: ContentPayload): ContentPayload {
   return {
     ...data,
-    products: data.products.map((p) => ({ ...p, image: resolveImageUrl(p.image) })),
-    categories: data.categories.map((c) => ({ ...c, image: resolveImageUrl(c.image) })),
+    products: (data.products ?? []).map((p) => ({ ...p, image: resolveImageUrl(p.image) })),
+    categories: (data.categories ?? []).map((c) => ({ ...c, image: resolveImageUrl(c.image) })),
+    testimonials: data.testimonials ?? [],
+    outlets: (data.outlets ?? []).map((o) => ({ ...o, image: resolveImageUrl(o.image) })),
     singletons: {
       ...data.singletons,
       // hero and story images are served from public/ — not resolved to Supabase
@@ -47,6 +49,7 @@ const FALLBACK_CONTENT: ContentPayload = {
   products: [],
   categories: [],
   testimonials: [],
+  outlets: [],
   singletons: {
     hero: { slides: [] } as HeroContent,
     story: {

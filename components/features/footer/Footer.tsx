@@ -11,6 +11,7 @@ interface Props {
 const QUICK_LINKS = [
   { label: "Products", href: "/products" },
   { label: "Gallery", href: "/gallery" },
+  { label: "Outlets", href: "/outlets" },
   { label: "About Us", href: "/about" },
   { label: "Blog", href: "/blog" },
   { label: "Contact Us", href: "/contact#contact-form" },

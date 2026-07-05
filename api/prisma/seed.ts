@@ -45,6 +45,49 @@ async function main() {
     await prisma.testimonial.upsert({ where: { id: t.id }, update: t, create: t });
   }
 
+  // ---- Outlets (physical retail stores) ----
+  const outlets = [
+    {
+      id: 'seed-outlet-1',
+      name: 'AromaVitae Colombo Flagship',
+      address: '42 Galle Road, Colombo 03, Sri Lanka',
+      phone: '+94 11 234 5678',
+      description: 'Our flagship store in the heart of Colombo, featuring the full AromaVitae collection of premium Ceylon spices, agarwood perfumes, and curated gift sets.',
+      image: asset('products/cinnamon.png'),
+      sortOrder: 1,
+    },
+    {
+      id: 'seed-outlet-2',
+      name: 'AromaVitae Kandy',
+      address: '18 Peradeniya Road, Kandy, Sri Lanka',
+      phone: '+94 81 223 4567',
+      description: 'Nestled in the hill capital, our Kandy outlet is a serene space to explore the aromas of Ceylon, just moments from the Temple of the Tooth.',
+      image: asset('products/cardamom.png'),
+      sortOrder: 2,
+    },
+    {
+      id: 'seed-outlet-3',
+      name: 'AromaVitae Galle',
+      address: '27 Church Street, Galle Fort, Sri Lanka',
+      phone: '+94 91 224 5678',
+      description: 'Set within the historic walls of Galle Fort, our southern coast boutique offers travellers a taste of Ceylon\'s finest exports.',
+      image: asset('products/clove.png'),
+      sortOrder: 3,
+    },
+    {
+      id: 'seed-outlet-4',
+      name: 'AromaVitae Negombo',
+      address: '15 Lewis Place, Negombo, Sri Lanka',
+      phone: '+94 31 222 3456',
+      description: 'Conveniently located near the international airport, ideal for last-minute Ceylon souvenirs and gift sets before your journey home.',
+      image: asset('products/pepper.png'),
+      sortOrder: 4,
+    },
+  ];
+  for (const o of outlets) {
+    await prisma.outlet.upsert({ where: { id: o.id }, update: o, create: o });
+  }
+
   // ---- Singletons ----
   const singletons: Record<string, unknown> = {
     hero: {

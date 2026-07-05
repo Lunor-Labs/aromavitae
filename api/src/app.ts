@@ -11,6 +11,7 @@ import { errorHandler } from '@/middleware/errorHandler';
 import { contentRouter } from '@/routes/content';
 import { productsRouter } from '@/routes/products';
 import { categoriesRouter } from '@/routes/categories';
+import { outletsRouter } from '@/routes/outlets';
 import { testimonialsRouter } from '@/routes/testimonials';
 import { singletonsRouter } from '@/routes/singletons';
 import { uploadsRouter } from '@/routes/uploads';
@@ -53,6 +54,7 @@ app.get('/health', (_req, res) => {
 app.use('/api/v1/content', contentRouter);
 app.use('/api/v1/products', productsRouter);
 app.use('/api/v1/categories', categoriesRouter);
+app.use('/api/v1/outlets', outletsRouter);
 app.use('/api/v1/testimonials', testimonialsRouter);
 app.use('/api/v1/singletons', singletonsRouter);
 app.use('/api/v1/uploads', uploadsRouter);

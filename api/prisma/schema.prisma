@@ -51,6 +51,20 @@ model Testimonial {
   @@map("testimonials")
 }
 
+model Outlet {
+  id          String   @id @default(cuid())
+  name        String
+  address     String
+  phone       String
+  description String
+  image       String
+  sortOrder   Int      @default(0) @map("sort_order")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  @@map("outlets")
+}
+
 // Hero, Story, Navbar, Footer, AnnouncementBar, GiftSetsBanner each stored as one row
 model Singleton {
   key       String   @id                   // 'hero' | 'story' | 'navbar' | 'footer' | 'announcement' | 'giftSetsBanner'

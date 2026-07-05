@@ -1,4 +1,5 @@
 import { CategoryRepository } from '@/repositories/CategoryRepository';
+import { OutletRepository } from '@/repositories/OutletRepository';
 import { ProductRepository } from '@/repositories/ProductRepository';
 import { TestimonialRepository } from '@/repositories/TestimonialRepository';
 import { SingletonService } from '@/services/SingletonService';
@@ -9,16 +10,18 @@ export class ContentService {
     private products = new ProductRepository(),
     private categories = new CategoryRepository(),
     private testimonials = new TestimonialRepository(),
+    private outlets = new OutletRepository(),
     private singletons = new SingletonService()
   ) {}
 
   async getAggregate(): Promise<ContentPayload> {
-    const [products, categories, testimonials, singletons] = await Promise.all([
+    const [products, categories, testimonials, outlets, singletons] = await Promise.all([
       this.products.findAll(),
       this.categories.findAll(),
       this.testimonials.findAll(),
+      this.outlets.findAll(),
       this.singletons.getAllMap(),
     ]);
-    return { products, categories, testimonials, singletons };
+    return { products, categories, testimonials, outlets, singletons };
   }
 }
