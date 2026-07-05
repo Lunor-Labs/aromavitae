@@ -9,9 +9,7 @@ import {
   useSensors,
   closestCenter,
   type DragEndEvent,
-  type DraggableAttributes,
 } from "@dnd-kit/core";
-import type { SyntheticListenerMap } from "@dnd-kit/core/dist/hooks/utilities";
 import {
   SortableContext,
   arrayMove,
@@ -24,11 +22,7 @@ import { CSS } from "@dnd-kit/utilities";
 export interface SortableRowProps {
   setNodeRef: (node: HTMLElement | null) => void;
   style: CSSProperties;
-  handle: {
-    attributes: DraggableAttributes;
-    listeners: SyntheticListenerMap | undefined;
-    setActivatorNodeRef: (node: HTMLElement | null) => void;
-  };
+  dragHandle: ReactNode;
 }
 
 interface SortableListProps<T extends { id: string }> {
@@ -94,19 +88,11 @@ function SortableItem({
     zIndex: isDragging ? 10 : "auto",
   };
 
-  return <>{children({ setNodeRef, style, handle: { attributes, listeners, setActivatorNodeRef } })}</>;
-}
-
-export function DragHandle({
-  handle,
-}: {
-  handle: SortableRowProps["handle"];
-}) {
-  return (
+  const dragHandle = (
     <button
-      ref={handle.setActivatorNodeRef}
-      {...handle.attributes}
-      {...handle.listeners}
+      ref={setActivatorNodeRef}
+      {...attributes}
+      {...listeners}
       type="button"
       aria-label="Drag to reorder"
       className="cursor-grab active:cursor-grabbing text-slate-400 hover:text-slate-600 px-1 touch-none"
@@ -121,4 +107,6 @@ export function DragHandle({
       </svg>
     </button>
   );
+
+  return <>{children({ setNodeRef, style, dragHandle })}</>;
 }

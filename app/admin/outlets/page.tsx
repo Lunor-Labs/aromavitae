@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { useAdminApi } from "@/hooks/useAdminApi";
 import { ImageUploader } from "@/components/admin/ImageUploader";
-import { SortableList, DragHandle } from "@/components/admin/SortableList";
+import { SortableList } from "@/components/admin/SortableList";
 import type { Outlet } from "@/types/product";
 
 const empty: Omit<Outlet, "id"> = {
@@ -117,7 +117,7 @@ export default function OutletsPage() {
                 style={sortable.style}
                 className="grid grid-cols-[32px_60px_1fr_1fr_120px_100px] gap-3 items-center px-3 py-3 border-b border-slate-100 bg-white"
               >
-                <DragHandle handle={sortable.handle} />
+                {sortable.dragHandle}
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img src={o.image} alt="" className="w-10 h-10 object-cover rounded" />
                 <span className="truncate">{o.name}</span>

@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { useAdminApi } from "@/hooks/useAdminApi";
-import { SortableList, DragHandle } from "@/components/admin/SortableList";
+import { SortableList } from "@/components/admin/SortableList";
 import type { Testimonial } from "@/types/product";
 
 const empty: Omit<Testimonial, "id"> = { quote: "", author: "", location: "", rating: 5 };
@@ -101,7 +101,7 @@ export default function TestimonialsPage() {
               >
                 <div className="flex items-start gap-3 flex-1 min-w-0">
                   <div className="pt-1">
-                    <DragHandle handle={sortable.handle} />
+                    {sortable.dragHandle}
                   </div>
                   <div className="min-w-0">
                     <p className="text-sm italic text-slate-700 mb-2">&ldquo;{t.quote}&rdquo;</p>
