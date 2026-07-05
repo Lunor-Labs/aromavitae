@@ -58,16 +58,16 @@ function patchStory(data: StoryData): { data: StoryData; changed: number } {
   };
 }
 
-async function patchSingleton(
+async function patchSingleton<T extends HeroData | StoryData>(
   key: 'hero' | 'story',
-  patcher: (d: any) => { data: any; changed: number },
+  patcher: (d: T) => { data: T; changed: number },
 ) {
   const row = await prisma.singleton.findUnique({ where: { key } });
   if (!row) {
     console.log(`[${key}] not found — skipping`);
     return;
   }
-  const { data: nextData, changed } = patcher(row.data as any);
+  const { data: nextData, changed } = patcher(row.data as T);
   if (changed === 0) {
     console.log(`[${key}] already clean — no changes`);
     return;
