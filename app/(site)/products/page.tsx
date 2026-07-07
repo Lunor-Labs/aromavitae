@@ -26,6 +26,7 @@ export default function ProductsPage() {
     <>
       <PageHero
         title="Our Products"
+        tagline="PREMIUM COLLECTIONS"
         subtitle="Explore our curated collection of premium Ceylon spices, exquisite agarwood perfumes, and thoughtfully crafted gift sets."
         breadcrumbs={[
           { label: "Home", href: "/" },

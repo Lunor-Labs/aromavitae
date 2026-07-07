@@ -48,7 +48,7 @@ export function Testimonials({ testimonials }: Props) {
   return (
     <section className="py-16 md:py-24 bg-warm-white reveal">
       <div className="max-w-[1400px] mx-auto px-6">
-        <div className="relative overflow-hidden mb-4" style={{ height: '36px' }}>
+        <div className="relative overflow-hidden mb-4 h-9 md:h-24">
           <Image
             src="/images/misc/line.png"
             alt=""

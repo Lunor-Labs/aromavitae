@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 
 export interface BreadcrumbItem {
@@ -9,11 +10,12 @@ export interface BreadcrumbItem {
 
 interface PageHeroProps {
   title: string;
+  tagline?: string;
   subtitle?: string;
   breadcrumbs?: BreadcrumbItem[];
 }
 
-export function PageHero({ title, subtitle, breadcrumbs }: PageHeroProps) {
+export function PageHero({ title, tagline, subtitle, breadcrumbs }: PageHeroProps) {
   return (
     <section className="relative bg-forest overflow-hidden py-16 md:py-24">
       {/* Ornamental background pattern */}
@@ -99,12 +101,23 @@ export function PageHero({ title, subtitle, breadcrumbs }: PageHeroProps) {
           </nav>
         )}
 
-        {/* Ornament */}
-        <div className="flex items-center justify-center gap-3 mb-6">
-          <div className="w-12 h-[1px] bg-gold/40" />
-          <div className="w-2 h-2 bg-gold rotate-45" />
-          <div className="w-12 h-[1px] bg-gold/40" />
+        {/* Line ornament */}
+        <div className="relative overflow-hidden mb-4 h-9 md:h-16 max-w-xs mx-auto">
+          <Image
+            src="/images/misc/line.png"
+            alt=""
+            fill
+            sizes="320px"
+            style={{ objectFit: "cover", objectPosition: "center center" }}
+          />
         </div>
+
+        {/* Tagline */}
+        {tagline && (
+          <span className="text-gold text-xs tracking-[0.3em] uppercase font-medium mb-4 block">
+            {tagline}
+          </span>
+        )}
 
         {/* Title */}
         <h1 className="font-heading text-3xl md:text-4xl lg:text-5xl font-bold text-warm-white tracking-wide">

@@ -77,20 +77,24 @@ export function HeroSection() {
       <div className="absolute bottom-4 left-4 w-16 h-16 border-b-2 border-l-2 border-gold/30" />
       <div className="absolute bottom-4 right-4 w-16 h-16 border-b-2 border-r-2 border-gold/30" />
 
-      <div className="relative z-10 max-w-[1400px] mx-auto px-6 h-full flex items-center">
+      <div className="relative z-10 max-w-[1400px] mx-auto px-6 h-full flex items-start pt-7 md:items-center md:pt-0">
         <div
           className={cn(
-            "max-w-lg transition-all duration-700",
+            "max-w-lg transition-all duration-700 flex flex-col",
             isTransitioning
               ? "opacity-0 translate-y-4"
               : "opacity-100 translate-y-0"
           )}
         >
-          <h1 className="font-heading text-4xl md:text-5xl lg:text-6xl font-bold text-charcoal leading-tight whitespace-pre-line">
+          <p className="order-1 md:order-3 text-muted text-sm md:text-base leading-relaxed mb-6 md:mb-8 max-w-md">
+            {slide.subheading}
+          </p>
+
+          <h1 className="order-2 md:order-1 font-heading text-4xl md:text-5xl lg:text-6xl font-bold text-charcoal leading-tight whitespace-pre-line">
             {slide.heading}
           </h1>
 
-          <div className="my-5 relative overflow-hidden max-w-xs" style={{ height: '36px' }}>
+          <div className="order-3 md:order-2 my-5 relative overflow-hidden max-w-xs" style={{ height: '36px' }}>
             <Image
               src="/images/misc/line.png"
               alt=""
@@ -100,11 +104,7 @@ export function HeroSection() {
             />
           </div>
 
-          <p className="text-muted text-sm md:text-base leading-relaxed mb-8 max-w-md">
-            {slide.subheading}
-          </p>
-
-          <div className="flex flex-wrap gap-4">
+          <div className="order-4 flex flex-wrap gap-4">
             <Link
               href={slide.ctaPrimary.href}
               className="px-7 py-3 bg-forest text-warm-white text-xs font-medium tracking-[0.2em]

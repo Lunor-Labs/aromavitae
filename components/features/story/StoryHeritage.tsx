@@ -19,7 +19,7 @@ const STORY: StoryContent = {
     ctaLabel: "EXPLORE OUR HERITAGE",
     ctaHref: "/about",
     badges: [
-      { icon: "book", label: "Centuries of tradition" },
+      { icon: "book", label: "Centuries of\ntradition" },
       { icon: "leaf", label: "100% natural" },
       { icon: "shield", label: "Purity assured" },
     ],
@@ -116,13 +116,13 @@ export function StoryHeritage() {
               {heritage.body}
             </p>
 
-            <div className="flex flex-wrap gap-8 mb-8">
+            <div className="grid grid-cols-3 gap-4 mb-8">
               {heritage.badges.map((badge) => (
                 <div key={badge.label} className="flex flex-col items-center gap-2 text-center">
                   <div className="w-14 h-14 rounded-full bg-forest/10 flex items-center justify-center text-forest">
                     <BadgeIcon name={badge.icon} />
                   </div>
-                  <span className="text-xs font-medium text-charcoal tracking-wide">
+                  <span className="text-xs font-medium text-charcoal tracking-wide whitespace-pre-line">
                     {badge.label}
                   </span>
                 </div>

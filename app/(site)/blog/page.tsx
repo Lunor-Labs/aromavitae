@@ -26,6 +26,7 @@ export default function BlogPage() {
     <>
       <PageHero
         title="Our Blog"
+        tagline="STORIES & INSIGHTS"
         subtitle="Stories, recipes, and insights from the world of premium Ceylon spices and agarwood perfumes."
         breadcrumbs={[
           { label: "Home", href: "/" },

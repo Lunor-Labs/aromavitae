@@ -13,7 +13,7 @@ export function BestSellers({ products }: Props) {
       <div className="max-w-[1400px] mx-auto px-6">
         {/* Section Heading */}
         <div className="text-center mb-12">
-          <div className="mb-4 relative overflow-hidden" style={{ height: '36px' }}>
+          <div className="mb-4 relative overflow-hidden h-9 md:h-24">
             <Image
               src="/images/misc/line.png"
               alt=""

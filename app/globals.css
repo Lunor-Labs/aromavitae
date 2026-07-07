@@ -20,7 +20,7 @@
   --color-border: #D4CFC4;
 
   /* Typography */
-  --font-heading: var(--font-playfair);
+  --font-heading: var(--font-ubuntu);
   --font-body: var(--font-ubuntu);
 }
 

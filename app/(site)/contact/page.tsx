@@ -83,6 +83,7 @@ export default function ContactPage() {
     <>
       <PageHero
         title="Contact Us"
+        tagline="GET IN TOUCH"
         subtitle="Have a question, a custom order, or just want to say hello? We'd love to hear from you."
         breadcrumbs={[
           { label: "Home", href: "/" },

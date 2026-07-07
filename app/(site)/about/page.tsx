@@ -75,6 +75,7 @@ export default function AboutPage() {
     <>
       <PageHero
         title="About AromaVitae"
+        tagline="OUR HERITAGE"
         subtitle="Nature's Finest. Ceylon's Pride. Discover the passion, heritage, and tradition behind every product we craft."
         breadcrumbs={[
           { label: "Home", href: "/" },

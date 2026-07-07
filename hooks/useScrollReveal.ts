@@ -2,7 +2,7 @@
 
 import { useEffect, useRef } from "react";
 
-export function useScrollReveal(threshold = 0.15) {
+export function useScrollReveal(threshold = 0) {
   const ref = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
