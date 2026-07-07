@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Image from "next/image";
 import { PageHero } from "@/components/ui/PageHero";
 import { ScrollRevealWrapper } from "@/components/ui/ScrollRevealWrapper";
 import { TrustBadges } from "@/components/ui/TrustBadges";
@@ -87,6 +88,15 @@ export default function AboutPage() {
           <div className="max-w-[1400px] mx-auto px-6">
             <div className="grid md:grid-cols-2 gap-12 items-center">
               <div>
+                <div className="relative overflow-hidden mb-4" style={{ height: '36px' }}>
+                  <Image
+                    src="/images/misc/line.png"
+                    alt=""
+                    fill
+                    sizes="(max-width: 768px) 100vw, 50vw"
+                    style={{ objectFit: 'cover', objectPosition: 'center center' }}
+                  />
+                </div>
                 <span className="text-muted text-xs tracking-[0.3em] uppercase font-medium mb-3 block">
                   OUR STORY
                 </span>
@@ -132,6 +142,15 @@ export default function AboutPage() {
                 </div>
 
                 <div className="relative z-10">
+                  <div className="relative overflow-hidden mb-4" style={{ height: '36px' }}>
+                    <Image
+                      src="/images/misc/line.png"
+                      alt=""
+                      fill
+                      sizes="(max-width: 768px) 100vw, 50vw"
+                      style={{ objectFit: 'cover', objectPosition: 'center center' }}
+                    />
+                  </div>
                   <span className="text-gold text-xs tracking-[0.3em] uppercase font-medium mb-4 block">
                     OUR PROMISE
                   </span>
@@ -144,10 +163,14 @@ export default function AboutPage() {
                     crafted from sustainably sourced agarwood, honoring both nature and
                     tradition.
                   </p>
-                  <div className="flex items-center gap-3">
-                    <div className="w-12 h-[1px] bg-gold" />
-                    <div className="w-2 h-2 bg-gold rotate-45" />
-                    <div className="w-12 h-[1px] bg-gold" />
+                  <div className="relative overflow-hidden" style={{ height: '36px' }}>
+                    <Image
+                      src="/images/misc/line.png"
+                      alt=""
+                      fill
+                      sizes="(max-width: 768px) 100vw, 50vw"
+                      style={{ objectFit: 'cover', objectPosition: 'center center' }}
+                    />
                   </div>
                 </div>
               </div>
@@ -159,8 +182,14 @@ export default function AboutPage() {
         <section className="py-16 md:py-24 bg-cream reveal">
           <div className="max-w-[1400px] mx-auto px-6">
             <div className="text-center mb-12">
-              <div className="ornament-divider mb-4">
-                <span className="ornament-diamond" />
+              <div className="mb-4 relative overflow-hidden" style={{ height: '36px' }}>
+                <Image
+                  src="/images/misc/line.png"
+                  alt=""
+                  fill
+                  sizes="100vw"
+                  style={{ objectFit: 'cover', objectPosition: 'center center' }}
+                />
               </div>
               <h2 className="font-heading text-3xl md:text-4xl font-bold text-charcoal tracking-wide">
                 OUR VALUES
@@ -191,6 +220,15 @@ export default function AboutPage() {
         <section className="py-16 md:py-24 bg-warm-white reveal">
           <div className="max-w-[900px] mx-auto px-6">
             <div className="text-center mb-12">
+              <div className="relative overflow-hidden mb-4" style={{ height: '36px' }}>
+                <Image
+                  src="/images/misc/line.png"
+                  alt=""
+                  fill
+                  sizes="(max-width: 900px) 100vw, 900px"
+                  style={{ objectFit: 'cover', objectPosition: 'center center' }}
+                />
+              </div>
               <span className="text-muted text-xs tracking-[0.3em] uppercase font-medium mb-3 block">
                 OUR JOURNEY
               </span>

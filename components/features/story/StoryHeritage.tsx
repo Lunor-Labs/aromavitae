@@ -65,6 +65,15 @@ export function StoryHeritage() {
             </svg>
           </div>
 
+          <div className="relative overflow-hidden mb-4" style={{ height: '36px' }}>
+            <Image
+              src="/images/misc/line.png"
+              alt=""
+              fill
+              sizes="(max-width: 768px) 100vw, 50vw"
+              style={{ objectFit: 'cover', objectPosition: 'center center' }}
+            />
+          </div>
           <span className="text-gold text-xs tracking-[0.3em] uppercase font-medium mb-4">
             {ourStory.eyebrow}
           </span>
@@ -88,6 +97,15 @@ export function StoryHeritage() {
           <div className="absolute inset-0 bg-gradient-to-bl from-cream via-cream to-cream-dark opacity-90" />
 
           <div className="relative z-10">
+            <div className="relative overflow-hidden mb-4" style={{ height: '36px' }}>
+              <Image
+                src="/images/misc/line.png"
+                alt=""
+                fill
+                sizes="(max-width: 768px) 100vw, 50vw"
+                style={{ objectFit: 'cover', objectPosition: 'center center' }}
+              />
+            </div>
             <span className="text-muted text-xs tracking-[0.3em] uppercase font-medium mb-3 block">
               {heritage.eyebrow}
             </span>

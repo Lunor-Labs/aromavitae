@@ -17,8 +17,14 @@ export function OutletsPreview({ outlets }: Props) {
         <div className="flex flex-col md:flex-row md:items-center gap-8 md:gap-16">
           {/* Left — Heading with CTA */}
           <div className="shrink-0 md:max-w-[240px]">
-            <div className="ornament-divider justify-start mb-4">
-              <span className="ornament-diamond" />
+            <div className="mb-4 relative overflow-hidden" style={{ height: '36px' }}>
+              <Image
+                src="/images/misc/line.png"
+                alt=""
+                fill
+                sizes="(max-width: 768px) 100vw, 260px"
+                style={{ objectFit: 'cover', objectPosition: 'center center' }}
+              />
             </div>
             <h2 className="font-heading text-2xl md:text-3xl font-bold text-charcoal tracking-wide mb-4">
               OUR OUTLETS

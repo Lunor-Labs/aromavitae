@@ -54,12 +54,20 @@ export function HeroSection() {
     <section className="relative w-full h-[500px] md:h-[600px] lg:h-[650px] overflow-hidden">
       <div className="absolute inset-0">
         <Image
-          src={slide.image}
+          src="/images/hero/hero-banner-desktop.png"
           alt="AromaVitae premium products"
           fill
-          className="object-cover transition-transform duration-1000 ease-out scale-105"
+          className="object-cover transition-transform duration-1000 ease-out scale-105 hidden md:block"
           priority
-          sizes="100vw"
+          sizes="(min-width: 768px) 100vw, 0vw"
+        />
+        <Image
+          src="/images/hero/hero-banner-mobile.png"
+          alt="AromaVitae premium products"
+          fill
+          className="object-cover transition-transform duration-1000 ease-out scale-105 block md:hidden"
+          priority
+          sizes="(max-width: 767px) 100vw, 0vw"
         />
         <div className="absolute inset-0 bg-gradient-to-r from-warm-white/90 via-warm-white/50 to-transparent" />
       </div>
@@ -82,10 +90,14 @@ export function HeroSection() {
             {slide.heading}
           </h1>
 
-          <div className="my-5 flex items-center gap-3">
-            <div className="w-12 h-[1px] bg-gold" />
-            <div className="w-2 h-2 bg-gold rotate-45" />
-            <div className="w-12 h-[1px] bg-gold" />
+          <div className="my-5 relative overflow-hidden max-w-xs" style={{ height: '36px' }}>
+            <Image
+              src="/images/misc/line.png"
+              alt=""
+              fill
+              sizes="320px"
+              style={{ objectFit: 'cover', objectPosition: 'center center' }}
+            />
           </div>
 
           <p className="text-muted text-sm md:text-base leading-relaxed mb-8 max-w-md">

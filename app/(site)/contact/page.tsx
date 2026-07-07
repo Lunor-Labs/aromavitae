@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Image from "next/image";
 import { PageHero } from "@/components/ui/PageHero";
 import { ScrollRevealWrapper } from "@/components/ui/ScrollRevealWrapper";
 import { ContactForm } from "@/components/features/contact/ContactForm";
@@ -119,6 +120,15 @@ export default function ContactPage() {
             <div className="grid lg:grid-cols-5 gap-10">
               {/* Form */}
               <div className="lg:col-span-3" id="contact-form">
+                <div className="relative overflow-hidden mb-4" style={{ height: '36px' }}>
+                  <Image
+                    src="/images/misc/line.png"
+                    alt=""
+                    fill
+                    sizes="(max-width: 1024px) 100vw, 60vw"
+                    style={{ objectFit: 'cover', objectPosition: 'center center' }}
+                  />
+                </div>
                 <span className="text-muted text-xs tracking-[0.3em] uppercase font-medium mb-3 block">
                   SEND US A MESSAGE
                 </span>

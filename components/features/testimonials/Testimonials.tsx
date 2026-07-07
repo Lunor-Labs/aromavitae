@@ -48,6 +48,15 @@ export function Testimonials({ testimonials }: Props) {
   return (
     <section className="py-16 md:py-24 bg-warm-white reveal">
       <div className="max-w-[1400px] mx-auto px-6">
+        <div className="relative overflow-hidden mb-4" style={{ height: '36px' }}>
+          <Image
+            src="/images/misc/line.png"
+            alt=""
+            fill
+            sizes="100vw"
+            style={{ objectFit: 'cover', objectPosition: 'center center' }}
+          />
+        </div>
         <h2 className="font-heading text-3xl md:text-4xl font-bold text-charcoal text-center mb-12">
           Loved by Customers Worldwide
         </h2>

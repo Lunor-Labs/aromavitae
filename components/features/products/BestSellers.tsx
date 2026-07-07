@@ -1,3 +1,4 @@
+import Image from "next/image";
 import Link from "next/link";
 import { ProductCard } from "@/components/ui/ProductCard";
 import type { Product } from "@/types/product";
@@ -12,8 +13,14 @@ export function BestSellers({ products }: Props) {
       <div className="max-w-[1400px] mx-auto px-6">
         {/* Section Heading */}
         <div className="text-center mb-12">
-          <div className="ornament-divider mb-4">
-            <span className="ornament-diamond" />
+          <div className="mb-4 relative overflow-hidden" style={{ height: '36px' }}>
+            <Image
+              src="/images/misc/line.png"
+              alt=""
+              fill
+              sizes="100vw"
+              style={{ objectFit: 'cover', objectPosition: 'center center' }}
+            />
           </div>
           <h2 className="font-heading text-3xl md:text-4xl font-bold text-charcoal tracking-wide">
             BEST SELLERS

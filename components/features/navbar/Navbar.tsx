@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
@@ -16,7 +17,6 @@ const NAV_LINKS = [
   { label: "BLOG", href: "/blog" },
 ];
 
-const brand = { name: "AromaVitae", tagline: "NATURE'S FINEST · CEYLON'S PRIDE" };
 
 export function Navbar() {
   const pathname = usePathname();
@@ -47,15 +47,15 @@ export function Navbar() {
     >
       <nav className="max-w-[1400px] mx-auto flex items-center justify-between px-6 py-3">
         {/* Logo */}
-        <Link href="/" className="flex items-center gap-3 shrink-0">
-          <div className="flex flex-col">
-            <span className="font-heading text-2xl font-bold text-forest tracking-wide">
-              {brand.name}
-            </span>
-            <span className="text-[10px] text-muted tracking-[0.2em] -mt-1">
-              {brand.tagline}
-            </span>
-          </div>
+        <Link href="/" className="flex items-center shrink-0">
+          <Image
+            src="/images/misc/logo.png"
+            alt="AromaVitae"
+            width={160}
+            height={48}
+            className="h-12 w-auto object-contain"
+            priority
+          />
         </Link>
 
         {/* Desktop Nav Links */}

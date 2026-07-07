@@ -1,3 +1,4 @@
+import Image from "next/image";
 import Link from "next/link";
 import type { FooterContent } from "@/types/content";
 
@@ -90,12 +91,13 @@ export function Footer({ content }: Props) {
           {/* Brand Column */}
           <div>
             <Link href="/" className="block mb-4">
-              <span className="font-heading text-xl font-bold text-warm-white tracking-wide">
-                {BRAND.name}
-              </span>
-              <span className="block text-[9px] text-gold tracking-[0.2em] -mt-0.5">
-                {BRAND.tagline}
-              </span>
+              <Image
+                src="/images/misc/logo.png"
+                alt="AromaVitae"
+                width={160}
+                height={48}
+                className="h-12 w-auto object-contain brightness-0 invert"
+              />
             </Link>
             <p className="text-xs leading-relaxed text-warm-white/60 mb-6">
               {BRAND.description}

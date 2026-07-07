@@ -38,8 +38,14 @@ export function OutletsGrid({ outlets }: Props) {
               </div>
               <div className="flex flex-col gap-4 p-6 md:p-7 flex-1">
                 <div>
-                  <div className="ornament-divider justify-start mb-3">
-                    <span className="ornament-diamond" />
+                  <div className="mb-3 relative overflow-hidden" style={{ height: '36px' }}>
+                    <Image
+                      src="/images/misc/line.png"
+                      alt=""
+                      fill
+                      sizes="(max-width: 768px) 100vw, 50vw"
+                      style={{ objectFit: 'cover', objectPosition: 'center center' }}
+                    />
                   </div>
                   <h3 className="font-heading text-xl md:text-2xl font-bold text-forest tracking-wide">
                     {outlet.name}

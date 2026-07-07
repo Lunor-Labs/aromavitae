@@ -1,11 +1,11 @@
-import type { TrustBadge } from "@/types/product";
+import Image from "next/image";
 
-const BADGES: TrustBadge[] = [
-  { icon: "🌿", title: "100% NATURAL", subtitle: "No Additives. No Compromise." },
-  { icon: "🇱🇰", title: "SRI LANKAN ORIGIN", subtitle: "Proudly Ceylon. Pure & Authentic." },
-  { icon: "✨", title: "PREMIUM QUALITY", subtitle: "Carefully Sourced. Expertly Crafted." },
-  { icon: "🎁", title: "LUXURY EXPERIENCE", subtitle: "Perfect for You & Your Loved Ones." },
-  { icon: "🌍", title: "WORLDWIDE SHIPPING", subtitle: "Delivering Nature's Finest to You." },
+const BADGES = [
+  { image: "/images/misc/100-natural.png", title: "100% NATURAL", subtitle: "No Additives. No Compromise." },
+  { image: "/images/misc/sri-lankan-origin.png", title: "SRI LANKAN ORIGIN", subtitle: "Proudly Ceylon. Pure & Authentic." },
+  { image: "/images/misc/premium-quality.png", title: "PREMIUM QUALITY", subtitle: "Carefully Sourced. Expertly Crafted." },
+  { image: "/images/misc/luxury-experience.png", title: "LUXURY EXPERIENCE", subtitle: "Perfect for You & Your Loved Ones." },
+  { image: "/images/misc/worldwide-shipping.png", title: "WORLDWIDE SHIPPING", subtitle: "Delivering Nature's Finest to You." },
 ];
 
 export function TrustBadges() {
@@ -18,7 +18,13 @@ export function TrustBadges() {
               key={badge.title}
               className="flex items-center gap-3 md:justify-center"
             >
-              <span className="text-2xl shrink-0">{badge.icon}</span>
+              <Image
+                src={badge.image}
+                alt={badge.title}
+                width={40}
+                height={40}
+                className="w-10 h-10 object-contain shrink-0"
+              />
               <div>
                 <p className="text-xs font-bold text-charcoal tracking-wider">
                   {badge.title}

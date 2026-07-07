@@ -35,6 +35,15 @@ export function GiftSetsBanner({ content }: Props) {
           </div>
 
           <div className="relative z-10">
+            <div className="relative overflow-hidden mb-4" style={{ height: '36px' }}>
+              <Image
+                src="/images/misc/line.png"
+                alt=""
+                fill
+                sizes="(max-width: 768px) 100vw, 50vw"
+                style={{ objectFit: 'cover', objectPosition: 'center center' }}
+              />
+            </div>
             <span className="text-gold text-xs tracking-[0.3em] uppercase font-medium mb-3 block">
               {content.eyebrow}
             </span>
