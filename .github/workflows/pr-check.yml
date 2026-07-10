@@ -30,5 +30,10 @@ jobs:
           cache: "npm"
           cache-dependency-path: api/package-lock.json
       - run: npm ci
-      - run: npx prisma validate
+      - name: Validate Prisma schema
+        env:
+          # Dummy values — prisma validate only resolves env() refs, it never connects
+          DATABASE_URL: postgresql://user:pass@localhost:5432/db
+          DIRECT_URL: postgresql://user:pass@localhost:5432/db
+        run: npx prisma validate
       - run: npm run typecheck
