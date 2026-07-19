@@ -32,8 +32,7 @@ jobs:
       - run: npm ci
       - name: Validate Prisma schema
         env:
-          # Dummy values — prisma validate only resolves env() refs, it never connects
+          # Dummy value — prisma validate only resolves env() refs, it never connects
           DATABASE_URL: postgresql://user:pass@localhost:5432/db
-          DIRECT_URL: postgresql://user:pass@localhost:5432/db
         run: npx prisma validate
       - run: npm run typecheck
