@@ -46,8 +46,8 @@ jobs:
 
       - name: Build
         env:
-          API_URL: ${{ vars.API_URL }}
-          NEXT_PUBLIC_API_URL: ${{ vars.API_URL }}
+          API_URL: ${{ vars.NEXT_PUBLIC_API_URL }}
+          NEXT_PUBLIC_API_URL: ${{ vars.NEXT_PUBLIC_API_URL }}
           NEXT_PUBLIC_ASSET_BASE_URL: ${{ vars.NEXT_PUBLIC_ASSET_BASE_URL }}
           ADMIN_JWT_SECRET: ${{ secrets.ADMIN_JWT_SECRET }}
         run: vercel build --token=${{ secrets.VERCEL_TOKEN }}
@@ -85,8 +85,8 @@ jobs:
 
       - name: Build
         env:
-          API_URL: ${{ vars.API_URL }}
-          NEXT_PUBLIC_API_URL: ${{ vars.API_URL }}
+          API_URL: ${{ vars.NEXT_PUBLIC_API_URL }}
+          NEXT_PUBLIC_API_URL: ${{ vars.NEXT_PUBLIC_API_URL }}
           NEXT_PUBLIC_ASSET_BASE_URL: ${{ vars.NEXT_PUBLIC_ASSET_BASE_URL }}
           ADMIN_JWT_SECRET: ${{ secrets.ADMIN_JWT_SECRET }}
         run: vercel build --prod --token=${{ secrets.VERCEL_TOKEN }}
