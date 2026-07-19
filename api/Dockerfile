@@ -21,6 +21,7 @@ COPY prisma ./prisma
 RUN npm ci --omit=dev
 
 COPY --from=build /app/dist ./dist
+COPY scripts ./scripts
 
 EXPOSE 4000
 CMD ["node", "dist/server.js"]
