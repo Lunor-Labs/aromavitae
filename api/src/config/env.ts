@@ -7,7 +7,6 @@ const envSchema = z.object({
   LOG_LEVEL: z.string().default('info'),
 
   DATABASE_URL: z.string().url(),
-  DIRECT_URL: z.string().url().optional(),
 
   ADMIN_JWT_SECRET: z.string().min(32),
 
