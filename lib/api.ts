@@ -9,7 +9,7 @@ import type {
 } from "@/types/content";
 import { STORAGE_BASE_URL } from "@/lib/storage";
 
-const API_URL = process.env.API_URL ?? process.env.NEXT_PUBLIC_API_URL ?? "";
+const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "";
 
 /**
  * Convert relative image paths (e.g. "/images/products/cinnamon.png") that

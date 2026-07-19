@@ -46,7 +46,6 @@ jobs:
 
       - name: Build
         env:
-          API_URL: ${{ vars.NEXT_PUBLIC_API_URL }}
           NEXT_PUBLIC_API_URL: ${{ vars.NEXT_PUBLIC_API_URL }}
           NEXT_PUBLIC_ASSET_BASE_URL: ${{ vars.NEXT_PUBLIC_ASSET_BASE_URL }}
           ADMIN_JWT_SECRET: ${{ secrets.ADMIN_JWT_SECRET }}
@@ -85,7 +84,6 @@ jobs:
 
       - name: Build
         env:
-          API_URL: ${{ vars.NEXT_PUBLIC_API_URL }}
           NEXT_PUBLIC_API_URL: ${{ vars.NEXT_PUBLIC_API_URL }}
           NEXT_PUBLIC_ASSET_BASE_URL: ${{ vars.NEXT_PUBLIC_ASSET_BASE_URL }}
           ADMIN_JWT_SECRET: ${{ secrets.ADMIN_JWT_SECRET }}
