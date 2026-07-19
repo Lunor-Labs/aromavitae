@@ -2,7 +2,7 @@ name: Deploy backend (Coolify)
 
 on:
   push:
-    branches: [dev, main, feat/coolify-deploy]
+    branches: [dev, main]
     paths:
       - "api/**"
       - ".github/workflows/backend-coolify.yml"
