@@ -5,7 +5,6 @@ import { AdminApi } from "@/lib/api";
 
 interface SignedUrlResponse {
   uploadUrl: string;
-  token: string;
   path: string;
   publicUrl: string;
 }
@@ -31,7 +30,7 @@ export function ImageUploader({ api, value, onChange, label = "Image" }: Props) 
       });
       const put = await fetch(signed.uploadUrl, {
         method: "PUT",
-        headers: { "Content-Type": file.type, "x-upsert": "true" },
+        headers: { "Content-Type": file.type },
         body: file,
       });
       if (!put.ok) throw new Error(`Upload failed (${put.status})`);

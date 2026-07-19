@@ -13,7 +13,7 @@ const API_URL = process.env.API_URL ?? process.env.NEXT_PUBLIC_API_URL ?? "";
 
 /**
  * Convert relative image paths (e.g. "/images/products/cinnamon.png") that
- * were baked into the DB seed into full Supabase Storage public URLs.
+ * were baked into the DB seed into full object storage public URLs.
  * Already-absolute URLs (https://...) are left untouched.
  */
 function resolveImageUrl(url: string): string {
@@ -34,7 +34,7 @@ function normalizeImages(data: ContentPayload): ContentPayload {
     outlets: (data.outlets ?? []).map((o) => ({ ...o, image: resolveImageUrl(o.image) })),
     singletons: {
       ...data.singletons,
-      // hero and story images are served from public/ — not resolved to Supabase
+      // hero and story images are served from public/ — not resolved to object storage
       giftSetsBanner: {
         ...data.singletons.giftSetsBanner,
         image: resolveImageUrl(data.singletons.giftSetsBanner.image),
