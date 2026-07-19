@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState, type ReactNode } from "react";
-import { createSupabaseBrowserClient } from "@/lib/supabase/client";
+import { clearAdminToken, decodeAdminEmail, getAdminToken } from "@/lib/adminAuth";
 import { cn } from "@/lib/utils";
 
 const NAV = [
@@ -23,15 +23,16 @@ export function AdminShell({ children }: { children: ReactNode }) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   useEffect(() => {
-    const supabase = createSupabaseBrowserClient();
-    supabase.auth.getSession().then(({ data }) => {
-      setEmail(data.session?.user?.email ?? null);
-    });
+    // document.cookie is only readable client-side — deferred to an effect so the
+    // server-rendered pass and first client render both start from `null`, avoiding
+    // a hydration mismatch.
+    const token = getAdminToken();
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setEmail(token ? decodeAdminEmail(token) : null);
   }, []);
 
-  const signOut = async () => {
-    const supabase = createSupabaseBrowserClient();
-    await supabase.auth.signOut();
+  const signOut = () => {
+    clearAdminToken();
     router.push("/admin/login");
   };
 

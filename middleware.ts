@@ -1,7 +1,17 @@
-import { createServerClient, type CookieOptions } from "@supabase/ssr";
+import { jwtVerify } from "jose";
 import { NextResponse, type NextRequest } from "next/server";
+import { ADMIN_COOKIE_NAME } from "@/lib/adminAuth";
 
-type CookieToSet = { name: string; value: string; options: CookieOptions };
+const secret = new TextEncoder().encode(process.env.ADMIN_JWT_SECRET);
+
+async function isValidToken(token: string): Promise<boolean> {
+  try {
+    await jwtVerify(token, secret);
+    return true;
+  } catch {
+    return false;
+  }
+}
 
 export async function middleware(req: NextRequest) {
   // Only guard /admin/* (login page itself is public)
@@ -10,35 +20,15 @@ export async function middleware(req: NextRequest) {
     return NextResponse.next();
   }
 
-  const res = NextResponse.next({ request: req });
-
-  const supabase = createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-    {
-      cookies: {
-        getAll() {
-          return req.cookies.getAll();
-        },
-        setAll(cookiesToSet: CookieToSet[]) {
-          cookiesToSet.forEach(({ name, value, options }) =>
-            res.cookies.set(name, value, options)
-          );
-        },
-      },
-    }
-  );
-
-  const { data: { user } } = await supabase.auth.getUser();
-
-  if (!user) {
+  const token = req.cookies.get(ADMIN_COOKIE_NAME)?.value;
+  if (!token || !(await isValidToken(token))) {
     const url = req.nextUrl.clone();
     url.pathname = "/admin/login";
     url.searchParams.set("next", pathname);
     return NextResponse.redirect(url);
   }
 
-  return res;
+  return NextResponse.next();
 }
 
 export const config = {

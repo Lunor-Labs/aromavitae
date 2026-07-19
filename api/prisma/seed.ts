@@ -3,8 +3,8 @@ import { PrismaClient } from '@prisma/client';
 
 const prisma = new PrismaClient();
 
-// Supabase Storage public URL builder (mirrors lib/storage.ts on the frontend)
-const STORAGE_BASE = `${process.env.SUPABASE_URL}/storage/v1/object/public/${process.env.SUPABASE_STORAGE_BUCKET ?? 'aromavitae'}`;
+// Object storage public URL builder (mirrors lib/storage.ts on the frontend)
+const STORAGE_BASE = process.env.S3_PUBLIC_URL ?? '';
 const asset = (path: string) => `${STORAGE_BASE}/${path}`;
 
 async function main() {

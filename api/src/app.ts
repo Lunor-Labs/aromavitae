@@ -8,6 +8,7 @@ import { env } from '@/config/env';
 import { logger } from '@/lib/logger';
 import { errorHandler } from '@/middleware/errorHandler';
 
+import { authRouter } from '@/routes/auth';
 import { contentRouter } from '@/routes/content';
 import { productsRouter } from '@/routes/products';
 import { categoriesRouter } from '@/routes/categories';
@@ -51,6 +52,7 @@ app.get('/health', (_req, res) => {
   res.json({ data: { status: 'ok', timestamp: new Date().toISOString() } });
 });
 
+app.use('/api/v1/auth', authRouter);
 app.use('/api/v1/content', contentRouter);
 app.use('/api/v1/products', productsRouter);
 app.use('/api/v1/categories', categoriesRouter);

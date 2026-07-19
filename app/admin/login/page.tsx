@@ -2,7 +2,9 @@
 
 import { useRouter, useSearchParams } from "next/navigation";
 import { Suspense, useState } from "react";
-import { createSupabaseBrowserClient } from "@/lib/supabase/client";
+import { setAdminToken } from "@/lib/adminAuth";
+
+const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "";
 
 export default function LoginPage() {
   return (
@@ -26,18 +28,24 @@ function LoginForm() {
     e.preventDefault();
     setLoading(true);
     setError(null);
-    const supabase = createSupabaseBrowserClient();
-    const { error: authErr } = await supabase.auth.signInWithPassword({
-      email,
-      password,
-    });
-    setLoading(false);
-    if (authErr) {
-      setError(authErr.message);
-      return;
+    try {
+      const res = await fetch(`${API_URL}/api/v1/auth/login`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, password }),
+      });
+      const body = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        throw new Error(body?.error?.message ?? "Invalid email or password");
+      }
+      setAdminToken(body.data.token);
+      router.push(next);
+      router.refresh();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Sign in failed");
+    } finally {
+      setLoading(false);
     }
-    router.push(next);
-    router.refresh();
   };
 
   return (

@@ -9,16 +9,14 @@ const envSchema = z.object({
   DATABASE_URL: z.string().url(),
   DIRECT_URL: z.string().url().optional(),
 
-  SUPABASE_URL: z.string().url(),
-  SUPABASE_ANON_KEY: z.string().min(1),
-  SUPABASE_SERVICE_ROLE_KEY: z.string().min(1),
-  SUPABASE_JWT_SECRET: z.string().min(1),
-  SUPABASE_STORAGE_BUCKET: z.string().default('aromavitae'),
+  ADMIN_JWT_SECRET: z.string().min(32),
 
-  ADMIN_EMAILS: z
-    .string()
-    .min(1)
-    .transform((s) => s.split(',').map((e) => e.trim().toLowerCase()).filter(Boolean)),
+  S3_ENDPOINT: z.string().url(),
+  S3_REGION: z.string().min(1),
+  S3_BUCKET: z.string().min(1),
+  S3_ACCESS_KEY_ID: z.string().min(1),
+  S3_SECRET_ACCESS_KEY: z.string().min(1),
+  S3_PUBLIC_URL: z.string().url(),
 
   FRONTEND_URL: z.string().url(),
 
