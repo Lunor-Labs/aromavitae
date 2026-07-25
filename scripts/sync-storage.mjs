@@ -1,16 +1,19 @@
 /**
- * Uploads assets from public/images/ to the Supabase storage bucket,
+ * Uploads assets from public/images/ to the object storage bucket,
  * skipping the `hero/` and `story/` subdirectories (those stay in public/).
  *
  * Usage:
  *   node --env-file=.env.local scripts/sync-storage.mjs
  *
  * Required env vars:
- *   NEXT_PUBLIC_SUPABASE_URL
- *   SUPABASE_SERVICE_ROLE_KEY
+ *   S3_ENDPOINT
+ *   S3_REGION
+ *   S3_BUCKET
+ *   S3_ACCESS_KEY_ID
+ *   S3_SECRET_ACCESS_KEY
  */
 
-import { createClient } from "@supabase/supabase-js";
+import { PutObjectCommand, S3Client } from "@aws-sdk/client-s3";
 import { readFileSync, readdirSync } from "fs";
 import { join, relative } from "path";
 import { fileURLToPath } from "url";
@@ -19,22 +22,25 @@ import { dirname } from "path";
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const ROOT = join(__dirname, "..");
 
-const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL;
-const SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
-const BUCKET = "aromavitae";
+const { S3_ENDPOINT, S3_REGION, S3_BUCKET, S3_ACCESS_KEY_ID, S3_SECRET_ACCESS_KEY } = process.env;
 
 // Subdirectories of public/images/ that are served from public/ — skip these
 const PUBLIC_ONLY_DIRS = new Set(["hero", "story"]);
 
-if (!SUPABASE_URL || !SERVICE_ROLE_KEY) {
+if (!S3_ENDPOINT || !S3_REGION || !S3_BUCKET || !S3_ACCESS_KEY_ID || !S3_SECRET_ACCESS_KEY) {
   console.error(
-    "Error: NEXT_PUBLIC_SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY must be set.\n" +
-    "Add SUPABASE_SERVICE_ROLE_KEY to .env.local and re-run."
+    "Error: S3_ENDPOINT, S3_REGION, S3_BUCKET, S3_ACCESS_KEY_ID and S3_SECRET_ACCESS_KEY must be set.\n" +
+    "Add them to .env.local and re-run."
   );
   process.exit(1);
 }
 
-const supabase = createClient(SUPABASE_URL, SERVICE_ROLE_KEY);
+const s3 = new S3Client({
+  endpoint: S3_ENDPOINT,
+  region: S3_REGION,
+  credentials: { accessKeyId: S3_ACCESS_KEY_ID, secretAccessKey: S3_SECRET_ACCESS_KEY },
+  forcePathStyle: true,
+});
 
 function walk(dir) {
   const entries = readdirSync(dir, { withFileTypes: true });
@@ -69,7 +75,7 @@ if (files.length === 0) {
   process.exit(0);
 }
 
-console.log(`Syncing ${files.length} file(s) to Supabase bucket "${BUCKET}"...\n`);
+console.log(`Syncing ${files.length} file(s) to bucket "${S3_BUCKET}"...\n`);
 
 let ok = 0;
 let fail = 0;
@@ -78,16 +84,20 @@ for (const filePath of files) {
   const storagePath = relative(imagesDir, filePath).replace(/\\/g, "/");
   const buffer = readFileSync(filePath);
 
-  const { error } = await supabase.storage
-    .from(BUCKET)
-    .upload(storagePath, buffer, { contentType: contentType(filePath), upsert: true });
-
-  if (error) {
-    console.error(`  FAIL  ${storagePath}: ${error.message}`);
-    fail++;
-  } else {
+  try {
+    await s3.send(
+      new PutObjectCommand({
+        Bucket: S3_BUCKET,
+        Key: storagePath,
+        Body: buffer,
+        ContentType: contentType(filePath),
+      })
+    );
     console.log(`  OK    ${storagePath}`);
     ok++;
+  } catch (error) {
+    console.error(`  FAIL  ${storagePath}: ${error.message}`);
+    fail++;
   }
 }
 

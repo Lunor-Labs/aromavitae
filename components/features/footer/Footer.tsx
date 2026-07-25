@@ -90,7 +90,7 @@ export function Footer({ content }: Props) {
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-10 lg:gap-8 text-center sm:text-left">
           {/* Brand Column */}
           <div>
-            <Link href="/" className="flex justify-center mb-4">
+            <Link href="/" className="flex justify-center sm:justify-start mb-4">
               <Image
                 src="/images/misc/logo.png"
                 alt="AromaVitae"

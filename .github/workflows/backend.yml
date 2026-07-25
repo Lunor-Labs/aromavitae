@@ -1,11 +1,8 @@
 name: Deploy backend (Render)
 
+# Auto-deploy disabled — superseded by backend-coolify.yml. Kept for manual
+# fallback via workflow_dispatch only.
 on:
-  push:
-    branches: [dev]
-    paths:
-      - "api/**"
-      - ".github/workflows/backend.yml"
   workflow_dispatch: {}
 
 concurrency:
