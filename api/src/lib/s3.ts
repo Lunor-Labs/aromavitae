@@ -9,4 +9,9 @@ export const s3 = new S3Client({
     secretAccessKey: env.S3_SECRET_ACCESS_KEY,
   },
   forcePathStyle: true,
+  // Garage rejects the CRC32 checksum the SDK bakes into presigned PUT URLs:
+  // it hashes the (empty) body at signing time, so the browser's real upload
+  // never matches. Only send checksums when the API actually requires them.
+  requestChecksumCalculation: 'WHEN_REQUIRED',
+  responseChecksumValidation: 'WHEN_REQUIRED',
 });
