@@ -26,6 +26,10 @@ function resolveImageUrl(url: string): string {
 
 /** Walk the content payload and resolve every image field. */
 function normalizeImages(data: ContentPayload): ContentPayload {
+  // Merge over the fallback singletons so a missing row from the API
+  // (e.g. giftSetsBanner never seeded) doesn't blow up the whole page —
+  // only that specific section falls back to its empty shell.
+  const singletons = { ...FALLBACK_CONTENT.singletons, ...(data.singletons ?? {}) };
   return {
     ...data,
     products: (data.products ?? []).map((p) => ({ ...p, image: resolveImageUrl(p.image) })),
@@ -33,11 +37,11 @@ function normalizeImages(data: ContentPayload): ContentPayload {
     testimonials: data.testimonials ?? [],
     outlets: (data.outlets ?? []).map((o) => ({ ...o, image: resolveImageUrl(o.image) })),
     singletons: {
-      ...data.singletons,
+      ...singletons,
       // hero and story images are served from public/ — not resolved to object storage
       giftSetsBanner: {
-        ...data.singletons.giftSetsBanner,
-        image: resolveImageUrl(data.singletons.giftSetsBanner.image),
+        ...singletons.giftSetsBanner,
+        image: resolveImageUrl(singletons.giftSetsBanner.image),
       },
     },
   };
