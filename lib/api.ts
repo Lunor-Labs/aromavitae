@@ -34,7 +34,11 @@ function normalizeImages(data: ContentPayload): ContentPayload {
     ...data,
     products: (data.products ?? []).map((p) => ({ ...p, image: resolveImageUrl(p.image) })),
     categories: (data.categories ?? []).map((c) => ({ ...c, image: resolveImageUrl(c.image) })),
-    testimonials: data.testimonials ?? [],
+    testimonials: (data.testimonials ?? []).map((t) => ({
+      ...t,
+      imageA: t.imageA ? resolveImageUrl(t.imageA) : t.imageA,
+      imageB: t.imageB ? resolveImageUrl(t.imageB) : t.imageB,
+    })),
     outlets: (data.outlets ?? []).map((o) => ({ ...o, image: resolveImageUrl(o.image) })),
     singletons: {
       ...singletons,

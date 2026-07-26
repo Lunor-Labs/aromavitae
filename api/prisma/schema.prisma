@@ -43,6 +43,8 @@ model Testimonial {
   author    String
   location  String
   rating    Int
+  imageA    String?  @map("image_a")
+  imageB    String?  @map("image_b")
   sortOrder Int      @default(0) @map("sort_order")
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")

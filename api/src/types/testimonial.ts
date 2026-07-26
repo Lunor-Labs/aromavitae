@@ -5,6 +5,8 @@ export const testimonialCreateSchema = z.object({
   author: z.string().min(1).max(120),
   location: z.string().min(1).max(120),
   rating: z.number().int().min(1).max(5),
+  imageA: z.string().max(1024).nullish(),
+  imageB: z.string().max(1024).nullish(),
   sortOrder: z.number().int().default(0),
 });
 
