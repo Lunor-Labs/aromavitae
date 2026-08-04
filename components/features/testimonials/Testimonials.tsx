@@ -131,19 +131,31 @@ export function Testimonials({ testimonials }: Props) {
           </div>
 
           <div className="hidden md:grid md:col-span-2 grid-cols-2 gap-4">
-            <div className="relative aspect-[3/4] rounded-lg overflow-hidden bg-cream">
+            <div
+              key={`${testimonial.id}-a`}
+              className={cn(
+                "relative aspect-[3/4] rounded-lg overflow-hidden bg-cream transition-all duration-500",
+                isTransitioning ? "opacity-0" : "opacity-100"
+              )}
+            >
               <Image
-                src={assetUrl("products/perfume.png")}
-                alt="Ceylon Oud Perfume"
+                src={testimonial.imageA || assetUrl("products/perfume.png")}
+                alt=""
                 fill
                 className="object-cover"
                 sizes="200px"
               />
             </div>
-            <div className="relative aspect-[3/4] rounded-lg overflow-hidden bg-cream mt-8">
+            <div
+              key={`${testimonial.id}-b`}
+              className={cn(
+                "relative aspect-[3/4] rounded-lg overflow-hidden bg-cream mt-8 transition-all duration-500",
+                isTransitioning ? "opacity-0" : "opacity-100"
+              )}
+            >
               <Image
-                src={assetUrl("products/clove.png")}
-                alt="Premium Clove"
+                src={testimonial.imageB || assetUrl("products/clove.png")}
+                alt=""
                 fill
                 className="object-cover"
                 sizes="200px"

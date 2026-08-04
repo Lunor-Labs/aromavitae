@@ -15,6 +15,7 @@
     "prisma:deploy": "prisma migrate deploy",
     "prisma:studio": "prisma studio",
     "seed": "tsx prisma/seed.ts",
+    "seed:singletons": "tsx scripts/seed-missing-singletons.ts",
     "patch:hero-story": "tsx scripts/patch-hero-story.ts",
     "create-admin": "tsx scripts/create-admin.ts"
   },

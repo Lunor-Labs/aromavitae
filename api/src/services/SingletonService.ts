@@ -3,6 +3,7 @@ import { logger } from '@/lib/logger';
 import { revalidateFrontend } from '@/lib/revalidate';
 import { SingletonRepository } from '@/repositories/SingletonRepository';
 import {
+  emptyDefaults,
   isSingletonKey,
   singletonSchemas,
   type SingletonKey,
@@ -22,8 +23,10 @@ export class SingletonService {
   async getByKey(key: string): Promise<Singleton> {
     this.assertKey(key);
     const row = await this.repo.findByKey(key);
-    if (!row) throw new AppError('Singleton not found', 404, 'NOT_FOUND');
-    return row;
+    if (row) return row;
+    // Missing row for a known key: seed an empty shell so the admin edit UI
+    // opens cleanly instead of showing a red "Singleton not found" notice.
+    return this.repo.upsert(key, emptyDefaults[key] as Prisma.InputJsonValue);
   }
 
   async getAllMap(): Promise<Record<string, unknown>> {

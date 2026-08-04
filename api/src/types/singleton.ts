@@ -95,6 +95,34 @@ export const singletonSchemas = {
 
 export type SingletonKey = keyof typeof singletonSchemas;
 
+// Empty shells returned when a row is missing so the admin edit UI opens
+// cleanly on a fresh DB (getByKey upserts one of these). The values here
+// intentionally don't have to satisfy the Zod schemas — a save from admin
+// will re-validate against the real schema.
+export const emptyDefaults: Record<SingletonKey, unknown> = {
+  hero: { slides: [], autoPlayMs: 6000 },
+  story: {
+    ourStory: { eyebrow: '', heading: '', body: '', ctaLabel: '', ctaHref: '' },
+    heritage: { eyebrow: '', heading: '', body: '', ctaLabel: '', ctaHref: '', badges: [] },
+  },
+  navbar: {
+    brand: { name: '', tagline: '' },
+    links: [],
+    cta: { label: '', href: '' },
+  },
+  footer: {
+    brand: { name: '', tagline: '', description: '' },
+    columns: [],
+    contact: { phone: '', email: '', location: '' },
+    newsletter: { title: '', body: '' },
+    social: [],
+    payments: [],
+    legal: { copyright: '' },
+  },
+  announcement: { messages: [] },
+  giftSetsBanner: { eyebrow: '', heading: '', body: '', image: '', ctaLabel: '', ctaHref: '' },
+};
+
 export const SINGLETON_KEYS: readonly SingletonKey[] = Object.keys(
   singletonSchemas
 ) as SingletonKey[];

@@ -23,6 +23,8 @@ export interface Testimonial {
   author: string;
   location: string;
   rating: number;
+  imageA?: string | null;
+  imageB?: string | null;
 }
 
 export interface Outlet {

@@ -3,9 +3,10 @@
 import { useCallback, useEffect, useState } from "react";
 import { useAdminApi } from "@/hooks/useAdminApi";
 import { SortableList } from "@/components/admin/SortableList";
+import { ImageUploader } from "@/components/admin/ImageUploader";
 import type { Testimonial } from "@/types/product";
 
-const empty: Omit<Testimonial, "id"> = { quote: "", author: "", location: "", rating: 5 };
+const empty: Omit<Testimonial, "id"> = { quote: "", author: "", location: "", rating: 5, imageA: "", imageB: "" };
 
 export default function TestimonialsPage() {
   const { api } = useAdminApi();
@@ -51,8 +52,13 @@ export default function TestimonialsPage() {
     setSaving(true);
     try {
       const { id, ...rest } = editing;
-      if (id) await api.put(`/testimonials/${id}`, rest);
-      else await api.post("/testimonials", rest);
+      const payload = {
+        ...rest,
+        imageA: rest.imageA?.trim() ? rest.imageA.trim() : null,
+        imageB: rest.imageB?.trim() ? rest.imageB.trim() : null,
+      };
+      if (id) await api.put(`/testimonials/${id}`, payload);
+      else await api.post("/testimonials", payload);
       setEditing(null);
       void reload();
     } catch (e) {
@@ -136,6 +142,21 @@ export default function TestimonialsPage() {
               <Field label="Author" required value={editing.author ?? ""} onChange={(v) => setEditing({ ...editing, author: v })} />
               <Field label="Location" required value={editing.location ?? ""} onChange={(v) => setEditing({ ...editing, location: v })} />
               <NumberField label="Rating (1-5)" value={editing.rating ?? 5} onChange={(v) => setEditing({ ...editing, rating: v })} />
+              <div className="pt-2 border-t border-slate-200 space-y-3">
+                <p className="text-xs text-slate-500">Optional side images shown to the right of this testimonial on desktop. Leave empty to use the site defaults.</p>
+                <ImageUploader
+                  api={api}
+                  value={editing.imageA ?? ""}
+                  onChange={(v) => setEditing({ ...editing, imageA: v })}
+                  label="Side image 1"
+                />
+                <ImageUploader
+                  api={api}
+                  value={editing.imageB ?? ""}
+                  onChange={(v) => setEditing({ ...editing, imageB: v })}
+                  label="Side image 2"
+                />
+              </div>
             </div>
             {saveError && <p className="mt-4 text-sm text-red-600">{saveError}</p>}
             <div className="flex justify-end gap-2 mt-6">
