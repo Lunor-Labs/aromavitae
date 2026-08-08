@@ -1,4 +1,5 @@
-import Image from "next/image";
+import Link from "next/link";
+import { RotatingImage } from "@/components/ui/RotatingImage";
 import type { Product } from "@/types/product";
 
 interface ProductCardProps {
@@ -6,31 +7,44 @@ interface ProductCardProps {
 }
 
 export function ProductCard({ product }: ProductCardProps) {
+  // A free-text badge saying "best seller" would duplicate the flag's pill
+  const badge =
+    product.badge && !(product.isBestSeller && product.badge.trim().toLowerCase() === "best seller")
+      ? product.badge
+      : null;
+
   return (
     <div className="group bg-warm-white border border-border rounded-lg overflow-hidden
                     hover:shadow-lg transition-all duration-300 hover:-translate-y-1">
       {/* Image */}
-      <div className="relative aspect-[4/5] bg-cream overflow-hidden">
-        <Image
-          src={product.image}
+      <Link href={`/products/${product.id}`} className="block relative aspect-[4/5] bg-cream overflow-hidden">
+        <RotatingImage
+          images={[product.image, ...(product.sideImages ?? [])]}
           alt={product.name}
-          fill
           className="object-cover group-hover:scale-105 transition-transform duration-500"
           sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 20vw"
         />
-        {product.badge && (
-          <span className="absolute top-3 left-3 bg-gold text-warm-white text-[10px] font-bold
-                           tracking-[0.15em] px-3 py-1 rounded-sm uppercase">
-            {product.badge}
-          </span>
-        )}
-      </div>
+        <div className="absolute top-3 left-3 flex flex-col items-start gap-1.5 z-10">
+          {product.isBestSeller && (
+            <span className="bg-gold text-warm-white text-[10px] font-bold tracking-[0.15em] px-3 py-1 rounded-sm uppercase">
+              Best Seller
+            </span>
+          )}
+          {badge && (
+            <span className="bg-forest text-warm-white text-[10px] font-bold tracking-[0.15em] px-3 py-1 rounded-sm uppercase">
+              {badge}
+            </span>
+          )}
+        </div>
+      </Link>
 
       {/* Details */}
       <div className="p-4">
-        <h3 className="text-sm font-medium text-charcoal leading-tight mb-2 line-clamp-2">
-          {product.name}
-        </h3>
+        <Link href={`/products/${product.id}`}>
+          <h3 className="text-sm font-medium text-charcoal leading-tight mb-2 line-clamp-2 hover:text-forest transition-colors duration-200">
+            {product.name}
+          </h3>
+        </Link>
 
         {/* Rating */}
         <div className="flex items-center gap-1.5 mb-2">

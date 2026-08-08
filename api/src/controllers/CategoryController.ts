@@ -23,4 +23,8 @@ export class CategoryController {
   delete = async (req: Request, res: Response, next: NextFunction) => {
     try { await this.service.delete(req.params.id); res.status(204).send(); } catch (e) { next(e); }
   };
+
+  reorder = async (req: Request, res: Response, next: NextFunction) => {
+    try { await this.service.reorder((req.body as { ids: string[] }).ids); res.status(204).send(); } catch (e) { next(e); }
+  };
 }
