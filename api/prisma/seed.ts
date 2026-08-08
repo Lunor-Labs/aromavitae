@@ -10,28 +10,40 @@ const asset = (path: string) => `${STORAGE_BASE}/${path}`;
 async function main() {
   console.log('Seeding...');
 
+  // ---- Categories (before products — products reference them via categoryId) ----
+  const categories = [
+    { id: 'seed-cat-1', name: 'CINNAMON',         image: asset('products/cinnamon.png'), href: '/products', sortOrder: 1 },
+    { id: 'seed-cat-2', name: 'CLOVE',            image: asset('products/clove.png'),    href: '/products', sortOrder: 2 },
+    { id: 'seed-cat-3', name: 'CARDAMOM',         image: asset('products/cardamom.png'), href: '/products', sortOrder: 3 },
+    { id: 'seed-cat-4', name: 'BLACK PEPPER',     image: asset('products/pepper.png'),   href: '/products', sortOrder: 4 },
+    { id: 'seed-cat-5', name: 'AGARWOOD PERFUME', image: asset('products/perfume.png'),  href: '/products', sortOrder: 5 },
+  ];
+  for (const c of categories) {
+    await prisma.category.upsert({ where: { id: c.id }, update: c, create: c });
+  }
+
   // ---- Products (prices stored as whole LKR units) ----
   const products = [
-    { id: 'seed-prod-1', name: 'Ceylon Cinnamon Premium Quality',    price: 1450, rating: 5,   reviewCount: 128, image: asset('products/cinnamon.png'), badge: 'Best Seller', category: 'spices',   sortOrder: 1 },
-    { id: 'seed-prod-2', name: 'Clove Whole Premium Quality',        price: 1350, rating: 4.5, reviewCount: 96,  image: asset('products/clove.png'),    badge: 'Best Seller', category: 'spices',   sortOrder: 2 },
-    { id: 'seed-prod-3', name: 'Cardamom Green Premium Quality',     price: 1750, rating: 5,   reviewCount: 123, image: asset('products/cardamom.png'), badge: 'Best Seller', category: 'spices',   sortOrder: 3 },
-    { id: 'seed-prod-4', name: 'Black Pepper Whole Premium Quality', price: 1750, rating: 4.5, reviewCount: 118, image: asset('products/pepper.png'),   badge: 'Best Seller', category: 'spices',   sortOrder: 4 },
-    { id: 'seed-prod-5', name: 'Ceylon Oud Pure Perfume 12ml',       price: 9950, rating: 5,   reviewCount: 87,  image: asset('products/perfume.png'),  badge: 'Best Seller', category: 'perfumes', sortOrder: 5 },
-  ];
+    { id: 'seed-prod-1', name: 'Ceylon Cinnamon Premium Quality',    price: 1450, rating: 5,   reviewCount: 128, image: asset('products/cinnamon.png'), categoryId: 'seed-cat-1', description: 'True Ceylon cinnamon, hand-rolled into delicate quills with a sweet, warm aroma.', sortOrder: 1 },
+    { id: 'seed-prod-2', name: 'Clove Whole Premium Quality',        price: 1350, rating: 4.5, reviewCount: 96,  image: asset('products/clove.png'),    categoryId: 'seed-cat-2', description: 'Whole cloves picked at peak maturity for deep, rich flavour and fragrance.', sortOrder: 2 },
+    { id: 'seed-prod-3', name: 'Cardamom Green Premium Quality',     price: 1750, rating: 5,   reviewCount: 123, image: asset('products/cardamom.png'), categoryId: 'seed-cat-3', description: 'Vibrant green cardamom pods with an intense, citrusy-sweet aroma.', sortOrder: 3 },
+    { id: 'seed-prod-4', name: 'Black Pepper Whole Premium Quality', price: 1750, rating: 4.5, reviewCount: 118, image: asset('products/pepper.png'),   categoryId: 'seed-cat-4', description: 'Sun-dried Ceylon black peppercorns, bold and sharp with a fruity finish.', sortOrder: 4 },
+    { id: 'seed-prod-5', name: 'Ceylon Oud Pure Perfume 12ml',       price: 9950, rating: 5,   reviewCount: 87,  image: asset('products/perfume.png'),  categoryId: 'seed-cat-5', description: 'Rare Sri Lankan agarwood distilled into a subtle, long-lasting pure perfume.', sortOrder: 5 },
+  ].map((p) => ({ ...p, sideImages: [] as string[], badge: null, isBestSeller: true }));
   for (const p of products) {
     await prisma.product.upsert({ where: { id: p.id }, update: p, create: { ...p, currency: 'LKR' } });
   }
 
-  // ---- Categories ----
-  const categories = [
-    { id: 'seed-cat-1', name: 'CINNAMON',         image: asset('products/cinnamon.png'), href: '/shop/cinnamon',     sortOrder: 1 },
-    { id: 'seed-cat-2', name: 'CLOVE',            image: asset('products/clove.png'),    href: '/shop/clove',        sortOrder: 2 },
-    { id: 'seed-cat-3', name: 'CARDAMOM',         image: asset('products/cardamom.png'), href: '/shop/cardamom',     sortOrder: 3 },
-    { id: 'seed-cat-4', name: 'BLACK PEPPER',     image: asset('products/pepper.png'),   href: '/shop/black-pepper', sortOrder: 4 },
-    { id: 'seed-cat-5', name: 'AGARWOOD PERFUME', image: asset('products/perfume.png'),  href: '/shop/perfumes',     sortOrder: 5 },
+  // ---- Gallery images ----
+  const galleryImages = [
+    { id: 'seed-gal-1', image: asset('products/cinnamon.png'), alt: 'Ceylon cinnamon quills',   tags: ['Products'],    span: 'tall',  sortOrder: 1 },
+    { id: 'seed-gal-2', image: asset('products/clove.png'),    alt: 'Whole cloves',             tags: ['Ingredients'], span: null,    sortOrder: 2 },
+    { id: 'seed-gal-3', image: asset('products/cardamom.png'), alt: 'Green cardamom pods',      tags: ['Ingredients'], span: 'wide',  sortOrder: 3 },
+    { id: 'seed-gal-4', image: asset('products/pepper.png'),   alt: 'Black peppercorns',        tags: ['Ingredients'], span: null,    sortOrder: 4 },
+    { id: 'seed-gal-5', image: asset('products/perfume.png'),  alt: 'Ceylon Oud pure perfume',  tags: ['Products'],    span: 'tall',  sortOrder: 5 },
   ];
-  for (const c of categories) {
-    await prisma.category.upsert({ where: { id: c.id }, update: c, create: c });
+  for (const g of galleryImages) {
+    await prisma.galleryImage.upsert({ where: { id: g.id }, update: g, create: g });
   }
 
   // ---- Testimonials ----

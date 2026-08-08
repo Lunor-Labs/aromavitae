@@ -9,9 +9,11 @@ export default function AdminDashboard() {
 
       <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
         {[
-          { title: "Products", href: "/admin/products", description: "Manage the Best Sellers list" },
+          { title: "Products", href: "/admin/products", description: "Manage the product catalogue" },
+          { title: "Categories", href: "/admin/categories", description: "Shop-by-category section" },
           { title: "Outlets", href: "/admin/outlets", description: "Physical store locations" },
           { title: "Testimonials", href: "/admin/testimonials", description: "Customer quotes" },
+          { title: "Gallery", href: "/admin/gallery", description: "Gallery page images + tags" },
           { title: "Footer", href: "/admin/singletons/footer", description: "Contact details + social links" },
           { title: "Announcement", href: "/admin/singletons/announcement", description: "Marquee bar messages" },
           { title: "Gift Sets Banner", href: "/admin/singletons/giftSetsBanner", description: "Mid-page banner" },

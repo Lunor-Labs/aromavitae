@@ -6,8 +6,12 @@ export interface Product {
   rating: number;
   reviewCount: number;
   image: string;
-  badge?: string;
-  category: string;
+  sideImages: string[];
+  description?: string | null;
+  badge?: string | null;
+  isBestSeller: boolean;
+  categoryId?: string | null;
+  category?: { id: string; name: string } | null;
 }
 
 export interface Category {
@@ -15,6 +19,14 @@ export interface Category {
   name: string;
   image: string;
   href: string;
+}
+
+export interface GalleryImage {
+  id: string;
+  image: string;
+  alt: string;
+  tags: string[];
+  span?: "tall" | "wide" | null;
 }
 
 export interface Testimonial {

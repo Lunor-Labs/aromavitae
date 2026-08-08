@@ -2,6 +2,10 @@ import type { Metadata } from "next";
 import { PageHero } from "@/components/ui/PageHero";
 import { ScrollRevealWrapper } from "@/components/ui/ScrollRevealWrapper";
 import { GalleryGrid } from "@/components/features/gallery/GalleryGrid";
+import { fetchContent } from "@/lib/api";
+
+// Gallery images come from the API at request time — see the note in lib/api.ts
+export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
   title: "Gallery — Visual Journey into Ceylon's Finest",
@@ -20,7 +24,9 @@ export const metadata: Metadata = {
   },
 };
 
-export default function GalleryPage() {
+export default async function GalleryPage() {
+  const content = await fetchContent();
+
   return (
     <>
       <PageHero
@@ -33,7 +39,7 @@ export default function GalleryPage() {
         ]}
       />
       <ScrollRevealWrapper>
-        <GalleryGrid />
+        <GalleryGrid images={content.gallery} />
       </ScrollRevealWrapper>
     </>
   );
