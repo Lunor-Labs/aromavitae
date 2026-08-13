@@ -3,7 +3,10 @@ import { notFound } from "next/navigation";
 import { PageHero } from "@/components/ui/PageHero";
 import { ScrollRevealWrapper } from "@/components/ui/ScrollRevealWrapper";
 import { ProductDetail } from "@/components/features/products/ProductDetail";
-import { fetchProduct } from "@/lib/api";
+import { RelatedProducts } from "@/components/features/products/RelatedProducts";
+import { fetchProduct, fetchContent } from "@/lib/api";
+
+const MAX_RELATED = 4;
 
 // Product data comes from the API at request time — see the note in lib/api.ts
 export const dynamic = "force-dynamic";
@@ -36,6 +39,13 @@ export default async function ProductDetailPage({
   const product = await fetchProduct(id);
   if (!product) notFound();
 
+  const content = await fetchContent();
+  const sameCategory = content.products.filter(
+    (p) => p.id !== product.id && p.categoryId && p.categoryId === product.categoryId
+  );
+  const fallback = content.products.filter((p) => p.id !== product.id);
+  const related = (sameCategory.length > 0 ? sameCategory : fallback).slice(0, MAX_RELATED);
+
   return (
     <>
       <PageHero
@@ -49,6 +59,7 @@ export default async function ProductDetailPage({
       />
       <ScrollRevealWrapper>
         <ProductDetail product={product} />
+        <RelatedProducts products={related} />
       </ScrollRevealWrapper>
     </>
   );

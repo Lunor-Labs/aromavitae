@@ -49,7 +49,7 @@ export function ProductImageGallery({ images, alt }: Props) {
             fill
             priority={i === 0}
             className={cn(
-              "object-cover transition-opacity duration-500",
+              "object-cover transition-opacity duration-700 ease-in-out will-change-[opacity]",
               i === active ? "opacity-100" : "opacity-0"
             )}
             sizes="(max-width: 1024px) 100vw, 50vw"
@@ -95,7 +95,7 @@ export function ProductImageGallery({ images, alt }: Props) {
                 i === active ? "ring-2 ring-forest ring-offset-1" : "opacity-70 hover:opacity-100"
               )}
             >
-              <Image src={src} alt="" fill className="object-cover" sizes="64px" />
+              <Image src={src} alt="" fill className="object-contain" sizes="64px" />
             </button>
           ))}
         </div>

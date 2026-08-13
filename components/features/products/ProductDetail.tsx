@@ -6,10 +6,9 @@ interface Props {
 }
 
 export function ProductDetail({ product }: Props) {
-  const badge =
-    product.badge && !(product.isBestSeller && product.badge.trim().toLowerCase() === "best seller")
-      ? product.badge
-      : null;
+  const tags = product.tags.filter(
+    (tag) => !(product.isBestSeller && tag.trim().toLowerCase() === "best seller")
+  );
 
   return (
     <section className="py-16 md:py-24 bg-warm-white reveal">
@@ -23,18 +22,21 @@ export function ProductDetail({ product }: Props) {
 
           {/* Info */}
           <div>
-            {(product.isBestSeller || badge) && (
-              <div className="flex gap-2 mb-4">
+            {(product.isBestSeller || tags.length > 0) && (
+              <div className="flex flex-wrap gap-2 mb-4">
                 {product.isBestSeller && (
                   <span className="bg-gold text-warm-white text-[10px] font-bold tracking-[0.15em] px-3 py-1 rounded-sm uppercase">
                     Best Seller
                   </span>
                 )}
-                {badge && (
-                  <span className="bg-forest text-warm-white text-[10px] font-bold tracking-[0.15em] px-3 py-1 rounded-sm uppercase">
-                    {badge}
+                {tags.map((tag) => (
+                  <span
+                    key={tag}
+                    className="bg-forest text-warm-white text-[10px] font-bold tracking-[0.15em] px-3 py-1 rounded-sm uppercase"
+                  >
+                    {tag}
                   </span>
-                )}
+                ))}
               </div>
             )}
 

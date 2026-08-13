@@ -10,7 +10,7 @@ export const productCreateSchema = z.object({
   image: z.string().min(1).max(2048),
   sideImages: z.array(z.string().min(1).max(2048)).max(10).default([]),
   description: z.string().max(5000).nullable().optional(),
-  badge: z.string().max(64).nullable().optional(),
+  tags: z.array(z.string().min(1).max(64)).max(10).default([]),
   isBestSeller: z.boolean().default(false),
   categoryId: z.string().min(1).nullable().optional(),
   sortOrder: z.number().int().default(0),

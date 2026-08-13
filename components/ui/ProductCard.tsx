@@ -7,11 +7,10 @@ interface ProductCardProps {
 }
 
 export function ProductCard({ product }: ProductCardProps) {
-  // A free-text badge saying "best seller" would duplicate the flag's pill
-  const badge =
-    product.badge && !(product.isBestSeller && product.badge.trim().toLowerCase() === "best seller")
-      ? product.badge
-      : null;
+  // Tags saying "best seller" would duplicate the flag's pill
+  const tags = product.tags.filter(
+    (tag) => !(product.isBestSeller && tag.trim().toLowerCase() === "best seller")
+  );
 
   return (
     <div className="group bg-warm-white border border-border rounded-lg overflow-hidden
@@ -24,17 +23,20 @@ export function ProductCard({ product }: ProductCardProps) {
           className="object-cover group-hover:scale-105 transition-transform duration-500"
           sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 20vw"
         />
-        <div className="absolute top-3 left-3 flex flex-col items-start gap-1.5 z-10">
+        <div className="absolute bottom-3 right-3 flex flex-col items-end gap-1.5 z-10">
           {product.isBestSeller && (
             <span className="bg-gold text-warm-white text-[10px] font-bold tracking-[0.15em] px-3 py-1 rounded-sm uppercase">
               Best Seller
             </span>
           )}
-          {badge && (
-            <span className="bg-forest text-warm-white text-[10px] font-bold tracking-[0.15em] px-3 py-1 rounded-sm uppercase">
-              {badge}
+          {tags.map((tag) => (
+            <span
+              key={tag}
+              className="bg-forest text-warm-white text-[10px] font-bold tracking-[0.15em] px-3 py-1 rounded-sm uppercase"
+            >
+              {tag}
             </span>
-          )}
+          ))}
         </div>
       </Link>
 

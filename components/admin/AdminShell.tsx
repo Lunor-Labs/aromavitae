@@ -13,6 +13,8 @@ const NAV = [
   { href: "/admin/outlets", label: "Outlets" },
   { href: "/admin/testimonials", label: "Testimonials" },
   { href: "/admin/gallery", label: "Gallery" },
+  { href: "/admin/blog", label: "Blog Posts" },
+  { href: "/admin/blog-categories", label: "Blog Categories" },
   { href: "/admin/singletons/footer", label: "Footer" },
   { href: "/admin/singletons/announcement", label: "Announcement" },
   { href: "/admin/singletons/giftSetsBanner", label: "Gift Sets Banner" },

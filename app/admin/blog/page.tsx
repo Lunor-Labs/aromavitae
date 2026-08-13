@@ -3,30 +3,28 @@
 import { useCallback, useEffect, useState } from "react";
 import { useAdminApi } from "@/hooks/useAdminApi";
 import { ImageUploader } from "@/components/admin/ImageUploader";
-import { MultiImageUploader } from "@/components/admin/MultiImageUploader";
-import { TagInput } from "@/components/admin/TagInput";
+import { RichTextEditor } from "@/components/admin/RichTextEditor";
 import { SortableList } from "@/components/admin/SortableList";
-import type { Category, Product } from "@/types/product";
+import { slugify } from "@/lib/utils";
+import type { BlogCategory, BlogPost } from "@/types/product";
 
-const empty: Omit<Product, "id"> = {
-  name: "",
-  price: 0,
-  currency: "LKR",
-  rating: 5,
-  reviewCount: 0,
-  image: "",
-  sideImages: [],
-  description: "",
-  tags: [],
-  isBestSeller: false,
+const empty: Omit<BlogPost, "id" | "category"> = {
+  title: "",
+  slug: "",
+  excerpt: "",
+  content: "",
+  coverImage: "",
   categoryId: null,
+  isFeatured: false,
+  publishedAt: new Date().toISOString(),
 };
 
-export default function ProductsPage() {
+export default function BlogPostsPage() {
   const { api } = useAdminApi();
-  const [items, setItems] = useState<Product[]>([]);
-  const [categories, setCategories] = useState<Category[]>([]);
-  const [editing, setEditing] = useState<Partial<Product> | null>(null);
+  const [items, setItems] = useState<BlogPost[]>([]);
+  const [categories, setCategories] = useState<BlogCategory[]>([]);
+  const [editing, setEditing] = useState<Partial<BlogPost> | null>(null);
+  const [slugTouched, setSlugTouched] = useState(false);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
@@ -35,11 +33,11 @@ export default function ProductsPage() {
     if (!api) return;
     setLoading(true);
     try {
-      const [products, cats] = await Promise.all([
-        api.get<Product[]>("/products"),
-        api.get<Category[]>("/categories"),
+      const [posts, cats] = await Promise.all([
+        api.get<BlogPost[]>("/blog-posts"),
+        api.get<BlogCategory[]>("/blog-categories"),
       ]);
-      setItems(products);
+      setItems(posts);
       setCategories(cats);
     } catch {
       // API error — table stays empty
@@ -53,9 +51,18 @@ export default function ProductsPage() {
     void reload();
   }, [reload]);
 
-  const startEdit = (p: Partial<Product>) => {
+  const startEdit = (p: Partial<BlogPost>) => {
     setSaveError(null);
+    setSlugTouched(Boolean(p.id));
     setEditing(p);
+  };
+
+  const onTitleChange = (title: string) => {
+    setEditing((prev) => ({
+      ...prev,
+      title,
+      slug: slugTouched ? prev?.slug : slugify(title),
+    }));
   };
 
   const save = async () => {
@@ -63,9 +70,11 @@ export default function ProductsPage() {
     setSaveError(null);
 
     const missing: string[] = [];
-    if (!editing.name?.trim()) missing.push("Name");
-    if (!editing.image?.trim()) missing.push("Main image");
-    if (!editing.currency?.trim()) missing.push("Currency");
+    if (!editing.title?.trim()) missing.push("Title");
+    if (!editing.slug?.trim()) missing.push("Slug");
+    if (!editing.excerpt?.trim()) missing.push("Excerpt");
+    if (!editing.content?.trim()) missing.push("Content");
+    if (!editing.coverImage?.trim()) missing.push("Cover image");
     if (missing.length > 0) {
       setSaveError(`Please fill in: ${missing.join(", ")}`);
       return;
@@ -73,25 +82,20 @@ export default function ProductsPage() {
 
     setSaving(true);
     try {
-      // Build the payload explicitly — `editing` may carry the joined category
-      // object and timestamps from the API, which the schema rejects.
       const payload = {
-        name: editing.name,
-        price: editing.price ?? 0,
-        currency: editing.currency ?? "LKR",
-        rating: editing.rating ?? 5,
-        reviewCount: editing.reviewCount ?? 0,
-        image: editing.image,
-        sideImages: editing.sideImages ?? [],
-        description: editing.description?.trim() ? editing.description : null,
-        tags: editing.tags ?? [],
-        isBestSeller: editing.isBestSeller ?? false,
+        title: editing.title,
+        slug: editing.slug,
+        excerpt: editing.excerpt,
+        content: editing.content,
+        coverImage: editing.coverImage,
         categoryId: editing.categoryId ?? null,
+        isFeatured: editing.isFeatured ?? false,
+        publishedAt: editing.publishedAt ?? new Date().toISOString(),
       };
       if (editing.id) {
-        await api.put(`/products/${editing.id}`, payload);
+        await api.put(`/blog-posts/${editing.id}`, payload);
       } else {
-        await api.post("/products", payload);
+        await api.post("/blog-posts", payload);
       }
       setEditing(null);
       void reload();
@@ -104,17 +108,17 @@ export default function ProductsPage() {
 
   const remove = async (id: string) => {
     if (!api) return;
-    if (!confirm("Delete this product?")) return;
-    await api.del(`/products/${id}`);
+    if (!confirm("Delete this blog post?")) return;
+    await api.del(`/blog-posts/${id}`);
     void reload();
   };
 
-  const onReorder = async (next: Product[]) => {
+  const onReorder = async (next: BlogPost[]) => {
     if (!api) return;
     const prev = items;
     setItems(next);
     try {
-      await api.patch("/products/reorder", { ids: next.map((p) => p.id) });
+      await api.patch("/blog-posts/reorder", { ids: next.map((p) => p.id) });
     } catch {
       setItems(prev);
     }
@@ -125,23 +129,22 @@ export default function ProductsPage() {
   return (
     <div>
       <div className="flex items-center justify-between mb-6">
-        <h1 className="text-2xl font-semibold">Products</h1>
+        <h1 className="text-2xl font-semibold">Blog Posts</h1>
         <button
           onClick={() => startEdit({ ...empty })}
           className="px-4 py-2 bg-forest text-white text-sm rounded hover:bg-forest-light"
         >
-          + New product
+          + New post
         </button>
       </div>
 
       {loading ? <p>Loading…</p> : (
         <div className="overflow-x-auto rounded-lg border border-slate-200 bg-white">
-          <div className="grid grid-cols-[32px_60px_1fr_120px_120px_100px] gap-3 items-center px-3 py-3 bg-slate-50 text-xs uppercase tracking-wider text-slate-600 border-b border-slate-200">
+          <div className="grid grid-cols-[32px_60px_1fr_120px_100px] gap-3 items-center px-3 py-3 bg-slate-50 text-xs uppercase tracking-wider text-slate-600 border-b border-slate-200">
             <span />
             <span>Image</span>
-            <span>Name</span>
+            <span>Title</span>
             <span className="hidden sm:block">Category</span>
-            <span className="text-right">Price</span>
             <span />
           </div>
           <SortableList
@@ -151,27 +154,24 @@ export default function ProductsPage() {
               <div
                 ref={sortable.setNodeRef}
                 style={sortable.style}
-                className="grid grid-cols-[32px_60px_1fr_120px_120px_100px] gap-3 items-center px-3 py-3 border-b border-slate-100 bg-white"
+                className="grid grid-cols-[32px_60px_1fr_120px_100px] gap-3 items-center px-3 py-3 border-b border-slate-100 bg-white"
               >
                 {sortable.dragHandle}
-                {p.image ? (
+                {p.coverImage ? (
                   // eslint-disable-next-line @next/next/no-img-element
-                  <img src={p.image} alt="" className="w-10 h-10 object-cover rounded" />
+                  <img src={p.coverImage} alt="" className="w-10 h-10 object-cover rounded" />
                 ) : (
                   <span />
                 )}
                 <span className="truncate">
-                  {p.name}
-                  {p.isBestSeller && (
+                  {p.title}
+                  {p.isFeatured && (
                     <span className="ml-2 px-1.5 py-0.5 bg-gold/15 text-gold text-[10px] rounded uppercase tracking-wide">
-                      Best seller
+                      Featured
                     </span>
                   )}
                 </span>
                 <span className="text-slate-600 hidden sm:block truncate">{p.category?.name ?? "—"}</span>
-                <span className="text-right whitespace-nowrap">
-                  {p.currency} {p.price.toLocaleString()}
-                </span>
                 <span className="text-right whitespace-nowrap">
                   <button onClick={() => startEdit(p)} className="text-forest text-xs mr-3">
                     Edit
@@ -188,14 +188,26 @@ export default function ProductsPage() {
 
       {editing && (
         <div className="fixed inset-0 bg-black/40 flex items-center justify-center p-4 z-50">
-          <div className="bg-white rounded-lg p-6 w-full max-w-lg max-h-[90vh] overflow-y-auto">
-            <h2 className="text-lg font-semibold mb-4">{editing.id ? "Edit" : "New"} product</h2>
+          <div className="bg-white rounded-lg p-6 w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+            <h2 className="text-lg font-semibold mb-4">{editing.id ? "Edit" : "New"} blog post</h2>
             <div className="space-y-3">
-              <Field label="Name" required value={editing.name ?? ""} onChange={(v) => setEditing({ ...editing, name: v })} />
-              <NumberField label="Price (LKR)" value={editing.price ?? 0} onChange={(v) => setEditing({ ...editing, price: v })} />
-              <Field label="Currency" required value={editing.currency ?? "LKR"} onChange={(v) => setEditing({ ...editing, currency: v })} />
-              <NumberField label="Rating (0-5)" value={editing.rating ?? 5} onChange={(v) => setEditing({ ...editing, rating: v })} step={0.5} />
-              <NumberField label="Review count" value={editing.reviewCount ?? 0} onChange={(v) => setEditing({ ...editing, reviewCount: v })} />
+              <Field label="Title" required value={editing.title ?? ""} onChange={onTitleChange} />
+              <div>
+                <Field
+                  label="Slug"
+                  required
+                  value={editing.slug ?? ""}
+                  onChange={(v) => {
+                    setSlugTouched(true);
+                    setEditing({ ...editing, slug: slugify(v) });
+                  }}
+                />
+                <p className="text-xs text-slate-500 mt-1">
+                  Used in the URL: /blog/{editing.slug || "your-post-slug"}
+                </p>
+              </div>
+              <TextareaField label="Excerpt" required value={editing.excerpt ?? ""} onChange={(v) => setEditing({ ...editing, excerpt: v })} rows={3} />
+              <RichTextEditor value={editing.content ?? ""} onChange={(v) => setEditing({ ...editing, content: v })} />
               <div>
                 <label className="block text-xs font-medium text-slate-600 mb-1">Category</label>
                 <select
@@ -209,23 +221,24 @@ export default function ProductsPage() {
                   ))}
                 </select>
               </div>
-              <TextareaField label="Description" value={editing.description ?? ""} onChange={(v) => setEditing({ ...editing, description: v })} />
-              <TagInput values={editing.tags ?? []} onChange={(v) => setEditing({ ...editing, tags: v })} label="Tags (optional)" />
+              <div>
+                <label className="block text-xs font-medium text-slate-600 mb-1">Published date</label>
+                <input
+                  type="date"
+                  value={(editing.publishedAt ?? new Date().toISOString()).slice(0, 10)}
+                  onChange={(e) => setEditing({ ...editing, publishedAt: new Date(e.target.value).toISOString() })}
+                  className="w-full px-3 py-2 border border-slate-300 rounded text-sm"
+                />
+              </div>
               <label className="flex items-center gap-2 text-sm text-slate-700">
                 <input
                   type="checkbox"
-                  checked={editing.isBestSeller ?? false}
-                  onChange={(e) => setEditing({ ...editing, isBestSeller: e.target.checked })}
+                  checked={editing.isFeatured ?? false}
+                  onChange={(e) => setEditing({ ...editing, isFeatured: e.target.checked })}
                 />
-                Mark as best seller
+                Feature this post at the top of the blog
               </label>
-              <ImageUploader api={api} value={editing.image ?? ""} onChange={(v) => setEditing({ ...editing, image: v })} label="Main image *" />
-              <MultiImageUploader
-                api={api}
-                values={editing.sideImages ?? []}
-                onChange={(v) => setEditing({ ...editing, sideImages: v })}
-                label="Side images (optional)"
-              />
+              <ImageUploader api={api} value={editing.coverImage ?? ""} onChange={(v) => setEditing({ ...editing, coverImage: v })} label="Cover image *" />
             </div>
             {saveError && <p className="mt-4 text-sm text-red-600">{saveError}</p>}
             <div className="flex justify-end gap-2 mt-6">
@@ -250,20 +263,11 @@ function Field({ label, value, onChange, required }: { label: string; value: str
   );
 }
 
-function NumberField({ label, value, onChange, step }: { label: string; value: number; onChange: (v: number) => void; step?: number }) {
+function TextareaField({ label, value, onChange, required, rows }: { label: string; value: string; onChange: (v: string) => void; required?: boolean; rows?: number }) {
   return (
     <div>
-      <label className="block text-xs font-medium text-slate-600 mb-1">{label}</label>
-      <input type="number" step={step ?? 1} value={value} onChange={(e) => onChange(Number(e.target.value))} className="w-full px-3 py-2 border border-slate-300 rounded text-sm" />
-    </div>
-  );
-}
-
-function TextareaField({ label, value, onChange }: { label: string; value: string; onChange: (v: string) => void }) {
-  return (
-    <div>
-      <label className="block text-xs font-medium text-slate-600 mb-1">{label}</label>
-      <textarea value={value} onChange={(e) => onChange(e.target.value)} rows={4} className="w-full px-3 py-2 border border-slate-300 rounded text-sm" />
+      <label className="block text-xs font-medium text-slate-600 mb-1">{label}{required && " *"}</label>
+      <textarea value={value} onChange={(e) => onChange(e.target.value)} rows={rows ?? 4} className="w-full px-3 py-2 border border-slate-300 rounded text-sm" />
     </div>
   );
 }

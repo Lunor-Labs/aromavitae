@@ -2,6 +2,10 @@ import type { Metadata } from "next";
 import { PageHero } from "@/components/ui/PageHero";
 import { ScrollRevealWrapper } from "@/components/ui/ScrollRevealWrapper";
 import { BlogList } from "@/components/features/blog/BlogList";
+import { fetchContent } from "@/lib/api";
+
+// Blog content comes from the API at request time — see the note in lib/api.ts
+export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
   title: "Blog — Spice Stories, Wellness Tips & Recipes",
@@ -21,7 +25,9 @@ export const metadata: Metadata = {
   },
 };
 
-export default function BlogPage() {
+export default async function BlogPage() {
+  const content = await fetchContent();
+
   return (
     <>
       <PageHero
@@ -34,7 +40,7 @@ export default function BlogPage() {
         ]}
       />
       <ScrollRevealWrapper>
-        <BlogList />
+        <BlogList posts={content.blogPosts} categories={content.blogCategories} />
       </ScrollRevealWrapper>
     </>
   );

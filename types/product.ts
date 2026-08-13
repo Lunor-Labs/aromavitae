@@ -8,7 +8,7 @@ export interface Product {
   image: string;
   sideImages: string[];
   description?: string | null;
-  badge?: string | null;
+  tags: string[];
   isBestSeller: boolean;
   categoryId?: string | null;
   category?: { id: string; name: string } | null;
@@ -27,6 +27,24 @@ export interface GalleryImage {
   alt: string;
   tags: string[];
   span?: "tall" | "wide" | null;
+}
+
+export interface BlogCategory {
+  id: string;
+  name: string;
+}
+
+export interface BlogPost {
+  id: string;
+  title: string;
+  slug: string;
+  excerpt: string;
+  content: string;
+  coverImage: string;
+  categoryId?: string | null;
+  category?: { id: string; name: string } | null;
+  isFeatured: boolean;
+  publishedAt: string;
 }
 
 export interface Testimonial {

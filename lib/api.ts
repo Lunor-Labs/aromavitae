@@ -7,7 +7,7 @@ import type {
   NavbarContent,
   StoryContent,
 } from "@/types/content";
-import type { Product } from "@/types/product";
+import type { BlogPost, Product } from "@/types/product";
 import { STORAGE_BASE_URL } from "@/lib/storage";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "";
@@ -33,6 +33,10 @@ function normalizeProduct(p: Product): Product {
   };
 }
 
+function normalizeBlogPost(p: BlogPost): BlogPost {
+  return { ...p, coverImage: resolveImageUrl(p.coverImage) };
+}
+
 /** Walk the content payload and resolve every image field. */
 function normalizeImages(data: ContentPayload): ContentPayload {
   // Merge over the fallback singletons so a missing row from the API
@@ -44,6 +48,8 @@ function normalizeImages(data: ContentPayload): ContentPayload {
     products: (data.products ?? []).map(normalizeProduct),
     categories: (data.categories ?? []).map((c) => ({ ...c, image: resolveImageUrl(c.image) })),
     gallery: (data.gallery ?? []).map((g) => ({ ...g, image: resolveImageUrl(g.image) })),
+    blogPosts: (data.blogPosts ?? []).map(normalizeBlogPost),
+    blogCategories: data.blogCategories ?? [],
     testimonials: (data.testimonials ?? []).map((t) => ({
       ...t,
       imageA: t.imageA ? resolveImageUrl(t.imageA) : t.imageA,
@@ -69,6 +75,8 @@ const FALLBACK_CONTENT: ContentPayload = {
   testimonials: [],
   outlets: [],
   gallery: [],
+  blogPosts: [],
+  blogCategories: [],
   singletons: {
     hero: { slides: [] } as HeroContent,
     story: {
@@ -122,6 +130,23 @@ export async function fetchProduct(id: string): Promise<Product | null> {
     if (!res.ok) return null;
     const json = (await res.json()) as Envelope<Product>;
     return normalizeProduct(json.data);
+  } catch {
+    return null;
+  }
+}
+
+/** Fetch a single blog post by slug. Returns null on any failure — callers notFound(). */
+export async function fetchBlogPost(slug: string): Promise<BlogPost | null> {
+  if (!API_URL) return null;
+  if (process.env.NEXT_PHASE === "phase-production-build") return null;
+  try {
+    const res = await fetch(`${API_URL}/api/v1/blog-posts/slug/${encodeURIComponent(slug)}`, {
+      cache: "no-store",
+      signal: AbortSignal.timeout(30_000),
+    });
+    if (!res.ok) return null;
+    const json = (await res.json()) as Envelope<BlogPost>;
+    return normalizeBlogPost(json.data);
   } catch {
     return null;
   }

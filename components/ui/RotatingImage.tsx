@@ -40,7 +40,7 @@ export function RotatingImage({
           alt={alt}
           fill
           sizes={sizes}
-          className={`${className} transition-opacity duration-700 ${
+          className={`${className} transition-opacity duration-1000 ease-in-out will-change-[opacity] ${
             i === index ? "opacity-100" : "opacity-0"
           }`}
         />

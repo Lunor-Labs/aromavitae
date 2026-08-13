@@ -1,4 +1,4 @@
-import type { Category, GalleryImage, Outlet, Product, Testimonial } from "./product";
+import type { BlogCategory, BlogPost, Category, GalleryImage, Outlet, Product, Testimonial } from "./product";
 
 export interface CtaLink {
   label: string;
@@ -83,6 +83,8 @@ export interface ContentPayload {
   testimonials: Testimonial[];
   outlets: Outlet[];
   gallery: GalleryImage[];
+  blogPosts: BlogPost[];
+  blogCategories: BlogCategory[];
   singletons: {
     hero: HeroContent;
     story: StoryContent;
