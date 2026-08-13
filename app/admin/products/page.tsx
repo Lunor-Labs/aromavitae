@@ -3,8 +3,9 @@
 import { useCallback, useEffect, useState } from "react";
 import { useAdminApi } from "@/hooks/useAdminApi";
 import { ImageUploader } from "@/components/admin/ImageUploader";
+import { MultiImageUploader } from "@/components/admin/MultiImageUploader";
 import { SortableList } from "@/components/admin/SortableList";
-import type { Product } from "@/types/product";
+import type { Category, Product } from "@/types/product";
 
 const empty: Omit<Product, "id"> = {
   name: "",
@@ -13,13 +14,17 @@ const empty: Omit<Product, "id"> = {
   rating: 5,
   reviewCount: 0,
   image: "",
-  category: "spices",
+  sideImages: [],
+  description: "",
   badge: "",
+  isBestSeller: false,
+  categoryId: null,
 };
 
 export default function ProductsPage() {
   const { api } = useAdminApi();
   const [items, setItems] = useState<Product[]>([]);
+  const [categories, setCategories] = useState<Category[]>([]);
   const [editing, setEditing] = useState<Partial<Product> | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -29,8 +34,12 @@ export default function ProductsPage() {
     if (!api) return;
     setLoading(true);
     try {
-      const data = await api.get<Product[]>("/products");
-      setItems(data);
+      const [products, cats] = await Promise.all([
+        api.get<Product[]>("/products"),
+        api.get<Category[]>("/categories"),
+      ]);
+      setItems(products);
+      setCategories(cats);
     } catch {
       // API error — table stays empty
     } finally {
@@ -54,8 +63,7 @@ export default function ProductsPage() {
 
     const missing: string[] = [];
     if (!editing.name?.trim()) missing.push("Name");
-    if (!editing.image?.trim()) missing.push("Image");
-    if (!editing.category?.trim()) missing.push("Category");
+    if (!editing.image?.trim()) missing.push("Main image");
     if (!editing.currency?.trim()) missing.push("Currency");
     if (missing.length > 0) {
       setSaveError(`Please fill in: ${missing.join(", ")}`);
@@ -64,11 +72,25 @@ export default function ProductsPage() {
 
     setSaving(true);
     try {
-      const { id, ...rest } = editing;
-      if (id) {
-        await api.put(`/products/${id}`, rest);
+      // Build the payload explicitly — `editing` may carry the joined category
+      // object and timestamps from the API, which the schema rejects.
+      const payload = {
+        name: editing.name,
+        price: editing.price ?? 0,
+        currency: editing.currency ?? "LKR",
+        rating: editing.rating ?? 5,
+        reviewCount: editing.reviewCount ?? 0,
+        image: editing.image,
+        sideImages: editing.sideImages ?? [],
+        description: editing.description?.trim() ? editing.description : null,
+        badge: editing.badge?.trim() ? editing.badge : null,
+        isBestSeller: editing.isBestSeller ?? false,
+        categoryId: editing.categoryId ?? null,
+      };
+      if (editing.id) {
+        await api.put(`/products/${editing.id}`, payload);
       } else {
-        await api.post("/products", rest);
+        await api.post("/products", payload);
       }
       setEditing(null);
       void reload();
@@ -137,8 +159,15 @@ export default function ProductsPage() {
                 ) : (
                   <span />
                 )}
-                <span className="truncate">{p.name}</span>
-                <span className="text-slate-600 hidden sm:block truncate">{p.category}</span>
+                <span className="truncate">
+                  {p.name}
+                  {p.isBestSeller && (
+                    <span className="ml-2 px-1.5 py-0.5 bg-gold/15 text-gold text-[10px] rounded uppercase tracking-wide">
+                      Best seller
+                    </span>
+                  )}
+                </span>
+                <span className="text-slate-600 hidden sm:block truncate">{p.category?.name ?? "—"}</span>
                 <span className="text-right whitespace-nowrap">
                   {p.currency} {p.price.toLocaleString()}
                 </span>
@@ -166,9 +195,36 @@ export default function ProductsPage() {
               <Field label="Currency" required value={editing.currency ?? "LKR"} onChange={(v) => setEditing({ ...editing, currency: v })} />
               <NumberField label="Rating (0-5)" value={editing.rating ?? 5} onChange={(v) => setEditing({ ...editing, rating: v })} step={0.5} />
               <NumberField label="Review count" value={editing.reviewCount ?? 0} onChange={(v) => setEditing({ ...editing, reviewCount: v })} />
-              <Field label="Category" required value={editing.category ?? ""} onChange={(v) => setEditing({ ...editing, category: v })} />
+              <div>
+                <label className="block text-xs font-medium text-slate-600 mb-1">Category</label>
+                <select
+                  value={editing.categoryId ?? ""}
+                  onChange={(e) => setEditing({ ...editing, categoryId: e.target.value || null })}
+                  className="w-full px-3 py-2 border border-slate-300 rounded text-sm"
+                >
+                  <option value="">No category</option>
+                  {categories.map((c) => (
+                    <option key={c.id} value={c.id}>{c.name}</option>
+                  ))}
+                </select>
+              </div>
+              <TextareaField label="Description" value={editing.description ?? ""} onChange={(v) => setEditing({ ...editing, description: v })} />
               <Field label="Badge (optional)" value={editing.badge ?? ""} onChange={(v) => setEditing({ ...editing, badge: v })} />
-              <ImageUploader api={api} value={editing.image ?? ""} onChange={(v) => setEditing({ ...editing, image: v })} label="Image *" />
+              <label className="flex items-center gap-2 text-sm text-slate-700">
+                <input
+                  type="checkbox"
+                  checked={editing.isBestSeller ?? false}
+                  onChange={(e) => setEditing({ ...editing, isBestSeller: e.target.checked })}
+                />
+                Mark as best seller
+              </label>
+              <ImageUploader api={api} value={editing.image ?? ""} onChange={(v) => setEditing({ ...editing, image: v })} label="Main image *" />
+              <MultiImageUploader
+                api={api}
+                values={editing.sideImages ?? []}
+                onChange={(v) => setEditing({ ...editing, sideImages: v })}
+                label="Side images (optional)"
+              />
             </div>
             {saveError && <p className="mt-4 text-sm text-red-600">{saveError}</p>}
             <div className="flex justify-end gap-2 mt-6">
@@ -198,6 +254,15 @@ function NumberField({ label, value, onChange, step }: { label: string; value: n
     <div>
       <label className="block text-xs font-medium text-slate-600 mb-1">{label}</label>
       <input type="number" step={step ?? 1} value={value} onChange={(e) => onChange(Number(e.target.value))} className="w-full px-3 py-2 border border-slate-300 rounded text-sm" />
+    </div>
+  );
+}
+
+function TextareaField({ label, value, onChange }: { label: string; value: string; onChange: (v: string) => void }) {
+  return (
+    <div>
+      <label className="block text-xs font-medium text-slate-600 mb-1">{label}</label>
+      <textarea value={value} onChange={(e) => onChange(e.target.value)} rows={4} className="w-full px-3 py-2 border border-slate-300 rounded text-sm" />
     </div>
   );
 }

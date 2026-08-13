@@ -7,6 +7,7 @@ import type {
   NavbarContent,
   StoryContent,
 } from "@/types/content";
+import type { Product } from "@/types/product";
 import { STORAGE_BASE_URL } from "@/lib/storage";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "";
@@ -24,6 +25,14 @@ function resolveImageUrl(url: string): string {
   return `${STORAGE_BASE_URL}/${stripped}`;
 }
 
+function normalizeProduct(p: Product): Product {
+  return {
+    ...p,
+    image: resolveImageUrl(p.image),
+    sideImages: (p.sideImages ?? []).map(resolveImageUrl),
+  };
+}
+
 /** Walk the content payload and resolve every image field. */
 function normalizeImages(data: ContentPayload): ContentPayload {
   // Merge over the fallback singletons so a missing row from the API
@@ -32,8 +41,9 @@ function normalizeImages(data: ContentPayload): ContentPayload {
   const singletons = { ...FALLBACK_CONTENT.singletons, ...(data.singletons ?? {}) };
   return {
     ...data,
-    products: (data.products ?? []).map((p) => ({ ...p, image: resolveImageUrl(p.image) })),
+    products: (data.products ?? []).map(normalizeProduct),
     categories: (data.categories ?? []).map((c) => ({ ...c, image: resolveImageUrl(c.image) })),
+    gallery: (data.gallery ?? []).map((g) => ({ ...g, image: resolveImageUrl(g.image) })),
     testimonials: (data.testimonials ?? []).map((t) => ({
       ...t,
       imageA: t.imageA ? resolveImageUrl(t.imageA) : t.imageA,
@@ -58,6 +68,7 @@ const FALLBACK_CONTENT: ContentPayload = {
   categories: [],
   testimonials: [],
   outlets: [],
+  gallery: [],
   singletons: {
     hero: { slides: [] } as HeroContent,
     story: {
@@ -96,6 +107,23 @@ export async function fetchContent(): Promise<ContentPayload> {
     return normalizeImages(json.data);
   } catch {
     return FALLBACK_CONTENT;
+  }
+}
+
+/** Fetch a single product by id. Returns null on any failure — callers notFound(). */
+export async function fetchProduct(id: string): Promise<Product | null> {
+  if (!API_URL) return null;
+  if (process.env.NEXT_PHASE === "phase-production-build") return null;
+  try {
+    const res = await fetch(`${API_URL}/api/v1/products/${encodeURIComponent(id)}`, {
+      cache: "no-store",
+      signal: AbortSignal.timeout(30_000),
+    });
+    if (!res.ok) return null;
+    const json = (await res.json()) as Envelope<Product>;
+    return normalizeProduct(json.data);
+  } catch {
+    return null;
   }
 }
 

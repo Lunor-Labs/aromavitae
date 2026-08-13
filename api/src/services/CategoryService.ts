@@ -39,4 +39,10 @@ export class CategoryService {
     logger.info({ id }, 'Category deleted');
     await revalidateFrontend();
   }
+
+  async reorder(ids: string[]): Promise<void> {
+    await this.repo.reorder(ids);
+    logger.info({ count: ids.length }, 'Categories reordered');
+    await revalidateFrontend();
+  }
 }

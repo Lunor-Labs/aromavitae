@@ -1,6 +1,6 @@
 import { HeroSection } from "@/components/features/hero/HeroSection";
 import { StoryHeritage } from "@/components/features/story/StoryHeritage";
-import { BestSellers } from "@/components/features/products/BestSellers";
+import { OurBestProducts } from "@/components/features/products/OurBestProducts";
 import { ShopByCategory } from "@/components/features/categories/ShopByCategory";
 import { TrustBadges } from "@/components/ui/TrustBadges";
 import { GiftSetsBanner } from "@/components/features/gifts/GiftSetsBanner";
@@ -13,15 +13,15 @@ export const dynamic = "force-dynamic";
 
 export default async function HomePage() {
   const content = await fetchContent();
-  const { products, testimonials, outlets, singletons } = content;
+  const { products, categories, testimonials, outlets, singletons } = content;
 
   return (
     <>
       <HeroSection />
       <ScrollRevealWrapper>
         <StoryHeritage />
-        <BestSellers products={products} />
-        <ShopByCategory />
+        <OurBestProducts products={products} />
+        <ShopByCategory categories={categories} products={products} />
         <TrustBadges />
         <GiftSetsBanner content={singletons.giftSetsBanner} />
         <OutletsPreview outlets={outlets} />
