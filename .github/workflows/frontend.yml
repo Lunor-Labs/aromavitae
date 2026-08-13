@@ -36,23 +36,18 @@ jobs:
       - run: npm run typecheck
 
       - name: Install Vercel CLI
-        run: npm install --global vercel@latest
+        run: npm install --global vercel@58
 
       - name: Link Vercel project
         run: vercel link --yes --project=${{ env.VERCEL_PROJECT_NAME }} --token=${{ secrets.VERCEL_TOKEN }}
 
-      - name: Pull Vercel environment info
-        run: vercel pull --yes --environment=preview --token=${{ secrets.VERCEL_TOKEN }}
-
-      - name: Build
-        env:
-          NEXT_PUBLIC_API_URL: ${{ vars.NEXT_PUBLIC_API_URL }}
-          NEXT_PUBLIC_ASSET_BASE_URL: ${{ vars.NEXT_PUBLIC_ASSET_BASE_URL }}
-          ADMIN_JWT_SECRET: ${{ secrets.ADMIN_JWT_SECRET }}
-        run: vercel build --token=${{ secrets.VERCEL_TOKEN }}
-
       - name: Deploy (Preview)
-        run: vercel deploy --prebuilt --token=${{ secrets.VERCEL_TOKEN }}
+        run: |
+          vercel deploy \
+            --build-env NEXT_PUBLIC_API_URL="${{ vars.NEXT_PUBLIC_API_URL }}" \
+            --build-env NEXT_PUBLIC_ASSET_BASE_URL="${{ vars.NEXT_PUBLIC_ASSET_BASE_URL }}" \
+            --build-env ADMIN_JWT_SECRET="${{ secrets.ADMIN_JWT_SECRET }}" \
+            --token=${{ secrets.VERCEL_TOKEN }}
 
   # ─── Production deploy (main only) ──────────────────────────────
   deploy-prod:
@@ -74,20 +69,15 @@ jobs:
       - run: npm run typecheck
 
       - name: Install Vercel CLI
-        run: npm install --global vercel@latest
+        run: npm install --global vercel@58
 
       - name: Link Vercel project
         run: vercel link --yes --project=${{ env.VERCEL_PROJECT_NAME }} --token=${{ secrets.VERCEL_TOKEN }}
 
-      - name: Pull Vercel environment info
-        run: vercel pull --yes --environment=production --token=${{ secrets.VERCEL_TOKEN }}
-
-      - name: Build
-        env:
-          NEXT_PUBLIC_API_URL: ${{ vars.NEXT_PUBLIC_API_URL }}
-          NEXT_PUBLIC_ASSET_BASE_URL: ${{ vars.NEXT_PUBLIC_ASSET_BASE_URL }}
-          ADMIN_JWT_SECRET: ${{ secrets.ADMIN_JWT_SECRET }}
-        run: vercel build --prod --token=${{ secrets.VERCEL_TOKEN }}
-
       - name: Deploy (Production)
-        run: vercel deploy --prebuilt --prod --token=${{ secrets.VERCEL_TOKEN }}
+        run: |
+          vercel deploy --prod \
+            --build-env NEXT_PUBLIC_API_URL="${{ vars.NEXT_PUBLIC_API_URL }}" \
+            --build-env NEXT_PUBLIC_ASSET_BASE_URL="${{ vars.NEXT_PUBLIC_ASSET_BASE_URL }}" \
+            --build-env ADMIN_JWT_SECRET="${{ secrets.ADMIN_JWT_SECRET }}" \
+            --token=${{ secrets.VERCEL_TOKEN }}
