@@ -7,11 +7,6 @@ interface ProductCardProps {
 }
 
 export function ProductCard({ product }: ProductCardProps) {
-  // Tags saying "best seller" would duplicate the flag's pill
-  const tags = product.tags.filter(
-    (tag) => !(product.isBestSeller && tag.trim().toLowerCase() === "best seller")
-  );
-
   return (
     <div className="group bg-warm-white border border-border rounded-lg overflow-hidden
                     hover:shadow-lg transition-all duration-300 hover:-translate-y-1">
@@ -23,21 +18,13 @@ export function ProductCard({ product }: ProductCardProps) {
           className="object-cover group-hover:scale-105 transition-transform duration-500"
           sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 20vw"
         />
-        <div className="absolute bottom-3 right-3 flex flex-col items-end gap-1.5 z-10">
-          {product.isBestSeller && (
+        {product.isBestSeller && (
+          <div className="absolute top-3 left-3 z-10">
             <span className="bg-gold text-warm-white text-[10px] font-bold tracking-[0.15em] px-3 py-1 rounded-sm uppercase">
               Best Seller
             </span>
-          )}
-          {tags.map((tag) => (
-            <span
-              key={tag}
-              className="bg-forest text-warm-white text-[10px] font-bold tracking-[0.15em] px-3 py-1 rounded-sm uppercase"
-            >
-              {tag}
-            </span>
-          ))}
-        </div>
+          </div>
+        )}
       </Link>
 
       {/* Details */}

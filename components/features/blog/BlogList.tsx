@@ -98,7 +98,17 @@ export function BlogList({ posts, categories }: Props) {
         )}
 
         {/* Blog Grid */}
-        {regularPosts.length > 0 ? (
+        {filteredPosts.length === 0 ? (
+          <div className="text-center py-20">
+            <div className="text-4xl mb-4">📝</div>
+            <p className="font-heading text-xl text-charcoal mb-2">
+              No posts found
+            </p>
+            <p className="text-sm text-muted">
+              Try selecting a different category.
+            </p>
+          </div>
+        ) : regularPosts.length > 0 ? (
           <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
             {regularPosts.map((post) => (
               <Link
@@ -148,17 +158,7 @@ export function BlogList({ posts, categories }: Props) {
               </Link>
             ))}
           </div>
-        ) : (
-          <div className="text-center py-20">
-            <div className="text-4xl mb-4">📝</div>
-            <p className="font-heading text-xl text-charcoal mb-2">
-              No posts found
-            </p>
-            <p className="text-sm text-muted">
-              Try selecting a different category.
-            </p>
-          </div>
-        )}
+        ) : null}
       </div>
     </section>
   );
