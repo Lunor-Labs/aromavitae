@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import { useEffect, useRef, useState } from "react";
-import { preloadImage } from "@/lib/preloadImage";
+import { prefetchImage } from "@/lib/preloadImage";
 
 interface RotatingImageProps {
   images: string[];
@@ -19,9 +19,17 @@ const SLIDE_DURATION_MS = 700;
  * supplies the positioned container (e.g. `relative aspect-[4/5]`), matching how
  * a single `next/image fill` would be used.
  *
- * Every slide past the first is downloaded and decoded in the background before
- * it is allowed onto the track, and the rotation waits on any slide that isn't
- * ready yet — so a slide never animates in over an empty frame.
+ * Two rules keep a slide from ever animating in over an empty frame:
+ *
+ * 1. A slide is fetched and decoded in the background *one step ahead* of when
+ *    it is due, and the rotation refuses to advance onto a slide that isn't
+ *    ready yet — it just waits and tries again on the next tick.
+ * 2. Whatever does appear fades in rather than popping, so the container's own
+ *    background is never swapped for a photo mid-slide.
+ *
+ * Fetching only one slide ahead matters as much as the decode gate: a grid of
+ * these would otherwise kick off dozens of full-size downloads on hydration and
+ * starve the very first slide of every card.
  */
 export function RotatingImage({
   images,
@@ -36,8 +44,8 @@ export function RotatingImage({
   // of the first image so the slide-back-to-start doesn't have to jump backwards.
   const [track, setTrack] = useState(0);
   const [animated, setAnimated] = useState(true);
-  // Slides whose bytes are cached *and* decoded, keyed by src — so the duplicate
-  // wrap-around slide is covered by the real first slide for free.
+  // Slides that are cached, decoded and safe to show, keyed by src — so the
+  // duplicate wrap-around slide is covered by the real first slide for free.
   const [ready, setReady] = useState<ReadonlySet<string>>(() => new Set());
 
   const slides = count > 0 ? [...list, list[0]] : [];
@@ -62,23 +70,24 @@ export function RotatingImage({
     slidesRef.current = slides;
   });
 
-  // Warm the whole set into cache in the background as soon as the card
-  // hydrates, long before any of them is due on screen.
+  // Warm exactly one slide ahead, and only once the page itself has loaded, so
+  // this never competes with the images already on screen.
   useEffect(() => {
-    if (!imagesKey) return;
+    const all = imagesKey ? imagesKey.split("\n") : [];
+    if (all.length <= 1) return;
+
+    const nextSrc = all[(track + 1) % all.length];
     let cancelled = false;
 
-    for (const src of imagesKey.split("\n")) {
-      preloadImage(src).then(() => {
-        if (cancelled) return;
-        setReady((prev) => (prev.has(src) ? prev : new Set(prev).add(src)));
-      });
-    }
+    prefetchImage(nextSrc).then(() => {
+      if (cancelled) return;
+      setReady((prev) => (prev.has(nextSrc) ? prev : new Set(prev).add(nextSrc)));
+    });
 
     return () => {
       cancelled = true;
     };
-  }, [imagesKey]);
+  }, [imagesKey, track]);
 
   useEffect(() => {
     if (count <= 1) return;
@@ -86,7 +95,7 @@ export function RotatingImage({
       const t = trackRef.current;
       // Mid wrap-around — the reset effect below owns this step.
       if (t >= count) return;
-      // Next slide isn't cached yet: stay put and try again on the next tick.
+      // Next slide isn't decoded yet: stay put and try again on the next tick.
       if (!readyRef.current.has(slidesRef.current[t + 1])) return;
       setAnimated(true);
       setTrack(t + 1);
@@ -115,23 +124,39 @@ export function RotatingImage({
       }`}
       style={{ transform: `translateX(-${track * 100}%)`, width: `${slides.length * 100}%` }}
     >
-      {slides.map((src, i) => (
-        <div key={`${src}-${i}`} className="relative h-full shrink-0" style={{ width: `${100 / slides.length}%` }}>
-          {/* The first slide is on screen from the start, so it loads on the
-              browser's normal terms. The rest are mounted only once cached,
-              which makes their `eager` load a no-op that paints immediately. */}
-          {(i === 0 || ready.has(src)) && (
-            <Image
-              src={src}
-              alt={alt}
-              fill
-              sizes={sizes}
-              className={className}
-              loading={i === 0 ? undefined : "eager"}
-            />
-          )}
-        </div>
-      ))}
+      {slides.map((src, i) => {
+        const isReady = ready.has(src);
+        return (
+          <div
+            key={`${src}-${i}`}
+            // Fade in on the way from container background to photo, the same
+            // way the testimonial images do — a half-second ramp reads as
+            // deliberate where an instant swap reads as a glitch.
+            className={`relative h-full shrink-0 transition-opacity duration-500 ease-out ${
+              isReady ? "opacity-100" : "opacity-0"
+            }`}
+            style={{ width: `${100 / slides.length}%` }}
+          >
+            {/* The first slide is on screen from the start, so it loads on the
+                browser's normal terms and reports itself ready via `onLoad`.
+                The rest are mounted only once prefetched, which makes their
+                `eager` load a cache hit that paints immediately. */}
+            {(i === 0 || isReady) && (
+              <Image
+                src={src}
+                alt={alt}
+                fill
+                sizes={sizes}
+                className={className}
+                loading={i === 0 ? undefined : "eager"}
+                onLoad={() =>
+                  setReady((prev) => (prev.has(src) ? prev : new Set(prev).add(src)))
+                }
+              />
+            )}
+          </div>
+        );
+      })}
     </div>
   );
 }

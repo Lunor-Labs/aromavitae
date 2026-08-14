@@ -34,18 +34,23 @@ export function ProductImageGallery({ images, alt }: Props) {
   }, [active]);
 
   // Pull every shot into cache up front, so arrows and thumbnails respond
-  // immediately instead of starting a download on click.
+  // immediately instead of starting a download on click. Strictly one at a
+  // time and in display order: fetching them all at once would have the side
+  // shots competing with the main image for the same few connections.
   useEffect(() => {
     if (!imagesKey) return;
     let cancelled = false;
 
+    let chain = Promise.resolve();
     imagesKey.split("\n").forEach((src, index) => {
-      preloadImage(src).then(() => {
-        if (cancelled) return;
-        setReady((prev) => (prev.has(src) ? prev : new Set(prev).add(src)));
-        // If this is the shot the user is currently waiting on, reveal it now.
-        if (index === activeRef.current) setVisible(index);
-      });
+      chain = chain
+        .then(() => (cancelled ? undefined : preloadImage(src)))
+        .then(() => {
+          if (cancelled) return;
+          setReady((prev) => (prev.has(src) ? prev : new Set(prev).add(src)));
+          // If this is the shot the user is currently waiting on, reveal it now.
+          if (index === activeRef.current) setVisible(index);
+        });
     });
 
     return () => {
@@ -55,10 +60,20 @@ export function ProductImageGallery({ images, alt }: Props) {
 
   if (list.length === 0) return null;
 
-  // Cached images swap instantly; the rest are revealed by the preload above.
+  // Cached shots swap instantly. Anything the queue above hasn't reached yet
+  // gets fetched on the spot rather than waiting its turn — the user asked for
+  // this one, so it outranks the rest of the strip.
   const select = (index: number) => {
+    const src = list[index];
     setActive(index);
-    if (ready.has(list[index])) setVisible(index);
+    if (ready.has(src)) {
+      setVisible(index);
+      return;
+    }
+    preloadImage(src).then(() => {
+      setReady((prev) => (prev.has(src) ? prev : new Set(prev).add(src)));
+      if (activeRef.current === index) setVisible(index);
+    });
   };
 
   const go = (next: number) => select((next + list.length) % list.length);
@@ -83,21 +98,26 @@ export function ProductImageGallery({ images, alt }: Props) {
         onTouchStart={onTouchStart}
         onTouchEnd={onTouchEnd}
       >
-        {list.map((src, i) => (
-          <Image
-            key={`${src}-${i}`}
-            src={src}
-            alt={alt}
-            fill
-            priority={i === 0}
-            loading={i === 0 ? undefined : "eager"}
-            className={cn(
-              "object-cover transition-opacity duration-700 ease-in-out will-change-[opacity]",
-              i === visible ? "opacity-100" : "opacity-0"
-            )}
-            sizes="(max-width: 1024px) 100vw, 50vw"
-          />
-        ))}
+        {/* Only the opening shot and shots already in cache are mounted —
+            mounting them all `eager` would restart the very downloads the
+            queue above is trying to order. */}
+        {list.map((src, i) =>
+          i === 0 || ready.has(src) ? (
+            <Image
+              key={`${src}-${i}`}
+              src={src}
+              alt={alt}
+              fill
+              priority={i === 0}
+              loading={i === 0 ? undefined : "eager"}
+              className={cn(
+                "object-cover transition-opacity duration-700 ease-in-out will-change-[opacity]",
+                i === visible ? "opacity-100" : "opacity-0"
+              )}
+              sizes="(max-width: 1024px) 100vw, 50vw"
+            />
+          ) : null
+        )}
 
         {list.length > 1 && (
           <>

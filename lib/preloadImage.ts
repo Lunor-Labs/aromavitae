@@ -33,3 +33,59 @@ export function preloadImage(src: string): Promise<void> {
     if (img.complete) decodeThenResolve();
   });
 }
+
+/**
+ * A browser only opens a handful of connections per host, so speculative
+ * downloads are not free: a page full of carousels that each prefetch their
+ * whole set will push the images the user is actually looking at to the back
+ * of the queue. Prefetches therefore wait for the page to finish loading and
+ * then run a few at a time.
+ */
+const MAX_CONCURRENT_PREFETCH = 3;
+
+let inFlight = 0;
+const waiting: Array<() => void> = [];
+
+function pump() {
+  while (inFlight < MAX_CONCURRENT_PREFETCH && waiting.length > 0) {
+    const start = waiting.shift();
+    if (!start) return;
+    inFlight += 1;
+    start();
+  }
+}
+
+/** Resolves once every image already in the document has finished loading. */
+function afterPageLoad(): Promise<void> {
+  if (typeof window === "undefined") return Promise.resolve();
+  if (document.readyState === "complete") return Promise.resolve();
+  return new Promise<void>((resolve) => {
+    window.addEventListener("load", () => resolve(), { once: true });
+  });
+}
+
+/**
+ * Same guarantee as {@link preloadImage} — resolves only once the image is
+ * cached and decoded — but yields to anything the user can currently see.
+ *
+ * Use this for images that are not on screen yet (upcoming carousel slides).
+ * Use `preloadImage` directly when the user has already asked for the image.
+ */
+export function prefetchImage(src: string): Promise<void> {
+  if (typeof window === "undefined" || !src) return Promise.resolve();
+
+  return afterPageLoad().then(
+    () =>
+      new Promise<void>((resolve) => {
+        waiting.push(() => {
+          // `preloadImage` never rejects, so the slot is always given back.
+          preloadImage(src).then(() => {
+            inFlight -= 1;
+            pump();
+            resolve();
+          });
+        });
+        pump();
+      })
+  );
+}
