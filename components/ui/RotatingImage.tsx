@@ -118,11 +118,15 @@ export function RotatingImage({
   }
 
   return (
+    // The track is exactly as wide as the frame and lets its slides overflow,
+    // rather than being N frames wide. That keeps the maths honest: a percentage
+    // translate resolves against the element's *own* width, so on a 300%-wide
+    // track `translateX(-100%)` would jump three slides at once, not one.
     <div
-      className={`absolute top-0 left-0 h-full flex will-change-transform ${
+      className={`absolute top-0 left-0 h-full w-full flex will-change-transform ${
         animated ? "transition-transform duration-700 ease-in-out" : ""
       }`}
-      style={{ transform: `translateX(-${track * 100}%)`, width: `${slides.length * 100}%` }}
+      style={{ transform: `translateX(-${track * 100}%)` }}
     >
       {slides.map((src, i) => {
         const isReady = ready.has(src);
@@ -132,10 +136,9 @@ export function RotatingImage({
             // Fade in on the way from container background to photo, the same
             // way the testimonial images do — a half-second ramp reads as
             // deliberate where an instant swap reads as a glitch.
-            className={`relative h-full shrink-0 transition-opacity duration-500 ease-out ${
+            className={`relative h-full w-full shrink-0 transition-opacity duration-500 ease-out ${
               isReady ? "opacity-100" : "opacity-0"
             }`}
-            style={{ width: `${100 / slides.length}%` }}
           >
             {/* The first slide is on screen from the start, so it loads on the
                 browser's normal terms and reports itself ready via `onLoad`.
