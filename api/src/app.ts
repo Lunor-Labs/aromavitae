@@ -15,7 +15,10 @@ import { categoriesRouter } from '@/routes/categories';
 import { outletsRouter } from '@/routes/outlets';
 import { testimonialsRouter } from '@/routes/testimonials';
 import { singletonsRouter } from '@/routes/singletons';
+import { galleryRouter } from '@/routes/gallery';
 import { uploadsRouter } from '@/routes/uploads';
+import { blogRouter } from '@/routes/blog';
+import { blogCategoriesRouter } from '@/routes/blogCategories';
 
 export const app = express();
 
@@ -59,7 +62,10 @@ app.use('/api/v1/categories', categoriesRouter);
 app.use('/api/v1/outlets', outletsRouter);
 app.use('/api/v1/testimonials', testimonialsRouter);
 app.use('/api/v1/singletons', singletonsRouter);
+app.use('/api/v1/gallery', galleryRouter);
 app.use('/api/v1/uploads', uploadsRouter);
+app.use('/api/v1/blog-posts', blogRouter);
+app.use('/api/v1/blog-categories', blogCategoriesRouter);
 
 app.use((_req, res) => {
   res.status(404).json({ error: { code: 'NOT_FOUND', message: 'Route not found' } });
