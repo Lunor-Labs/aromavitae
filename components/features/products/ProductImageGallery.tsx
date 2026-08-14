@@ -11,27 +11,35 @@ interface Props {
 }
 
 const SWIPE_THRESHOLD_PX = 50;
+const SLIDE_DURATION_MS = 700;
+const AUTO_ADVANCE_MS = 4000;
 
-/** AliExpress-style gallery: large main frame + thumbnail strip, arrows and touch swipe. */
+/**
+ * AliExpress-style gallery: a large sliding frame plus a thumbnail strip.
+ *
+ * The frame is the same carousel the product cards use — it slides on a timer,
+ * wraps endlessly, and refuses to advance onto a shot that hasn't decoded yet —
+ * with arrows, thumbnails and touch swipe layered on for manual control.
+ */
 export function ProductImageGallery({ images, alt }: Props) {
   const list = images.filter(Boolean);
-  // `active` is what the user picked (drives the thumbnail highlight, so the tap
-  // feels instant); `visible` is what the frame actually shows. They diverge only
-  // while the picked image is still downloading — that way the frame keeps the
-  // previous photo up instead of flashing an empty box.
-  const [active, setActive] = useState(0);
-  const [visible, setVisible] = useState(0);
-  // Images whose bytes are cached *and* decoded, so switching to one is instant.
-  const [ready, setReady] = useState<ReadonlySet<string>>(() => new Set());
-  const touchStartX = useRef<number | null>(null);
-  const activeRef = useRef(0);
+  const count = list.length;
 
+  // `track` may sit one past the last real slide, on a duplicate of the first
+  // image, so wrapping never has to animate backwards through the whole strip.
+  const [track, setTrack] = useState(0);
+  const [animated, setAnimated] = useState(true);
+  // Shots whose bytes are cached *and* decoded, so showing one is instant.
+  const [ready, setReady] = useState<ReadonlySet<string>>(() => new Set());
+
+  const slides = count > 0 ? [...list, list[0]] : [];
+  // Which thumbnail is lit — the tail duplicate is the first image again.
+  const active = count > 0 ? track % count : 0;
+  const nextSrc = count > 0 ? list[(track + 1) % count] : undefined;
   // Depend on the image list by value; the array itself is new every render.
   const imagesKey = list.join("\n");
 
-  useEffect(() => {
-    activeRef.current = active;
-  }, [active]);
+  const touchStartX = useRef<number | null>(null);
 
   // Pull every shot into cache up front, so arrows and thumbnails respond
   // immediately instead of starting a download on click. Strictly one at a
@@ -42,14 +50,12 @@ export function ProductImageGallery({ images, alt }: Props) {
     let cancelled = false;
 
     let chain = Promise.resolve();
-    imagesKey.split("\n").forEach((src, index) => {
+    imagesKey.split("\n").forEach((src) => {
       chain = chain
         .then(() => (cancelled ? undefined : preloadImage(src)))
         .then(() => {
           if (cancelled) return;
           setReady((prev) => (prev.has(src) ? prev : new Set(prev).add(src)));
-          // If this is the shot the user is currently waiting on, reveal it now.
-          if (index === activeRef.current) setVisible(index);
         });
     });
 
@@ -58,25 +64,78 @@ export function ProductImageGallery({ images, alt }: Props) {
     };
   }, [imagesKey]);
 
-  if (list.length === 0) return null;
+  // Auto-advance. Re-armed whenever `track` changes, so a manual move also
+  // resets the countdown, and whenever `ready` grows, which is how a slide that
+  // wasn't decoded in time gets its turn once it finally is.
+  useEffect(() => {
+    // Mid wrap-around — the reset effect below owns that step.
+    if (count <= 1 || track >= count) return;
+    if (!nextSrc || !ready.has(nextSrc)) return;
+    const id = setTimeout(() => {
+      setAnimated(true);
+      setTrack(track + 1);
+    }, AUTO_ADVANCE_MS);
+    return () => clearTimeout(id);
+  }, [track, count, ready, nextSrc]);
 
-  // Cached shots swap instantly. Anything the queue above hasn't reached yet
-  // gets fetched on the spot rather than waiting its turn — the user asked for
-  // this one, so it outranks the rest of the strip.
-  const select = (index: number) => {
-    const src = list[index];
-    setActive(index);
-    if (ready.has(src)) {
-      setVisible(index);
-      return;
-    }
-    preloadImage(src).then(() => {
-      setReady((prev) => (prev.has(src) ? prev : new Set(prev).add(src)));
-      if (activeRef.current === index) setVisible(index);
-    });
+  // Endless loop: once the slide onto the duplicate has finished, snap back to
+  // the real first slide with the animation off. Same photo, so it's invisible.
+  useEffect(() => {
+    if (track !== count) return;
+    const id = setTimeout(() => {
+      setAnimated(false);
+      setTrack(0);
+    }, SLIDE_DURATION_MS);
+    return () => clearTimeout(id);
+  }, [track, count]);
+
+  if (count === 0) return null;
+
+  // The queue above walks the strip in order; a shot the user has just asked
+  // for outranks the rest of it and gets fetched on the spot.
+  const warm = (index: number) => {
+    const src = list[index % count];
+    if (ready.has(src)) return;
+    preloadImage(src).then(() =>
+      setReady((prev) => (prev.has(src) ? prev : new Set(prev).add(src)))
+    );
   };
 
-  const go = (next: number) => select((next + list.length) % list.length);
+  const goTo = (index: number) => {
+    warm(index);
+    setAnimated(true);
+    setTrack(index);
+  };
+
+  const goNext = () => {
+    // Already wrapping; let that finish rather than stacking another step on it.
+    if (track >= count) return;
+    warm(track + 1);
+    setAnimated(true);
+    setTrack(track + 1);
+  };
+
+  const goPrev = () => {
+    if (track > 0) {
+      warm(track - 1);
+      setAnimated(true);
+      setTrack(track - 1);
+      return;
+    }
+    // On the first slide: hop silently onto the tail duplicate — the same photo,
+    // so nothing changes on screen — then slide one step left from there. Two
+    // frames' wait so the jump is painted before the transition is switched on,
+    // otherwise the browser animates the jump itself.
+    warm(count - 1);
+    setAnimated(false);
+    setTrack(count);
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        setAnimated(true);
+        setTrack(count - 1);
+      });
+    });
+  };
 
   const onTouchStart = (e: React.TouchEvent) => {
     touchStartX.current = e.touches[0].clientX;
@@ -87,7 +146,8 @@ export function ProductImageGallery({ images, alt }: Props) {
     const delta = e.changedTouches[0].clientX - touchStartX.current;
     touchStartX.current = null;
     if (Math.abs(delta) < SWIPE_THRESHOLD_PX) return;
-    go(delta < 0 ? active + 1 : active - 1);
+    if (delta < 0) goNext();
+    else goPrev();
   };
 
   return (
@@ -98,31 +158,54 @@ export function ProductImageGallery({ images, alt }: Props) {
         onTouchStart={onTouchStart}
         onTouchEnd={onTouchEnd}
       >
-        {/* Only the opening shot and shots already in cache are mounted —
-            mounting them all `eager` would restart the very downloads the
-            queue above is trying to order. */}
-        {list.map((src, i) =>
-          i === 0 || ready.has(src) ? (
-            <Image
-              key={`${src}-${i}`}
-              src={src}
-              alt={alt}
-              fill
-              priority={i === 0}
-              loading={i === 0 ? undefined : "eager"}
-              className={cn(
-                "object-cover transition-opacity duration-700 ease-in-out will-change-[opacity]",
-                i === visible ? "opacity-100" : "opacity-0"
-              )}
-              sizes="(max-width: 1024px) 100vw, 50vw"
-            />
-          ) : null
-        )}
+        {/* The track is exactly as wide as the frame and lets its slides
+            overflow, rather than being N frames wide: a percentage translate
+            resolves against the element's *own* width, so on a wider track one
+            step would jump several slides at once. */}
+        <div
+          className={cn(
+            "absolute inset-0 flex will-change-transform",
+            animated && "transition-transform duration-700 ease-in-out"
+          )}
+          style={{ transform: `translateX(-${track * 100}%)` }}
+        >
+          {slides.map((src, i) => {
+            const isReady = ready.has(src);
+            return (
+              <div
+                key={`${src}-${i}`}
+                className={cn(
+                  "relative h-full w-full shrink-0 transition-opacity duration-500 ease-out",
+                  isReady ? "opacity-100" : "opacity-0"
+                )}
+              >
+                {/* The opening shot is on screen from the start, so it loads on
+                    the browser's normal terms. The rest are mounted only once
+                    cached, which makes their `eager` load a cache hit that
+                    paints immediately. */}
+                {(i === 0 || isReady) && (
+                  <Image
+                    src={src}
+                    alt={alt}
+                    fill
+                    priority={i === 0}
+                    loading={i === 0 ? undefined : "eager"}
+                    className="object-cover"
+                    sizes="(max-width: 1024px) 100vw, 50vw"
+                    onLoad={() =>
+                      setReady((prev) => (prev.has(src) ? prev : new Set(prev).add(src)))
+                    }
+                  />
+                )}
+              </div>
+            );
+          })}
+        </div>
 
-        {list.length > 1 && (
+        {count > 1 && (
           <>
             <button
-              onClick={() => go(active - 1)}
+              onClick={goPrev}
               aria-label="Previous image"
               className="absolute left-3 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-warm-white/80
                          flex items-center justify-center text-forest hover:bg-warm-white transition-colors z-10"
@@ -132,7 +215,7 @@ export function ProductImageGallery({ images, alt }: Props) {
               </svg>
             </button>
             <button
-              onClick={() => go(active + 1)}
+              onClick={goNext}
               aria-label="Next image"
               className="absolute right-3 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-warm-white/80
                          flex items-center justify-center text-forest hover:bg-warm-white transition-colors z-10"
@@ -145,13 +228,17 @@ export function ProductImageGallery({ images, alt }: Props) {
         )}
       </div>
 
-      {/* Thumbnails */}
-      {list.length > 1 && (
-        <div className="flex gap-2 mt-3 overflow-x-auto pb-1">
+      {/* Thumbnails. The selected one wears a ring that is drawn *outside* its
+          box, so the strip needs a pixel of room on every side — without it the
+          scroll container clips the ring against the edge of the main image.
+          The negative margin cancels that padding so the strip still lines up
+          with the frame above. */}
+      {count > 1 && (
+        <div className="flex gap-2 mt-2 -mx-1 px-1 py-1 overflow-x-auto scrollbar-hide">
           {list.map((src, i) => (
             <button
               key={`${src}-${i}`}
-              onClick={() => select(i)}
+              onClick={() => goTo(i)}
               aria-label={`View image ${i + 1}`}
               className={cn(
                 "relative w-16 h-16 shrink-0 rounded overflow-hidden bg-cream transition-all duration-200",
