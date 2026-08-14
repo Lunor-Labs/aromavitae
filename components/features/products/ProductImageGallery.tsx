@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import { cn } from "@/lib/utils";
 
@@ -14,12 +14,36 @@ const SWIPE_THRESHOLD_PX = 50;
 /** AliExpress-style gallery: large main frame + thumbnail strip, arrows and touch swipe. */
 export function ProductImageGallery({ images, alt }: Props) {
   const list = images.filter(Boolean);
+  // `active` is what the user picked (drives the thumbnail highlight, so the tap
+  // feels instant); `visible` is what the frame actually shows. They diverge only
+  // while the picked image is still downloading — that way the frame keeps the
+  // previous photo up instead of flashing an empty box.
   const [active, setActive] = useState(0);
+  const [visible, setVisible] = useState(0);
+  const [settled, setSettled] = useState<ReadonlySet<string>>(() => new Set());
   const touchStartX = useRef<number | null>(null);
+  const activeRef = useRef(0);
+
+  useEffect(() => {
+    activeRef.current = active;
+  }, [active]);
+
+  // Failures count as settled too, so a broken URL can't wedge the frame.
+  // If the image that just arrived is the one the user is waiting on, reveal it.
+  const markSettled = useCallback((src: string, index: number) => {
+    setSettled((prev) => (prev.has(src) ? prev : new Set(prev).add(src)));
+    if (index === activeRef.current) setVisible(index);
+  }, []);
 
   if (list.length === 0) return null;
 
-  const go = (next: number) => setActive((next + list.length) % list.length);
+  // Already-loaded images swap instantly; the rest wait for `markSettled`.
+  const select = (index: number) => {
+    setActive(index);
+    if (settled.has(list[index])) setVisible(index);
+  };
+
+  const go = (next: number) => select((next + list.length) % list.length);
 
   const onTouchStart = (e: React.TouchEvent) => {
     touchStartX.current = e.touches[0].clientX;
@@ -48,9 +72,12 @@ export function ProductImageGallery({ images, alt }: Props) {
             alt={alt}
             fill
             priority={i === 0}
+            loading={i === 0 ? undefined : "eager"}
+            onLoad={() => markSettled(src, i)}
+            onError={() => markSettled(src, i)}
             className={cn(
               "object-cover transition-opacity duration-700 ease-in-out will-change-[opacity]",
-              i === active ? "opacity-100" : "opacity-0"
+              i === visible ? "opacity-100" : "opacity-0"
             )}
             sizes="(max-width: 1024px) 100vw, 50vw"
           />
@@ -88,7 +115,7 @@ export function ProductImageGallery({ images, alt }: Props) {
           {list.map((src, i) => (
             <button
               key={`${src}-${i}`}
-              onClick={() => setActive(i)}
+              onClick={() => select(i)}
               aria-label={`View image ${i + 1}`}
               className={cn(
                 "relative w-16 h-16 shrink-0 rounded overflow-hidden bg-cream transition-all duration-200",
