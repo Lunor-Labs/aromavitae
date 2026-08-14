@@ -1,7 +1,8 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Image from "next/image";
+import { preloadImage } from "@/lib/preloadImage";
 import { cn } from "@/lib/utils";
 
 interface Props {
@@ -20,27 +21,44 @@ export function ProductImageGallery({ images, alt }: Props) {
   // previous photo up instead of flashing an empty box.
   const [active, setActive] = useState(0);
   const [visible, setVisible] = useState(0);
-  const [settled, setSettled] = useState<ReadonlySet<string>>(() => new Set());
+  // Images whose bytes are cached *and* decoded, so switching to one is instant.
+  const [ready, setReady] = useState<ReadonlySet<string>>(() => new Set());
   const touchStartX = useRef<number | null>(null);
   const activeRef = useRef(0);
+
+  // Depend on the image list by value; the array itself is new every render.
+  const imagesKey = list.join("\n");
 
   useEffect(() => {
     activeRef.current = active;
   }, [active]);
 
-  // Failures count as settled too, so a broken URL can't wedge the frame.
-  // If the image that just arrived is the one the user is waiting on, reveal it.
-  const markSettled = useCallback((src: string, index: number) => {
-    setSettled((prev) => (prev.has(src) ? prev : new Set(prev).add(src)));
-    if (index === activeRef.current) setVisible(index);
-  }, []);
+  // Pull every shot into cache up front, so arrows and thumbnails respond
+  // immediately instead of starting a download on click.
+  useEffect(() => {
+    if (!imagesKey) return;
+    let cancelled = false;
+
+    imagesKey.split("\n").forEach((src, index) => {
+      preloadImage(src).then(() => {
+        if (cancelled) return;
+        setReady((prev) => (prev.has(src) ? prev : new Set(prev).add(src)));
+        // If this is the shot the user is currently waiting on, reveal it now.
+        if (index === activeRef.current) setVisible(index);
+      });
+    });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [imagesKey]);
 
   if (list.length === 0) return null;
 
-  // Already-loaded images swap instantly; the rest wait for `markSettled`.
+  // Cached images swap instantly; the rest are revealed by the preload above.
   const select = (index: number) => {
     setActive(index);
-    if (settled.has(list[index])) setVisible(index);
+    if (ready.has(list[index])) setVisible(index);
   };
 
   const go = (next: number) => select((next + list.length) % list.length);
@@ -73,8 +91,6 @@ export function ProductImageGallery({ images, alt }: Props) {
             fill
             priority={i === 0}
             loading={i === 0 ? undefined : "eager"}
-            onLoad={() => markSettled(src, i)}
-            onError={() => markSettled(src, i)}
             className={cn(
               "object-cover transition-opacity duration-700 ease-in-out will-change-[opacity]",
               i === visible ? "opacity-100" : "opacity-0"
