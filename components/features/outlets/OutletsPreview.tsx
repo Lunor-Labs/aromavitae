@@ -43,7 +43,9 @@ export function OutletsPreview({ outlets }: Props) {
           </div>
 
           {/* Right — Outlet Cards (horizontal scroll) */}
-          <div className="flex gap-5 overflow-x-auto pb-4 -mx-6 px-6 md:mx-0 md:px-0 snap-x snap-mandatory scrollbar-hide flex-1">
+          {/* `scroll-pl-6` matches the full-bleed row's own `px-6`: without it a
+              snapped card lands against the viewport edge instead of the gutter. */}
+          <div className="flex gap-5 overflow-x-auto pb-4 -mx-6 px-6 md:mx-0 md:px-0 scroll-pl-6 md:scroll-pl-0 snap-x snap-mandatory scrollbar-hide flex-1">
             {preview.map((outlet) => (
               <Link
                 key={outlet.id}
