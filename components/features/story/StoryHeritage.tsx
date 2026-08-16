@@ -10,7 +10,6 @@ const STORY: StoryContent = {
     body: "For generations, our family has walked the misty hills and coastal plantations of Ceylon, curating the island's finest spices and its rarest agarwood. Every jar and vial carries that heritage.",
     ctaLabel: "READ MORE",
     ctaHref: "/about",
-    image: "/images/story/story-bg.jpg",
   },
   heritage: {
     eyebrow: "HERITAGE",
@@ -49,15 +48,6 @@ export function StoryHeritage() {
       <div className="grid md:grid-cols-2">
         {/* Left Panel — Our Story */}
         <div className="relative bg-forest text-warm-white p-10 md:p-16 flex flex-col justify-center items-center text-center overflow-hidden">
-          {ourStory.image && (
-            <Image
-              src={ourStory.image}
-              alt=""
-              fill
-              className="object-cover opacity-20"
-              sizes="(max-width: 768px) 100vw, 50vw"
-            />
-          )}
           <div className="absolute top-0 right-0 w-64 h-64 opacity-10">
             <svg viewBox="0 0 200 200" fill="none" className="w-full h-full">
               <path d="M100 10C60 30 20 70 30 120s60 60 100 70c40-10 80-20 70-70S140 30 100 10z" stroke="currentColor" strokeWidth="1" />

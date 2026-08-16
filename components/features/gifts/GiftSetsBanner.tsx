@@ -53,7 +53,7 @@ export function GiftSetsBanner({ content }: Props) {
             <p className="text-warm-white/70 text-sm leading-relaxed mb-8 max-w-md mx-auto">
               {content.body}
             </p>
-            <div className="text-right">
+            <div className="text-center">
               <Link
                 href={content.ctaHref || "/products"}
                 className="inline-flex px-7 py-3 border border-gold text-gold text-xs font-medium
