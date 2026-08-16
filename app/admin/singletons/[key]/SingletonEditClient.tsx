@@ -205,12 +205,8 @@ function FooterEditor({ value, onChange }: { value: FooterContent; onChange: (v:
 
   return (
     <div className="space-y-6">
-      <div className="border border-slate-200 rounded-lg p-4 space-y-3">
-        <p className="text-sm font-medium text-slate-700">Contact</p>
-        <Field label="Phone" value={v.contact?.phone ?? ""} onChange={(val) => onChange({ ...v, contact: { ...v.contact, phone: val, email: v.contact?.email ?? "", location: v.contact?.location ?? "" } })} />
-        <Field label="Email" value={v.contact?.email ?? ""} onChange={(val) => onChange({ ...v, contact: { ...v.contact, phone: v.contact?.phone ?? "", email: val, location: v.contact?.location ?? "" } })} />
-        <Field label="Location" value={v.contact?.location ?? ""} onChange={(val) => onChange({ ...v, contact: { ...v.contact, phone: v.contact?.phone ?? "", email: v.contact?.email ?? "", location: val } })} />
-      </div>
+      {/* Contact details are no longer editable here — they live in lib/site.ts
+          so that the footer and the Contact page can never drift apart. */}
 
       <div>
         <SectionLabel label="Social Links" />

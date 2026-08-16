@@ -7,20 +7,20 @@ import { fetchContent } from "@/lib/api";
 export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
-  title: "Outlets — Visit AromaVitae Across Ceylon",
+  title: "Outlets — Visit AROMAVITAE Across Ceylon",
   description:
-    "Find AromaVitae stores across Sri Lanka. Visit us in Colombo, Kandy, Galle and more to experience our Ceylon spices and agarwood perfumes in person.",
+    "Find AROMAVITAE stores across Sri Lanka. Visit us in Colombo, Kandy, Galle and more to experience our Ceylon spices and agarwood perfumes in person.",
   keywords: [
-    "AromaVitae stores",
-    "AromaVitae outlets",
+    "AROMAVITAE stores",
+    "AROMAVITAE outlets",
     "Ceylon spice shops",
     "Sri Lanka retail stores",
     "agarwood perfume boutique",
   ],
   openGraph: {
-    title: "Outlets — Visit AromaVitae Across Ceylon",
+    title: "Outlets — Visit AROMAVITAE Across Ceylon",
     description:
-      "Find AromaVitae stores across Sri Lanka and experience our collection in person.",
+      "Find AROMAVITAE stores across Sri Lanka and experience our collection in person.",
   },
 };
 
@@ -32,7 +32,7 @@ export default async function OutletsPage() {
       <PageHero
         title="Our Outlets"
         tagline="FIND US IN CEYLON"
-        subtitle="Visit AromaVitae in person — discover our stores across Ceylon and experience the true aromas of Sri Lanka."
+        subtitle="Visit AROMAVITAE in person — discover our stores across Ceylon and experience the true aromas of Sri Lanka."
         breadcrumbs={[
           { label: "Home", href: "/" },
           { label: "Outlets" },

@@ -17,7 +17,7 @@ export async function generateMetadata({
   const post = await fetchBlogPost(slug);
   if (!post) return { title: "Post not found" };
   return {
-    title: `${post.title} — AromaVitae Blog`,
+    title: `${post.title} — AROMAVITAE Blog`,
     description: post.excerpt,
     openGraph: {
       title: post.title,

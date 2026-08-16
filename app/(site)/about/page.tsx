@@ -7,16 +7,16 @@ import { TrustBadges } from "@/components/ui/TrustBadges";
 export const metadata: Metadata = {
   title: "About Us — Our Heritage & Story",
   description:
-    "Learn about AromaVitae's journey from the lush spice gardens of Sri Lanka to your doorstep. Discover our commitment to purity, sustainability, and the centuries-old traditions of Ceylon.",
+    "Learn about AROMAVITAE's journey from the lush spice gardens of Sri Lanka to your doorstep. Discover our commitment to purity, sustainability, and the centuries-old traditions of Ceylon.",
   keywords: [
-    "AromaVitae story",
+    "AROMAVITAE story",
     "Sri Lankan spice company",
     "Ceylon heritage",
     "sustainable spices",
-    "about aromavitae",
+    "about AROMAVITAE",
   ],
   openGraph: {
-    title: "About AromaVitae — Our Heritage & Story",
+    title: "About AROMAVITAE — Our Heritage & Story",
     description:
       "From the lush spice gardens of Sri Lanka to your doorstep. Discover our commitment to purity and tradition.",
   },
@@ -54,7 +54,7 @@ const TIMELINE = [
     year: "Vision",
     title: "A New Chapter",
     description:
-      "AromaVitae was born from a passion to share Sri Lanka's finest natural treasures with the world — premium spices and exquisite agarwood perfumes, crafted with uncompromising quality.",
+      "AROMAVITAE was born from a passion to share Sri Lanka's finest natural treasures with the world — premium spices and exquisite agarwood perfumes, crafted with uncompromising quality.",
   },
   {
     year: "Today",
@@ -74,7 +74,7 @@ export default function AboutPage() {
   return (
     <>
       <PageHero
-        title="About AromaVitae"
+        title="About AROMAVITAE"
         tagline="OUR HERITAGE"
         subtitle="Nature's Finest. Ceylon's Pride. Discover the passion, heritage, and tradition behind every product we craft."
         breadcrumbs={[
@@ -88,7 +88,7 @@ export default function AboutPage() {
         <section className="py-16 md:py-24 bg-warm-white reveal">
           <div className="max-w-[1400px] mx-auto px-6">
             <div className="grid md:grid-cols-2 gap-12 items-center">
-              <div>
+              <div className="text-center">
                 <div className="relative overflow-hidden mb-4" style={{ height: '36px' }}>
                   <Image
                     src="/images/misc/line.png"
@@ -101,18 +101,18 @@ export default function AboutPage() {
                 <span className="text-muted text-xs tracking-[0.3em] uppercase font-medium mb-3 block">
                   OUR STORY
                 </span>
-                <h2 className="font-heading text-3xl md:text-4xl font-bold text-charcoal leading-tight mb-6">
+                <h2 className="font-heading text-3xl md:text-4xl font-bold text-charcoal leading-tight mb-6 whitespace-pre-line">
                   From Ceylon&apos;s Soil{"\n"}to Your Soul
                 </h2>
                 <div className="space-y-4 text-sm text-muted leading-relaxed">
                   <p>
                     Nestled among the misty mountains and tropical lowlands of Sri Lanka lies a
                     treasure trove of nature&apos;s finest offerings. For centuries, the island
-                    known as Ceylon has been celebrated as the &ldquo;Spice Isle&rdquo; — a land
+                    known as Ceylon has been celebrated as the &ldquo;Spice Isle&rdquo;, a land
                     where cinnamon, pepper, cloves, and cardamom flourish in their purest forms.
                   </p>
                   <p>
-                    AromaVitae was founded with a singular vision: to share these extraordinary
+                    AROMAVITAE was founded with a singular vision: to share these extraordinary
                     natural gifts with the world. We partner directly with local farmers who have
                     inherited generations of knowledge, ensuring that every product carries the
                     authentic essence of Sri Lankan heritage.
@@ -142,7 +142,7 @@ export default function AboutPage() {
                   </svg>
                 </div>
 
-                <div className="relative z-10">
+                <div className="relative z-10 text-center">
                   <div className="relative overflow-hidden mb-4" style={{ height: '36px' }}>
                     <Image
                       src="/images/misc/line.png"
@@ -155,7 +155,7 @@ export default function AboutPage() {
                   <span className="text-gold text-xs tracking-[0.3em] uppercase font-medium mb-4 block">
                     OUR PROMISE
                   </span>
-                  <h3 className="font-heading text-2xl md:text-3xl font-bold leading-tight mb-6">
+                  <h3 className="font-heading text-2xl md:text-3xl font-bold leading-tight mb-6 whitespace-pre-line">
                     Authenticity in{"\n"}Every Detail
                   </h3>
                   <p className="text-warm-white/80 text-sm leading-relaxed mb-6">
@@ -234,7 +234,7 @@ export default function AboutPage() {
                 OUR JOURNEY
               </span>
               <h2 className="font-heading text-3xl md:text-4xl font-bold text-charcoal">
-                The AromaVitae Story
+                The AROMAVITAE Story
               </h2>
             </div>
 

@@ -19,8 +19,8 @@ const ubuntu = Ubuntu({
 export const metadata: Metadata = {
   metadataBase: new URL("https://aromavitae.lk"),
   title: {
-    default: "AromaVitae — Premium Sri Lankan Spices & Agarwood Perfumes",
-    template: "%s | AromaVitae",
+    default: "AROMAVITAE — Premium Sri Lankan Spices & Agarwood Perfumes",
+    template: "%s | AROMAVITAE",
   },
   description:
     "Discover nature's finest Ceylon spices and timeless agarwood perfumes, crafted with passion, purity, and centuries of Sri Lankan tradition. Worldwide shipping.",
@@ -34,7 +34,7 @@ export const metadata: Metadata = {
     "gift sets",
   ],
   openGraph: {
-    title: "AromaVitae — Premium Sri Lankan Spices & Agarwood Perfumes",
+    title: "AROMAVITAE — Premium Sri Lankan Spices & Agarwood Perfumes",
     description:
       "Nature's Finest. Ceylon's Pride. Premium spices and agarwood perfumes from Sri Lanka.",
     type: "website",

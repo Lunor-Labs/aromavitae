@@ -20,8 +20,8 @@ export async function generateMetadata({
   const product = await fetchProduct(id);
   if (!product) return { title: "Product not found" };
   return {
-    title: `${product.name} — AromaVitae`,
-    description: product.description ?? `${product.name} from AromaVitae's premium collection.`,
+    title: `${product.name} — AROMAVITAE`,
+    description: product.description ?? `${product.name} from AROMAVITAE's premium collection.`,
     openGraph: {
       title: product.name,
       description: product.description ?? undefined,
