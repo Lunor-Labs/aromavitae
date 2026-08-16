@@ -17,7 +17,24 @@ const envSchema = z.object({
   S3_SECRET_ACCESS_KEY: z.string().min(1),
   S3_PUBLIC_URL: z.string().url(),
 
-  FRONTEND_URL: z.string().url(),
+  // Comma-separated list of allowed CORS origins, e.g.
+  // "https://www.ceylonaromavitae.lk,https://ceylonaromavitae.lk"
+  FRONTEND_URL: z.string().refine(
+    (val) =>
+      val
+        .split(',')
+        .map((s) => s.trim())
+        .filter(Boolean)
+        .every((u) => {
+          try {
+            new URL(u);
+            return true;
+          } catch {
+            return false;
+          }
+        }),
+    { message: 'FRONTEND_URL must be a comma-separated list of valid URLs' }
+  ),
 
   GITHUB_REPO: z.string().optional(),
   GITHUB_PAT: z.string().optional(),
