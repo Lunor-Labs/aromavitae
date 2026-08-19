@@ -10,16 +10,16 @@ export const dynamic = "force-dynamic";
 export const metadata: Metadata = {
   title: "Blog — Spice Stories, Wellness Tips & Recipes",
   description:
-    "Explore our blog for stories about Ceylon spices, wellness tips, authentic Sri Lankan recipes, and behind-the-scenes glimpses of AromaVitae.",
+    "Explore our blog for stories about Ceylon spices, wellness tips, authentic Sri Lankan recipes, and behind-the-scenes glimpses of AROMAVITAE.",
   keywords: [
     "Ceylon spice blog",
     "Sri Lankan recipes",
     "spice wellness tips",
     "agarwood perfume guide",
-    "AromaVitae blog",
+    "AROMAVITAE blog",
   ],
   openGraph: {
-    title: "Blog — AromaVitae Stories & Insights",
+    title: "Blog — AROMAVITAE Stories & Insights",
     description:
       "Stories about Ceylon spices, wellness tips, authentic recipes, and behind-the-scenes glimpses.",
   },

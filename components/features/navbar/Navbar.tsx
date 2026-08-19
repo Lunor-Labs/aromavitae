@@ -50,7 +50,7 @@ export function Navbar() {
         <Link href="/" className="flex items-center shrink-0">
           <Image
             src="/images/misc/logo.png"
-            alt="AromaVitae"
+            alt="AROMAVITAE"
             width={160}
             height={48}
             className="h-12 w-auto object-contain"

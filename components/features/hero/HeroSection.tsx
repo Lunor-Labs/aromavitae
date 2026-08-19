@@ -54,16 +54,16 @@ export function HeroSection() {
     <section className="relative w-full h-[500px] md:h-[600px] lg:h-[650px] overflow-hidden">
       <div className="absolute inset-0">
         <Image
-          src="/images/hero/hero-banner-desktop.png"
-          alt="AromaVitae premium products"
+          src="/images/hero/hero-banner-desktop.jpg"
+          alt="AROMAVITAE premium products"
           fill
           className="object-cover transition-transform duration-1000 ease-out scale-105 hidden md:block"
           priority
           sizes="(min-width: 768px) 100vw, 0vw"
         />
         <Image
-          src="/images/hero/hero-banner-mobile.png"
-          alt="AromaVitae premium products"
+          src="/images/hero/hero-banner-mobile.jpg"
+          alt="AROMAVITAE premium products"
           fill
           className="object-cover transition-transform duration-1000 ease-out scale-105 block md:hidden"
           priority

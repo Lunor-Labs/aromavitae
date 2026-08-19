@@ -27,7 +27,30 @@ app.disable('x-powered-by');
 app.set('trust proxy', 1);
 app.use(helmet());
 
-const allowedOrigins = [env.FRONTEND_URL, 'http://localhost:3000'];
+// Accept a comma-separated FRONTEND_URL, and for each configured origin
+// implicitly allow its www/apex counterpart too — a bare domain (no www)
+// and its "www." version are the same site, but browsers send them as
+// different Origin values, so an exact-match allow-list breaks the moment
+// the frontend is reached via whichever variant wasn't configured.
+function withWwwVariant(origin: string): string[] {
+  try {
+    const url = new URL(origin);
+    const variantHost = url.hostname.startsWith('www.')
+      ? url.hostname.slice(4)
+      : `www.${url.hostname}`;
+    return [origin, `${url.protocol}//${variantHost}${url.port ? `:${url.port}` : ''}`];
+  } catch {
+    return [origin];
+  }
+}
+
+const allowedOrigins = [
+  ...env.FRONTEND_URL.split(',')
+    .map((s) => s.trim())
+    .filter(Boolean)
+    .flatMap(withWwwVariant),
+  'http://localhost:3000',
+];
 const vercelPreviewPattern = /^https:\/\/[a-z0-9-]+\.vercel\.app$/;
 
 app.use(

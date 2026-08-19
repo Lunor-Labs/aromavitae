@@ -56,7 +56,7 @@ function LoginForm() {
       >
         <h1 className="text-xl font-semibold mb-1 text-slate-900">Admin sign in</h1>
         <p className="text-sm text-slate-500 mb-6">
-          Aromavitae landing-page admin portal.
+          AROMAVITAE landing-page admin portal.
         </p>
 
         <label className="block text-xs font-medium text-slate-600 mb-1">Email</label>

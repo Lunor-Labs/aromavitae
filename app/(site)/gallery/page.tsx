@@ -18,7 +18,7 @@ export const metadata: Metadata = {
     "premium spice photos",
   ],
   openGraph: {
-    title: "Gallery — AromaVitae Visual Journey",
+    title: "Gallery — AROMAVITAE Visual Journey",
     description:
       "A visual journey into the world of premium Ceylon spices and agarwood perfumes.",
   },

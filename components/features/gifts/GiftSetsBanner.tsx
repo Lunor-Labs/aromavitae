@@ -34,7 +34,7 @@ export function GiftSetsBanner({ content }: Props) {
             </svg>
           </div>
 
-          <div className="relative z-10">
+          <div className="relative z-10 text-center">
             <div className="relative overflow-hidden mb-4" style={{ height: '36px' }}>
               <Image
                 src="/images/misc/line.png"
@@ -50,16 +50,18 @@ export function GiftSetsBanner({ content }: Props) {
             <h2 className="font-heading text-3xl md:text-4xl font-bold text-warm-white leading-tight mb-4">
               {content.heading}
             </h2>
-            <p className="text-warm-white/70 text-sm leading-relaxed mb-8 max-w-md">
+            <p className="text-warm-white/70 text-sm leading-relaxed mb-8 max-w-md mx-auto">
               {content.body}
             </p>
-            <Link
-              href="/products"
-              className="inline-flex px-7 py-3 border border-gold text-gold text-xs font-medium
-                         tracking-[0.2em] hover:bg-gold hover:text-forest transition-all duration-300"
-            >
-              SHOP NOW
-            </Link>
+            <div className="text-center">
+              <Link
+                href={content.ctaHref || "/products"}
+                className="inline-flex px-7 py-3 border border-gold text-gold text-xs font-medium
+                           tracking-[0.2em] hover:bg-gold hover:text-forest transition-all duration-300"
+              >
+                {content.ctaLabel || "SHOP NOW"}
+              </Link>
+            </div>
           </div>
         </div>
       </div>

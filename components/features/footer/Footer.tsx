@@ -1,6 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import type { FooterContent } from "@/types/content";
+import { BRAND_DESCRIPTION, BRAND_NAME, CONTACT, COPYRIGHT } from "@/lib/site";
 
 interface Props {
   content: FooterContent;
@@ -14,6 +15,10 @@ const QUICK_LINKS = [
   { label: "Blog", href: "/blog" },
   { label: "Contact Us", href: "/contact#contact-form" },
 ];
+
+// Contact icons sit inline with the first line of text so they stay glued to it
+// however the column is aligned.
+const ICON_CLASS = "inline-block w-3.5 h-3.5 mr-2 align-[-0.2em]";
 
 const PLATFORM_ICONS: Record<string, React.ReactNode> = {
   facebook: (
@@ -58,17 +63,6 @@ const PLATFORM_ICONS: Record<string, React.ReactNode> = {
   ),
 };
 
-// TODO(admin): editorial content to be supplied — brand copy is hardcoded now that
-// the admin editor has been slimmed to contact + social links.
-const BRAND = {
-  name: "AromaVitae",
-  tagline: "NATURE'S FINEST · CEYLON'S PRIDE",
-  description:
-    "Premium Ceylon spices and agarwood perfumes, crafted with passion and shipped worldwide.",
-};
-
-const COPYRIGHT = `© ${new Date().getFullYear()} AromaVitae. All rights reserved.`;
-
 function normalizeSocialUrl(href: string, platform: string): string {
   const trimmed = href.trim();
   if (!trimmed) return trimmed;
@@ -82,28 +76,27 @@ function normalizeSocialUrl(href: string, platform: string): string {
 
 export function Footer({ content }: Props) {
   const socials = (content.social ?? []).filter((s) => s.href && s.href.trim() !== "");
-  const contact = content.contact ?? { phone: "", email: "", location: "" };
 
   return (
     <footer className="bg-forest text-warm-white/80">
-      <div className="max-w-[1400px] mx-auto px-6 py-14">
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-10 lg:gap-8 text-center sm:text-left">
+      <div className="max-w-[1700px] mx-auto px-6 lg:px-12 py-14">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-10 lg:gap-8 text-center sm:text-left lg:text-center">
           {/* Brand Column */}
-          <div>
-            <Link href="/" className="flex justify-center sm:justify-start mb-4">
+          <div className="lg:justify-self-start lg:text-center">
+            <Link href="/" className="flex justify-center sm:justify-start lg:justify-center mb-4">
               <Image
                 src="/images/misc/logo.png"
-                alt="AromaVitae"
+                alt={BRAND_NAME}
                 width={160}
                 height={48}
                 className="h-12 w-auto object-contain brightness-0 invert"
               />
             </Link>
-            <p className="text-xs leading-relaxed text-warm-white/60 mb-6">
-              {BRAND.description}
+            <p className="text-xs leading-relaxed text-warm-white/60 mb-6 max-w-xs mx-auto sm:mx-0 lg:mx-auto">
+              {BRAND_DESCRIPTION}
             </p>
             {socials.length > 0 && (
-              <div className="flex flex-wrap gap-3 justify-center sm:justify-start">
+              <div className="flex flex-wrap gap-3 justify-center sm:justify-start lg:justify-center">
                 {socials.map((s) => {
                   const icon = PLATFORM_ICONS[s.label];
                   if (!icon) return null;
@@ -126,7 +119,7 @@ export function Footer({ content }: Props) {
           </div>
 
           {/* Quick Links */}
-          <div>
+          <div className="lg:justify-self-center lg:text-center">
             <h3 className="text-xs font-bold text-warm-white tracking-[0.2em] mb-4">
               QUICK LINKS
             </h3>
@@ -145,45 +138,65 @@ export function Footer({ content }: Props) {
           </div>
 
           {/* Contact */}
-          <div>
+          <div className="lg:justify-self-end lg:text-center">
             <h3 className="text-xs font-bold text-warm-white tracking-[0.2em] mb-4">
               CONTACT
             </h3>
-            <div className="space-y-2">
-              {contact.phone && (
-                <div className="flex items-center gap-2 text-xs text-warm-white/60 justify-center sm:justify-start">
-                  <svg className="w-3.5 h-3.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
-                  </svg>
-                  {contact.phone}
-                </div>
-              )}
-              {contact.email && (
-                <div className="flex items-center gap-2 text-xs text-warm-white/60 justify-center sm:justify-start">
-                  <svg className="w-3.5 h-3.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <ul className="space-y-3 text-xs text-warm-white/60">
+              <li>
+                {CONTACT.phones.map((phone, i) => (
+                  <a
+                    key={phone.tel}
+                    href={`tel:${phone.tel}`}
+                    className="block hover:text-gold transition-colors duration-200"
+                  >
+                    {i === 0 && (
+                      <svg className={ICON_CLASS} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
+                      </svg>
+                    )}
+                    {phone.label}
+                    {phone.whatsapp && " (WhatsApp)"}
+                  </a>
+                ))}
+              </li>
+
+              <li>
+                <a
+                  href={`mailto:${CONTACT.email}`}
+                  className="hover:text-gold transition-colors duration-200 break-all"
+                >
+                  <svg className={ICON_CLASS} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
                   </svg>
-                  {contact.email}
-                </div>
-              )}
-              {contact.location && (
-                <div className="flex items-center gap-2 text-xs text-warm-white/60 justify-center sm:justify-start">
-                  <svg className="w-3.5 h-3.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
-                  </svg>
-                  {contact.location}
-                </div>
-              )}
-            </div>
+                  {CONTACT.email}
+                </a>
+              </li>
+
+              <li>
+                <address className="not-italic">
+                  {CONTACT.addressLines.map((line, i) => (
+                    <span key={line} className="block">
+                      {i === 0 && (
+                        <svg className={ICON_CLASS} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                        </svg>
+                      )}
+                      {line}
+                    </span>
+                  ))}
+                </address>
+              </li>
+            </ul>
           </div>
         </div>
       </div>
 
       <div className="border-t border-warm-white/10">
-        <div className="max-w-[1400px] mx-auto px-6 py-4">
+        <div className="max-w-[1700px] mx-auto px-6 lg:px-12 py-4">
           <p className="text-center text-[11px] text-warm-white/40">
-            {content.legal?.copyright ?? COPYRIGHT}
+            {COPYRIGHT}
           </p>
         </div>
       </div>

@@ -3,25 +3,31 @@ import Image from "next/image";
 import { PageHero } from "@/components/ui/PageHero";
 import { ScrollRevealWrapper } from "@/components/ui/ScrollRevealWrapper";
 import { ContactForm } from "@/components/features/contact/ContactForm";
+import { BRAND_NAME, CONTACT } from "@/lib/site";
 
 export const metadata: Metadata = {
   title: "Contact Us — Get in Touch",
   description:
-    "Reach out to AromaVitae for inquiries about our premium Ceylon spices, agarwood perfumes, custom orders, or wholesale partnerships. We'd love to hear from you.",
+    "Reach out to AROMAVITAE for inquiries about our premium Ceylon spices, agarwood perfumes, custom orders, or wholesale partnerships. We'd love to hear from you.",
   keywords: [
-    "contact AromaVitae",
+    "contact AROMAVITAE",
     "Ceylon spice inquiry",
     "wholesale spices Sri Lanka",
     "agarwood perfume order",
   ],
   openGraph: {
-    title: "Contact Us — AromaVitae",
+    title: "Contact Us — AROMAVITAE",
     description:
       "Get in touch with us for inquiries about our premium products, wholesale orders, or just to say hello.",
   },
 };
 
-const CONTACT_INFO = [
+interface ContactLine {
+  text: string;
+  href?: string;
+}
+
+const CONTACT_INFO: { icon: React.ReactNode; title: string; lines: ContactLine[] }[] = [
   {
     icon: (
       <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -34,7 +40,10 @@ const CONTACT_INFO = [
       </svg>
     ),
     title: "Phone",
-    details: ["+94 77 123 4567", "+94 11 234 5678"],
+    lines: CONTACT.phones.map((phone) => ({
+      text: phone.whatsapp ? `${phone.label} (WhatsApp)` : phone.label,
+      href: `tel:${phone.tel}`,
+    })),
   },
   {
     icon: (
@@ -48,7 +57,7 @@ const CONTACT_INFO = [
       </svg>
     ),
     title: "Email",
-    details: ["info@aromavitae.lk", "orders@aromavitae.lk"],
+    lines: [{ text: CONTACT.email, href: `mailto:${CONTACT.email}` }],
   },
   {
     icon: (
@@ -68,7 +77,10 @@ const CONTACT_INFO = [
       </svg>
     ),
     title: "Location",
-    details: ["Colombo, Sri Lanka", "Worldwide Shipping Available"],
+    lines: [
+      ...CONTACT.addressLines.map((text) => ({ text })),
+      { text: "Worldwide Shipping Available" },
+    ],
   },
 ];
 
@@ -108,9 +120,18 @@ export default function ContactPage() {
                   <h3 className="font-heading text-lg font-bold text-charcoal mb-3">
                     {info.title}
                   </h3>
-                  {info.details.map((detail) => (
-                    <p key={detail} className="text-sm text-muted">
-                      {detail}
+                  {info.lines.map((line) => (
+                    <p key={line.text} className="text-sm text-muted">
+                      {line.href ? (
+                        <a
+                          href={line.href}
+                          className="hover:text-forest transition-colors duration-200 break-all"
+                        >
+                          {line.text}
+                        </a>
+                      ) : (
+                        line.text
+                      )}
                     </p>
                   ))}
                 </div>
@@ -158,10 +179,11 @@ export default function ContactPage() {
                       />
                     </svg>
                     <p className="font-heading text-lg font-bold text-charcoal mb-1">
-                      Colombo, Sri Lanka
+                      Gamagedara, Godawela
                     </p>
+                    <p className="text-sm text-muted mb-1">Nihiluwa, Sri Lanka</p>
                     <p className="text-xs text-muted">
-                      AromaVitae Headquarters
+                      {BRAND_NAME} Headquarters
                     </p>
                   </div>
                 </div>

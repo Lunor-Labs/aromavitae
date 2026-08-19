@@ -10,7 +10,6 @@ const STORY: StoryContent = {
     body: "For generations, our family has walked the misty hills and coastal plantations of Ceylon, curating the island's finest spices and its rarest agarwood. Every jar and vial carries that heritage.",
     ctaLabel: "READ MORE",
     ctaHref: "/about",
-    image: "/images/story/story-bg.jpg",
   },
   heritage: {
     eyebrow: "HERITAGE",
@@ -48,16 +47,7 @@ export function StoryHeritage() {
     <section className="reveal">
       <div className="grid md:grid-cols-2">
         {/* Left Panel — Our Story */}
-        <div className="relative bg-forest text-warm-white p-10 md:p-16 flex flex-col justify-center overflow-hidden">
-          {ourStory.image && (
-            <Image
-              src={ourStory.image}
-              alt=""
-              fill
-              className="object-cover opacity-20"
-              sizes="(max-width: 768px) 100vw, 50vw"
-            />
-          )}
+        <div className="relative bg-forest text-warm-white p-10 md:p-16 flex flex-col justify-center items-center text-center overflow-hidden">
           <div className="absolute top-0 right-0 w-64 h-64 opacity-10">
             <svg viewBox="0 0 200 200" fill="none" className="w-full h-full">
               <path d="M100 10C60 30 20 70 30 120s60 60 100 70c40-10 80-20 70-70S140 30 100 10z" stroke="currentColor" strokeWidth="1" />
@@ -65,7 +55,7 @@ export function StoryHeritage() {
             </svg>
           </div>
 
-          <div className="relative overflow-hidden mb-4" style={{ height: '36px' }}>
+          <div className="relative w-full overflow-hidden mb-4" style={{ height: '36px' }}>
             <Image
               src="/images/misc/line.png"
               alt=""
@@ -80,12 +70,12 @@ export function StoryHeritage() {
           <h2 className="font-heading text-3xl md:text-4xl font-bold leading-tight mb-6 whitespace-pre-line">
             {ourStory.heading}
           </h2>
-          <p className="text-warm-white/80 text-sm leading-relaxed mb-8 max-w-md">
+          <p className="text-warm-white/80 text-sm leading-relaxed mb-8 max-w-md mx-auto">
             {ourStory.body}
           </p>
           <Link
             href={ourStory.ctaHref}
-            className="inline-flex self-start px-6 py-3 border border-warm-white/40 text-warm-white text-xs
+            className="inline-flex self-center px-6 py-3 border border-warm-white/40 text-warm-white text-xs
                        tracking-[0.2em] hover:bg-warm-white/10 transition-all duration-300"
           >
             {ourStory.ctaLabel}
@@ -96,7 +86,7 @@ export function StoryHeritage() {
         <div className="relative bg-cream p-10 md:p-16 flex flex-col justify-center">
           <div className="absolute inset-0 bg-gradient-to-bl from-cream via-cream to-cream-dark opacity-90" />
 
-          <div className="relative z-10">
+          <div className="relative z-10 text-center">
             <div className="relative overflow-hidden mb-4" style={{ height: '36px' }}>
               <Image
                 src="/images/misc/line.png"
@@ -112,7 +102,7 @@ export function StoryHeritage() {
             <h2 className="font-heading text-3xl md:text-4xl font-bold text-charcoal leading-tight mb-6">
               {heritage.heading}
             </h2>
-            <p className="text-muted text-sm leading-relaxed mb-8 max-w-md">
+            <p className="text-muted text-sm leading-relaxed mb-8 max-w-md mx-auto">
               {heritage.body}
             </p>
 
@@ -129,16 +119,18 @@ export function StoryHeritage() {
               ))}
             </div>
 
-            <Link
-              href={heritage.ctaHref}
-              className="inline-flex items-center gap-2 text-xs font-medium tracking-[0.15em] text-forest
-                         underline underline-offset-4 decoration-gold hover:decoration-forest transition-colors duration-200"
-            >
-              {heritage.ctaLabel}
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
-              </svg>
-            </Link>
+            <div className="text-right">
+              <Link
+                href={heritage.ctaHref}
+                className="inline-flex items-center gap-2 text-xs font-medium tracking-[0.15em] text-forest
+                           underline underline-offset-4 decoration-gold hover:decoration-forest transition-colors duration-200"
+              >
+                {heritage.ctaLabel}
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
+                </svg>
+              </Link>
+            </div>
           </div>
         </div>
       </div>

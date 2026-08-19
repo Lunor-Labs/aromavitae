@@ -30,7 +30,7 @@ export function OutletsPreview({ outlets }: Props) {
               OUR OUTLETS
             </h2>
             <p className="text-sm text-muted font-body leading-relaxed mb-6">
-              Visit AromaVitae in person across Ceylon.
+              Visit AROMAVITAE in person across Ceylon.
             </p>
             <Link
               href="/outlets"

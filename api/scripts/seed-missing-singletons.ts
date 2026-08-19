@@ -28,7 +28,7 @@ const singletons: Record<string, unknown> = {
     ourStory: {
       eyebrow: 'OUR STORY',
       heading: 'Rooted in Nature.\nRefined for Today.',
-      body: "Aromavitae is a celebration of Sri Lanka's rich natural heritage. From the spice gardens of Ceylon to the rare agarwood forests, we source the finest gifts of nature and craft them with care, to bring purity, authenticity, and timeless luxury to your life.",
+      body: "AROMAVITAE is a celebration of Sri Lanka's rich natural heritage. From the spice gardens of Ceylon to the rare agarwood forests, we source the finest gifts of nature and craft them with care, to bring purity, authenticity, and timeless luxury to your life.",
       ctaLabel: 'DISCOVER OUR STORY',
       ctaHref: '/our-story',
     },
@@ -96,7 +96,7 @@ const singletons: Record<string, unknown> = {
         { label: 'Contact Us', href: '/contact' },
       ]},
     ],
-    contact: { phone: '+94 11 234 5678', email: 'info@aromavitae.lk', location: 'Colombo, Sri Lanka' },
+    contact: { phone: '+94 74 027 0258', email: 'ayubowan@ceylonaromavitae.lk', location: 'Gamagedara, Godawela, Nihiluwa, Sri Lanka' },
     newsletter: { title: 'STAY CONNECTED', body: 'Subscribe for exclusive offers, new arrivals & stories.' },
     social: [
       { label: 'facebook',  href: '#' },
@@ -105,7 +105,7 @@ const singletons: Record<string, unknown> = {
       { label: 'linkedin',  href: '#' },
     ],
     payments: ['VISA', 'MC', 'PayPal', 'AMEX', 'Maestro'],
-    legal: { copyright: '© 2025 Aromavitae (Pvt) Ltd. All Rights Reserved.' },
+    legal: { copyright: '© 2025 Ceylon AROMAVITAE (Pvt) Ltd. All Rights Reserved.' },
   },
   announcement: {
     messages: [

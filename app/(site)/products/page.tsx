@@ -19,7 +19,7 @@ export const metadata: Metadata = {
     "premium spice gifts",
   ],
   openGraph: {
-    title: "Products — AromaVitae Premium Collection",
+    title: "Products — AROMAVITAE Premium Collection",
     description:
       "Explore our curated collection of premium Ceylon spices and agarwood perfumes.",
   },
