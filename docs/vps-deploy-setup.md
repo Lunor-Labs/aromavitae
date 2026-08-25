@@ -295,6 +295,12 @@ Postgres. See "Two things replaced Supabase" below for why.
       api:
         image: ghcr.io/lunor-labs/aromavitae-backend:latest
         restart: unless-stopped
+        healthcheck:
+          test: ["CMD", "wget", "-qO-", "http://localhost:4000/health"]
+          interval: 30s
+          timeout: 5s
+          retries: 3
+          start_period: 10s
         environment:
           DATABASE_URL: ${DATABASE_URL}
           ADMIN_JWT_SECRET: ${ADMIN_JWT_SECRET}
