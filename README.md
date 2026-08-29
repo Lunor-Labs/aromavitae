@@ -56,11 +56,19 @@ Garage runs in a Docker container managed by Coolify, so admin commands go throu
 docker ps --format '{{.Names}}' | grep garage
 ```
 
-Then create the bucket, enable its public web serving, and (if you don't already have one) create an anonymous read key. Replace `<garage-container>` with the name from the previous step and `<bucket>` with your bucket name:
+Then create the bucket, create the two keys it needs, and enable its public web serving. Replace `<garage-container>` with the name from the previous step and `<bucket>` with your bucket name:
 
 ```bash
 # create bucket
 docker exec <garage-container> /garage bucket create <bucket>
+
+# create the key the API presigns uploads with — this prints the Key ID and the
+# secret. The secret is shown ONCE; copy both into Coolify as S3_ACCESS_KEY_ID
+# and S3_SECRET_ACCESS_KEY.
+docker exec <garage-container> /garage key create aromavitae-api
+
+# grant that key read+write — presigned PUTs fail with AccessDenied without it
+docker exec <garage-container> /garage bucket allow --read --write --key <api-key-id> <bucket>
 
 # enable Garage's website API for this bucket (this is the step that fixes 403s
 # on <bucket>.web-<node>.<domain>/...)
@@ -69,9 +77,13 @@ docker exec <garage-container> /garage bucket website --allow <bucket>
 # grant an anonymous read key for public GETs
 docker exec <garage-container> /garage bucket allow --read --key <anonymous-key-id> <bucket>
 
-# sanity check
+# sanity check — lists both keys and their permissions
 docker exec <garage-container> /garage bucket info <bucket>
 ```
+
+The two keys are deliberately separate: the API key can write, the anonymous key
+can only read. Never put the API key's secret in any `NEXT_PUBLIC_*` var — that
+ships the write credential to every browser.
 
 Add a reverse-proxy route for `<bucket>.web-<node>.<domain>` pointing at Garage's web port (alongside the existing `s3-<node>` route), then verify from your laptop:
 
@@ -80,6 +92,92 @@ curl -I https://<bucket>.web-<node>.<domain>/<year>/<object-key>
 ```
 
 Expect `HTTP/2 200`. `403` means `bucket website --allow` didn't run; a connection error / cert warning means the reverse proxy route is missing.
+
+### CORS — required for browser uploads
+
+The admin panel uploads by `PUT`ting straight from the browser to Garage's S3
+endpoint, so that request is cross-origin and Garage must answer the preflight.
+Garage implements `PutBucketCors` / `GetBucketCors` / `DeleteBucketCors` but has
+**no `garage bucket cors` CLI subcommand** — set it through the S3 API instead.
+
+Save the policy, listing every origin that will upload:
+
+```json
+{
+  "CORSRules": [
+    {
+      "AllowedOrigins": [
+        "https://aromavitae.com",
+        "https://<your-vercel-preview>.vercel.app",
+        "http://localhost:3000"
+      ],
+      "AllowedMethods": ["PUT", "GET", "HEAD"],
+      "AllowedHeaders": ["*"],
+      "ExposeHeaders": ["ETag"],
+      "MaxAgeSeconds": 3000
+    }
+  ]
+}
+```
+
+Apply and confirm it (see the env exports in the next section):
+
+```bash
+aws --endpoint-url "$S3" s3api put-bucket-cors --bucket <bucket> \
+  --cors-configuration file://cors.json
+
+aws --endpoint-url "$S3" s3api get-bucket-cors --bucket <bucket>
+```
+
+`AllowedOrigins` is matched exactly — scheme, host, and port, no trailing slash,
+no wildcard subdomain matching. A Vercel preview deploy on a new URL will fail
+until its origin is added.
+
+### Verifying the bucket
+
+Garage needs two non-default AWS CLI settings: path-style addressing (the API
+sets `forcePathStyle: true` in `api/src/lib/s3.ts`) and checksums off. AWS CLI
+v2.23+ sends a CRC32 checksum by default that Garage rejects — the same
+incompatibility worked around for presigned URLs in `api/src/lib/s3.ts`.
+
+```bash
+export AWS_ACCESS_KEY_ID=<S3_ACCESS_KEY_ID>
+export AWS_SECRET_ACCESS_KEY=<S3_SECRET_ACCESS_KEY>
+export AWS_DEFAULT_REGION=<S3_REGION>
+export AWS_REQUEST_CHECKSUM_CALCULATION=when_required
+aws configure set default.s3.addressing_style path
+
+S3=https://s3-<node>.<domain>              # S3_ENDPOINT
+WEB=https://<bucket>.web-<node>.<domain>   # S3_PUBLIC_URL
+```
+
+Run in order — each command isolates one failure mode:
+
+```bash
+aws --endpoint-url "$S3" s3 ls                       # 1. key valid, bucket visible
+echo probe > probe.txt
+aws --endpoint-url "$S3" s3 cp probe.txt s3://<bucket>/probe.txt --content-type text/plain
+aws --endpoint-url "$S3" s3api get-bucket-cors --bucket <bucket>   # 2. CORS set
+curl -I "$WEB/probe.txt"                             # 3. anonymous public read → 200
+aws --endpoint-url "$S3" s3 rm s3://<bucket>/probe.txt            # 4. clean up
+```
+
+| Symptom | Cause |
+| --- | --- |
+| `s3 ls` → `InvalidAccessKeyId` / `SignatureDoesNotMatch` | wrong key, or `AWS_DEFAULT_REGION` doesn't match `S3_REGION` |
+| `s3 ls` succeeds but bucket missing | key has no grant — `bucket allow` never ran for it |
+| `cp` → `AccessDenied` | key is read-only; presigned PUTs fail the same way |
+| `cp` → checksum / `XAmzContentSHA256Mismatch` | `AWS_REQUEST_CHECKSUM_CALCULATION=when_required` not exported |
+| `get-bucket-cors` → `NoSuchCORSConfiguration` | no CORS — CLI still works, browser uploads don't |
+| `curl -I` → `403` | `bucket website --allow` didn't run |
+| `curl -I` → cert error | reverse-proxy route for the web endpoint is missing |
+
+A clean CLI run is necessary but **not sufficient** — the CLI never sends a
+preflight, so it cannot detect broken CORS. The only end-to-end check is the
+real path: `POST /api/v1/uploads/signed-url` (admin JWT required, see
+`api/src/routes/uploads.ts`) followed by the browser's cross-origin `PUT`, i.e.
+upload an image in the admin panel with the Network tab open. Broken CORS shows
+as an `OPTIONS` request whose response has no `Access-Control-Allow-Origin`.
 
 ### Fixing broken URLs from an older misconfiguration
 
