@@ -2,11 +2,19 @@
 
 import { useState } from "react";
 import { AdminApi } from "@/lib/api";
+import { AdminThumb } from "@/components/admin/AdminThumb";
 
 interface SignedUrlResponse {
   uploadUrl: string;
   path: string;
   publicUrl: string;
+  /**
+   * Headers the API signed into `uploadUrl` — currently `Content-Type` and the
+   * `Cache-Control` that Garage stores with the object. They are part of the
+   * SigV4 signature, so the PUT has to send exactly these and nothing else, or
+   * Garage rejects it as a mismatch.
+   */
+  requiredHeaders?: Record<string, string>;
 }
 
 interface Props {
@@ -30,7 +38,7 @@ export function ImageUploader({ api, value, onChange, label = "Image" }: Props) 
       });
       const put = await fetch(signed.uploadUrl, {
         method: "PUT",
-        headers: { "Content-Type": file.type },
+        headers: signed.requiredHeaders ?? { "Content-Type": file.type },
         body: file,
       });
       if (!put.ok) throw new Error(`Upload failed (${put.status})`);
@@ -47,9 +55,9 @@ export function ImageUploader({ api, value, onChange, label = "Image" }: Props) 
       <label className="block text-xs font-medium text-slate-600 mb-1">{label}</label>
       <div className="flex items-center gap-3">
         {value ? (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img
+          <AdminThumb
             src={value}
+            size={64}
             alt="preview"
             className="w-16 h-16 object-cover rounded border border-slate-200"
           />

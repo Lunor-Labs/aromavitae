@@ -3,6 +3,7 @@
 import Image from "next/image";
 import { useEffect, useRef, useState } from "react";
 import { prefetchImage } from "@/lib/preloadImage";
+import { fillImageCandidates } from "@/lib/imageCandidates";
 
 interface RotatingImageProps {
   images: string[];
@@ -79,7 +80,11 @@ export function RotatingImage({
     const nextSrc = all[(track + 1) % all.length];
     let cancelled = false;
 
-    prefetchImage(nextSrc).then(() => {
+    // Warm the same optimized variant the slide's <Image> will request, not the
+    // source URL — see `fillImageCandidates`.
+    const candidates = fillImageCandidates(nextSrc, sizes);
+
+    prefetchImage(candidates.src, candidates).then(() => {
       if (cancelled) return;
       setReady((prev) => (prev.has(nextSrc) ? prev : new Set(prev).add(nextSrc)));
     });
@@ -87,7 +92,7 @@ export function RotatingImage({
     return () => {
       cancelled = true;
     };
-  }, [imagesKey, track]);
+  }, [imagesKey, track, sizes]);
 
   useEffect(() => {
     if (count <= 1) return;

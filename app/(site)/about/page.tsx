@@ -188,7 +188,7 @@ export default function AboutPage() {
                   src="/images/misc/line.png"
                   alt=""
                   fill
-                  sizes="100vw"
+                  sizes="(min-width: 1400px) 1352px, calc(100vw - 48px)"
                   style={{ objectFit: 'cover', objectPosition: 'center center' }}
                 />
               </div>

@@ -5,6 +5,7 @@ import { useAdminApi } from "@/hooks/useAdminApi";
 import { ImageUploader } from "@/components/admin/ImageUploader";
 import { SortableList } from "@/components/admin/SortableList";
 import type { Category } from "@/types/product";
+import { AdminThumb } from "@/components/admin/AdminThumb";
 
 const empty: Omit<Category, "id" | "href"> = {
   name: "",
@@ -122,8 +123,7 @@ export default function CategoriesPage() {
               >
                 {sortable.dragHandle}
                 {c.image ? (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img src={c.image} alt="" className="w-10 h-10 object-cover rounded" />
+                  <AdminThumb src={c.image} size={40} className="w-10 h-10 object-cover rounded" />
                 ) : (
                   <span />
                 )}

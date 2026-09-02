@@ -25,7 +25,7 @@ export function ShopByCategory({ categories, products }: Props) {
                 src="/images/misc/line.png"
                 alt=""
                 fill
-                sizes="240px"
+                sizes="(min-width: 768px) 220px, calc(100vw - 48px)"
                 style={{ objectFit: 'cover', objectPosition: 'center center' }}
               />
             </div>

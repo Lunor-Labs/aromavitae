@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import { preloadImage } from "@/lib/preloadImage";
+import { fillImageCandidates } from "@/lib/imageCandidates";
 import { cn } from "@/lib/utils";
 
 interface Props {
@@ -13,6 +14,10 @@ interface Props {
 const SWIPE_THRESHOLD_PX = 50;
 const SLIDE_DURATION_MS = 700;
 const AUTO_ADVANCE_MS = 4000;
+// The main frame spans the viewport up to `lg`, then half of the two-column
+// product layout. Shared by the rendered <Image> and the cache warm-up below,
+// which have to resolve to the same optimized URL to be a cache hit.
+const FRAME_SIZES = "(max-width: 1024px) 100vw, 50vw";
 
 /**
  * AliExpress-style gallery: a large sliding frame plus a thumbnail strip.
@@ -52,7 +57,11 @@ export function ProductImageGallery({ images, alt }: Props) {
     let chain = Promise.resolve();
     imagesKey.split("\n").forEach((src) => {
       chain = chain
-        .then(() => (cancelled ? undefined : preloadImage(src)))
+        .then(() => {
+          if (cancelled) return undefined;
+          const candidates = fillImageCandidates(src, FRAME_SIZES);
+          return preloadImage(candidates.src, candidates);
+        })
         .then(() => {
           if (cancelled) return;
           setReady((prev) => (prev.has(src) ? prev : new Set(prev).add(src)));
@@ -96,7 +105,8 @@ export function ProductImageGallery({ images, alt }: Props) {
   const warm = (index: number) => {
     const src = list[index % count];
     if (ready.has(src)) return;
-    preloadImage(src).then(() =>
+    const candidates = fillImageCandidates(src, FRAME_SIZES);
+    preloadImage(candidates.src, candidates).then(() =>
       setReady((prev) => (prev.has(src) ? prev : new Set(prev).add(src)))
     );
   };
@@ -191,7 +201,7 @@ export function ProductImageGallery({ images, alt }: Props) {
                     priority={i === 0}
                     loading={i === 0 ? undefined : "eager"}
                     className="object-cover"
-                    sizes="(max-width: 1024px) 100vw, 50vw"
+                    sizes={FRAME_SIZES}
                     onLoad={() =>
                       setReady((prev) => (prev.has(src) ? prev : new Set(prev).add(src)))
                     }

@@ -7,6 +7,7 @@ import { RichTextEditor } from "@/components/admin/RichTextEditor";
 import { SortableList } from "@/components/admin/SortableList";
 import { slugify } from "@/lib/utils";
 import type { BlogCategory, BlogPost } from "@/types/product";
+import { AdminThumb } from "@/components/admin/AdminThumb";
 
 const empty: Omit<BlogPost, "id" | "category"> = {
   title: "",
@@ -158,8 +159,7 @@ export default function BlogPostsPage() {
               >
                 {sortable.dragHandle}
                 {p.coverImage ? (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img src={p.coverImage} alt="" className="w-10 h-10 object-cover rounded" />
+                  <AdminThumb src={p.coverImage} size={40} className="w-10 h-10 object-cover rounded" />
                 ) : (
                   <span />
                 )}

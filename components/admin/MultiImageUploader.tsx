@@ -2,11 +2,19 @@
 
 import { useState } from "react";
 import { AdminApi } from "@/lib/api";
+import { AdminThumb } from "@/components/admin/AdminThumb";
 
 interface SignedUrlResponse {
   uploadUrl: string;
   path: string;
   publicUrl: string;
+  /**
+   * Headers the API signed into `uploadUrl` — currently `Content-Type` and the
+   * `Cache-Control` that Garage stores with the object. They are part of the
+   * SigV4 signature, so the PUT has to send exactly these and nothing else, or
+   * Garage rejects it as a mismatch.
+   */
+  requiredHeaders?: Record<string, string>;
 }
 
 interface Props {
@@ -40,7 +48,7 @@ export function MultiImageUploader({ api, values, onChange, label = "Images" }: 
       });
       const put = await fetch(signed.uploadUrl, {
         method: "PUT",
-        headers: { "Content-Type": file.type },
+        headers: signed.requiredHeaders ?? { "Content-Type": file.type },
         body: file,
       });
       if (!put.ok) throw new Error(`Upload failed (${put.status})`);
@@ -66,8 +74,7 @@ export function MultiImageUploader({ api, values, onChange, label = "Images" }: 
         <ul className="space-y-2 mb-2">
           {values.map((url, i) => (
             <li key={`${url}-${i}`} className="flex items-center gap-3 border border-slate-200 rounded p-2">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={url} alt="" className="w-12 h-12 object-cover rounded border border-slate-200" />
+              <AdminThumb src={url} size={48} className="w-12 h-12 object-cover rounded border border-slate-200" />
               <span className="flex-1 text-xs text-slate-500 truncate">{url}</span>
               <button type="button" onClick={() => move(i, i - 1)} disabled={i === 0} className="text-slate-500 disabled:opacity-30 px-1" aria-label="Move up">↑</button>
               <button type="button" onClick={() => move(i, i + 1)} disabled={i === values.length - 1} className="text-slate-500 disabled:opacity-30 px-1" aria-label="Move down">↓</button>
