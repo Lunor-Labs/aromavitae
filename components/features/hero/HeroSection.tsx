@@ -1,7 +1,9 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import Image from "next/image";
+import Image, { getImageProps } from "next/image";
+import heroDesktop from "@/public/images/hero/hero-banner-desktop.jpg";
+import heroMobile from "@/public/images/hero/hero-banner-mobile.jpg";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
 import type { HeroSlide } from "@/types/content";
@@ -18,6 +20,58 @@ const SLIDES: HeroSlide[] = [
   },
 ];
 const AUTOPLAY_MS = 6000;
+
+/**
+ * The desktop and mobile banners are different crops of the same shot
+ * (2560x1067 landscape vs 800x1000 portrait), so this is art direction, not a
+ * responsive image — the two cannot be collapsed into a single srcSet.
+ *
+ * Two <Image>s toggled with hidden/md:block is the obvious way to write that
+ * and the wrong one: display:none does not stop a fetch, so every visitor
+ * downloaded *both* crops, and priority on each preloaded both as well. Only
+ * <picture>'s media attribute actually stops the browser fetching the crop it
+ * will not show, so the banners are built with getImageProps — still optimized
+ * and still served through /_next/image, just chosen before the fetch rather
+ * than hidden after it.
+ */
+function HeroBanner() {
+  // Imported rather than referenced by path, which buys three things: the
+  // intrinsic dimensions come from the file, Next generates the blurred
+  // `placeholder` at build time, and the emitted URL is content-hashed — so the
+  // year-long `minimumCacheTTL` can never pin a stale banner after a redeploy.
+  const common = {
+    alt: "AROMAVITAE premium products",
+    sizes: "100vw",
+    priority: true,
+    placeholder: "blur",
+  } as const;
+
+  const {
+    props: { srcSet: desktopSrcSet },
+  } = getImageProps({ ...common, src: heroDesktop });
+
+  const {
+    props: { srcSet: mobileSrcSet, ...imgProps },
+  } = getImageProps({ ...common, src: heroMobile });
+
+  return (
+    <picture>
+      <source media="(min-width: 768px)" srcSet={desktopSrcSet} sizes="100vw" />
+      <source media="(max-width: 767px)" srcSet={mobileSrcSet} sizes="100vw" />
+      {/* `imgProps.style` carries the blurred placeholder as a background on the
+          image itself. Unlike <Image>, a bare <img> never clears it — which is
+          fine here, because the loaded photo covers the box completely and
+          occludes it. */}
+      {/* eslint-disable-next-line jsx-a11y/alt-text -- `alt` arrives through the
+          `imgProps` spread; getImageProps carries it over from `common`. */}
+      <img
+        {...imgProps}
+        fetchPriority="high"
+        className="absolute inset-0 h-full w-full object-cover transition-transform duration-1000 ease-out scale-105"
+      />
+    </picture>
+  );
+}
 
 export function HeroSection() {
   const slides = SLIDES;
@@ -53,22 +107,7 @@ export function HeroSection() {
   return (
     <section className="relative w-full h-[500px] md:h-[600px] lg:h-[650px] overflow-hidden">
       <div className="absolute inset-0">
-        <Image
-          src="/images/hero/hero-banner-desktop.jpg"
-          alt="AROMAVITAE premium products"
-          fill
-          className="object-cover transition-transform duration-1000 ease-out scale-105 hidden md:block"
-          priority
-          sizes="(min-width: 768px) 100vw, 0vw"
-        />
-        <Image
-          src="/images/hero/hero-banner-mobile.jpg"
-          alt="AROMAVITAE premium products"
-          fill
-          className="object-cover transition-transform duration-1000 ease-out scale-105 block md:hidden"
-          priority
-          sizes="(max-width: 767px) 100vw, 0vw"
-        />
+        <HeroBanner />
         <div className="absolute inset-0 bg-gradient-to-r from-warm-white/90 via-warm-white/50 to-transparent" />
       </div>
 

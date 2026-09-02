@@ -58,6 +58,21 @@ function walk(dir) {
   return files;
 }
 
+/**
+ * Garage serves back whatever `Cache-Control` was stored with the object, and
+ * stores none unless it is set at PUT time. Without this every browser and
+ * every CDN in front of the bucket revalidates each image on each visit — the
+ * single-node VPS ends up answering requests that should never have left the
+ * edge.
+ *
+ * These keys are overwritten in place by a re-run of this script, so they are
+ * not immutable in the strict sense: a week of freshness plus a month of
+ * `stale-while-revalidate` keeps them fast without pinning a replaced asset in
+ * caches for a year. Admin uploads get `immutable` instead — see UploadService,
+ * where every key carries a UUID and is never rewritten.
+ */
+const CACHE_CONTROL = "public, max-age=604800, stale-while-revalidate=2592000";
+
 function contentType(filePath) {
   if (filePath.endsWith(".png")) return "image/png";
   if (filePath.endsWith(".jpg") || filePath.endsWith(".jpeg")) return "image/jpeg";
@@ -91,6 +106,7 @@ for (const filePath of files) {
         Key: storagePath,
         Body: buffer,
         ContentType: contentType(filePath),
+        CacheControl: CACHE_CONTROL,
       })
     );
     console.log(`  OK    ${storagePath}`);

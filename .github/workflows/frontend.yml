@@ -47,6 +47,7 @@ jobs:
             --build-env NEXT_PUBLIC_API_URL="${{ vars.NEXT_PUBLIC_API_URL }}" \
             --build-env NEXT_PUBLIC_ASSET_BASE_URL="${{ vars.NEXT_PUBLIC_ASSET_BASE_URL }}" \
             --build-env ADMIN_JWT_SECRET="${{ secrets.ADMIN_JWT_SECRET }}" \
+            --env ADMIN_JWT_SECRET="${{ secrets.ADMIN_JWT_SECRET }}" \
             --token=${{ secrets.VERCEL_TOKEN }}
 
   # ─── Production deploy (main only) ──────────────────────────────
@@ -80,4 +81,5 @@ jobs:
             --build-env NEXT_PUBLIC_API_URL="${{ vars.NEXT_PUBLIC_API_URL }}" \
             --build-env NEXT_PUBLIC_ASSET_BASE_URL="${{ vars.NEXT_PUBLIC_ASSET_BASE_URL }}" \
             --build-env ADMIN_JWT_SECRET="${{ secrets.ADMIN_JWT_SECRET }}" \
+            --env ADMIN_JWT_SECRET="${{ secrets.ADMIN_JWT_SECRET }}" \
             --token=${{ secrets.VERCEL_TOKEN }}

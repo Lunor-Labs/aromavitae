@@ -7,6 +7,7 @@ import { MultiImageUploader } from "@/components/admin/MultiImageUploader";
 import { TagInput } from "@/components/admin/TagInput";
 import { SortableList } from "@/components/admin/SortableList";
 import type { Category, Product } from "@/types/product";
+import { AdminThumb } from "@/components/admin/AdminThumb";
 
 const empty: Omit<Product, "id"> = {
   name: "",
@@ -155,8 +156,7 @@ export default function ProductsPage() {
               >
                 {sortable.dragHandle}
                 {p.image ? (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img src={p.image} alt="" className="w-10 h-10 object-cover rounded" />
+                  <AdminThumb src={p.image} size={40} className="w-10 h-10 object-cover rounded" />
                 ) : (
                   <span />
                 )}

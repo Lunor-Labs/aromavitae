@@ -5,6 +5,7 @@ import { useAdminApi } from "@/hooks/useAdminApi";
 import { ImageUploader } from "@/components/admin/ImageUploader";
 import { SortableList } from "@/components/admin/SortableList";
 import type { GalleryImage } from "@/types/product";
+import { AdminThumb } from "@/components/admin/AdminThumb";
 
 // Tags are edited as comma-separated text and parsed on save
 type Editing = Partial<Omit<GalleryImage, "tags">> & { tagsText?: string };
@@ -142,8 +143,7 @@ export default function GalleryPage() {
                 className="grid grid-cols-[32px_60px_1fr_180px_80px_100px] gap-3 items-center px-3 py-3 border-b border-slate-100 bg-white"
               >
                 {sortable.dragHandle}
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={g.image} alt="" className="w-10 h-10 object-cover rounded" />
+                <AdminThumb src={g.image} size={40} className="w-10 h-10 object-cover rounded" />
                 <span className="truncate text-slate-600">{g.alt || "—"}</span>
                 <span className="hidden sm:flex flex-wrap gap-1">
                   {g.tags.map((t) => (

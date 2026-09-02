@@ -22,7 +22,7 @@ export function OutletsPreview({ outlets }: Props) {
                 src="/images/misc/line.png"
                 alt=""
                 fill
-                sizes="(max-width: 768px) 100vw, 260px"
+                sizes="(min-width: 768px) 240px, calc(100vw - 48px)"
                 style={{ objectFit: 'cover', objectPosition: 'center center' }}
               />
             </div>
