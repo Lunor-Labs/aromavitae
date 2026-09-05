@@ -2,8 +2,8 @@
 
 import { useState, useEffect, useCallback } from "react";
 import Image, { getImageProps } from "next/image";
-import heroDesktop from "@/public/images/hero/hero-banner-desktop.jpg";
-import heroMobile from "@/public/images/hero/hero-banner-mobile.jpg";
+import heroDesktop from "@/public/images/hero/hero-banner-desktop.webp";
+import heroMobile from "@/public/images/hero/hero-banner-mobile.webp";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
 import type { HeroSlide } from "@/types/content";
