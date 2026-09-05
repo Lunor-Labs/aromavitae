@@ -11,7 +11,7 @@ export function GiftSetsBanner({ content }: Props) {
     <section className="reveal">
       <div className="grid md:grid-cols-2">
         {/* Left — Image */}
-        <div className="relative h-[300px] md:h-[400px] bg-cream overflow-hidden">
+        <div className="relative h-[300px] md:h-auto md:min-h-[400px] bg-cream overflow-hidden">
           <Image
             src={content.image}
             alt={content.heading}
