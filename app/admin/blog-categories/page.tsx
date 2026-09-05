@@ -15,6 +15,11 @@ export default function BlogCategoriesPage() {
   const [saving, setSaving] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
 
+  // Functional update — two uploads finishing in the same tick would otherwise
+  // each spread the same stale `editing` and clobber the other's image.
+  const patch = (fields: Partial<BlogCategory>) =>
+    setEditing((prev) => (prev ? { ...prev, ...fields } : prev));
+
   const reload = useCallback(async () => {
     if (!api) return;
     setLoading(true);
@@ -133,7 +138,7 @@ export default function BlogCategoriesPage() {
           <div className="bg-white rounded-lg p-6 w-full max-w-lg max-h-[90vh] overflow-y-auto">
             <h2 className="text-lg font-semibold mb-4">{editing.id ? "Edit" : "New"} blog category</h2>
             <div className="space-y-3">
-              <Field label="Name" required value={editing.name ?? ""} onChange={(v) => setEditing({ ...editing, name: v })} />
+              <Field label="Name" required value={editing.name ?? ""} onChange={(v) => patch({ name: v })} />
             </div>
             {saveError && <p className="mt-4 text-sm text-red-600">{saveError}</p>}
             <div className="flex justify-end gap-2 mt-6">

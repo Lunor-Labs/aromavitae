@@ -20,6 +20,11 @@ export default function CategoriesPage() {
   const [saving, setSaving] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
 
+  // Functional update — two uploads finishing in the same tick would otherwise
+  // each spread the same stale `editing` and clobber the other's image.
+  const patch = (fields: Partial<Category>) =>
+    setEditing((prev) => (prev ? { ...prev, ...fields } : prev));
+
   const reload = useCallback(async () => {
     if (!api) return;
     setLoading(true);
@@ -147,8 +152,8 @@ export default function CategoriesPage() {
           <div className="bg-white rounded-lg p-6 w-full max-w-lg max-h-[90vh] overflow-y-auto">
             <h2 className="text-lg font-semibold mb-4">{editing.id ? "Edit" : "New"} category</h2>
             <div className="space-y-3">
-              <Field label="Name" required value={editing.name ?? ""} onChange={(v) => setEditing({ ...editing, name: v })} />
-              <ImageUploader api={api} value={editing.image ?? ""} onChange={(v) => setEditing({ ...editing, image: v })} label="Fallback image *" />
+              <Field label="Name" required value={editing.name ?? ""} onChange={(v) => patch({ name: v })} />
+              <ImageUploader api={api} value={editing.image ?? ""} onChange={(v) => patch({ image: v })} label="Fallback image *" />
               <p className="text-xs text-slate-500">
                 The landing page rotates through the category&apos;s product images; this image is shown
                 when the category has no products yet.

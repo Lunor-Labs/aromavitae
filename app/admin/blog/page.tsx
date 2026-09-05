@@ -30,6 +30,11 @@ export default function BlogPostsPage() {
   const [saving, setSaving] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
 
+  // Functional update — two uploads finishing in the same tick would otherwise
+  // each spread the same stale `editing` and clobber the other's image.
+  const patch = (fields: Partial<BlogPost>) =>
+    setEditing((prev) => (prev ? { ...prev, ...fields } : prev));
+
   const reload = useCallback(async () => {
     if (!api) return;
     setLoading(true);
@@ -199,20 +204,20 @@ export default function BlogPostsPage() {
                   value={editing.slug ?? ""}
                   onChange={(v) => {
                     setSlugTouched(true);
-                    setEditing({ ...editing, slug: slugify(v) });
+                    patch({ slug: slugify(v) });
                   }}
                 />
                 <p className="text-xs text-slate-500 mt-1">
                   Used in the URL: /blog/{editing.slug || "your-post-slug"}
                 </p>
               </div>
-              <TextareaField label="Excerpt" required value={editing.excerpt ?? ""} onChange={(v) => setEditing({ ...editing, excerpt: v })} rows={3} />
-              <RichTextEditor value={editing.content ?? ""} onChange={(v) => setEditing({ ...editing, content: v })} />
+              <TextareaField label="Excerpt" required value={editing.excerpt ?? ""} onChange={(v) => patch({ excerpt: v })} rows={3} />
+              <RichTextEditor value={editing.content ?? ""} onChange={(v) => patch({ content: v })} />
               <div>
                 <label className="block text-xs font-medium text-slate-600 mb-1">Category</label>
                 <select
                   value={editing.categoryId ?? ""}
-                  onChange={(e) => setEditing({ ...editing, categoryId: e.target.value || null })}
+                  onChange={(e) => patch({ categoryId: e.target.value || null })}
                   className="w-full px-3 py-2 border border-slate-300 rounded text-sm"
                 >
                   <option value="">No category</option>
@@ -226,7 +231,7 @@ export default function BlogPostsPage() {
                 <input
                   type="date"
                   value={(editing.publishedAt ?? new Date().toISOString()).slice(0, 10)}
-                  onChange={(e) => setEditing({ ...editing, publishedAt: new Date(e.target.value).toISOString() })}
+                  onChange={(e) => patch({ publishedAt: new Date(e.target.value).toISOString() })}
                   className="w-full px-3 py-2 border border-slate-300 rounded text-sm"
                 />
               </div>
@@ -234,11 +239,11 @@ export default function BlogPostsPage() {
                 <input
                   type="checkbox"
                   checked={editing.isFeatured ?? false}
-                  onChange={(e) => setEditing({ ...editing, isFeatured: e.target.checked })}
+                  onChange={(e) => patch({ isFeatured: e.target.checked })}
                 />
                 Feature this post at the top of the blog
               </label>
-              <ImageUploader api={api} value={editing.coverImage ?? ""} onChange={(v) => setEditing({ ...editing, coverImage: v })} label="Cover image *" />
+              <ImageUploader api={api} value={editing.coverImage ?? ""} onChange={(v) => patch({ coverImage: v })} label="Cover image *" />
             </div>
             {saveError && <p className="mt-4 text-sm text-red-600">{saveError}</p>}
             <div className="flex justify-end gap-2 mt-6">

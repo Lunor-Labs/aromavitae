@@ -16,6 +16,11 @@ export default function TestimonialsPage() {
   const [saving, setSaving] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
 
+  // Functional update — two uploads finishing in the same tick would otherwise
+  // each spread the same stale `editing` and clobber the other's image.
+  const patch = (fields: Partial<Testimonial>) =>
+    setEditing((prev) => (prev ? { ...prev, ...fields } : prev));
+
   const reload = useCallback(async () => {
     if (!api) return;
     setLoading(true);
@@ -135,25 +140,25 @@ export default function TestimonialsPage() {
                   rows={5}
                   required
                   value={editing.quote ?? ""}
-                  onChange={(e) => setEditing({ ...editing, quote: e.target.value })}
+                  onChange={(e) => patch({ quote: e.target.value })}
                   className="w-full px-3 py-2 border border-slate-300 rounded text-sm"
                 />
               </div>
-              <Field label="Author" required value={editing.author ?? ""} onChange={(v) => setEditing({ ...editing, author: v })} />
-              <Field label="Location" required value={editing.location ?? ""} onChange={(v) => setEditing({ ...editing, location: v })} />
-              <NumberField label="Rating (1-5)" value={editing.rating ?? 5} onChange={(v) => setEditing({ ...editing, rating: v })} />
+              <Field label="Author" required value={editing.author ?? ""} onChange={(v) => patch({ author: v })} />
+              <Field label="Location" required value={editing.location ?? ""} onChange={(v) => patch({ location: v })} />
+              <NumberField label="Rating (1-5)" value={editing.rating ?? 5} onChange={(v) => patch({ rating: v })} />
               <div className="pt-2 border-t border-slate-200 space-y-3">
                 <p className="text-xs text-slate-500">Optional side images shown to the right of this testimonial on desktop. Leave empty to use the site defaults.</p>
                 <ImageUploader
                   api={api}
                   value={editing.imageA ?? ""}
-                  onChange={(v) => setEditing({ ...editing, imageA: v })}
+                  onChange={(v) => patch({ imageA: v })}
                   label="Side image 1"
                 />
                 <ImageUploader
                   api={api}
                   value={editing.imageB ?? ""}
-                  onChange={(v) => setEditing({ ...editing, imageB: v })}
+                  onChange={(v) => patch({ imageB: v })}
                   label="Side image 2"
                 />
               </div>

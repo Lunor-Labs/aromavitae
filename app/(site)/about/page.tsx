@@ -27,7 +27,7 @@ const VALUES = [
     icon: "🌿",
     title: "Purity & Authenticity",
     description:
-      "Every product we offer is 100% natural, free from additives, and sourced directly from trusted Sri Lankan farmers.",
+      "Every product we offer is 100% organic, free from additives, and sourced directly from trusted Sri Lankan farmers.",
   },
   {
     icon: "🤝",

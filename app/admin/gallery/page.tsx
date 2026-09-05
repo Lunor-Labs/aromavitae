@@ -25,6 +25,11 @@ export default function GalleryPage() {
   const [saving, setSaving] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
 
+  // Functional update — two uploads finishing in the same tick would otherwise
+  // each spread the same stale `editing` and clobber the other's image.
+  const patch = (fields: Editing) =>
+    setEditing((prev) => (prev ? { ...prev, ...fields } : prev));
+
   const reload = useCallback(async () => {
     if (!api) return;
     setLoading(true);
@@ -172,9 +177,9 @@ export default function GalleryPage() {
           <div className="bg-white rounded-lg p-6 w-full max-w-lg max-h-[90vh] overflow-y-auto">
             <h2 className="text-lg font-semibold mb-4">{editing.id ? "Edit" : "New"} gallery image</h2>
             <div className="space-y-3">
-              <ImageUploader api={api} value={editing.image ?? ""} onChange={(v) => setEditing({ ...editing, image: v })} label="Image *" />
-              <Field label="Alt text" value={editing.alt ?? ""} onChange={(v) => setEditing({ ...editing, alt: v })} />
-              <Field label="Tags (comma-separated)" required value={editing.tagsText ?? ""} onChange={(v) => setEditing({ ...editing, tagsText: v })} />
+              <ImageUploader api={api} value={editing.image ?? ""} onChange={(v) => patch({ image: v })} label="Image *" />
+              <Field label="Alt text" value={editing.alt ?? ""} onChange={(v) => patch({ alt: v })} />
+              <Field label="Tags (comma-separated)" required value={editing.tagsText ?? ""} onChange={(v) => patch({ tagsText: v })} />
               <p className="text-xs text-slate-500">
                 Visitors filter the gallery by these tags. At least one is required, e.g. &quot;Products, Ingredients&quot;.
               </p>
@@ -182,7 +187,7 @@ export default function GalleryPage() {
                 <label className="block text-xs font-medium text-slate-600 mb-1">Layout</label>
                 <select
                   value={editing.span ?? ""}
-                  onChange={(e) => setEditing({ ...editing, span: (e.target.value || null) as Editing["span"] })}
+                  onChange={(e) => patch({ span: (e.target.value || null) as Editing["span"] })}
                   className="w-full px-3 py-2 border border-slate-300 rounded text-sm"
                 >
                   <option value="">Normal</option>

@@ -3,19 +3,7 @@
 import { useState } from "react";
 import { AdminApi } from "@/lib/api";
 import { AdminThumb } from "@/components/admin/AdminThumb";
-
-interface SignedUrlResponse {
-  uploadUrl: string;
-  path: string;
-  publicUrl: string;
-  /**
-   * Headers the API signed into `uploadUrl` — currently `Content-Type` and the
-   * `Cache-Control` that Garage stores with the object. They are part of the
-   * SigV4 signature, so the PUT has to send exactly these and nothing else, or
-   * Garage rejects it as a mismatch.
-   */
-  requiredHeaders?: Record<string, string>;
-}
+import { uploadImage, describeRejection } from "@/lib/uploadImage";
 
 interface Props {
   api: AdminApi;
@@ -29,20 +17,15 @@ export function ImageUploader({ api, value, onChange, label = "Image" }: Props) 
   const [error, setError] = useState<string | null>(null);
 
   const handleFile = async (file: File) => {
+    const rejection = describeRejection(file);
+    if (rejection) {
+      setError(rejection);
+      return;
+    }
     setError(null);
     setUploading(true);
     try {
-      const signed = await api.post<SignedUrlResponse>("/uploads/signed-url", {
-        filename: file.name,
-        contentType: file.type,
-      });
-      const put = await fetch(signed.uploadUrl, {
-        method: "PUT",
-        headers: signed.requiredHeaders ?? { "Content-Type": file.type },
-        body: file,
-      });
-      if (!put.ok) throw new Error(`Upload failed (${put.status})`);
-      onChange(signed.publicUrl);
+      onChange(await uploadImage(api, file));
     } catch (e) {
       setError(e instanceof Error ? e.message : "Upload failed");
     } finally {
@@ -78,7 +61,9 @@ export function ImageUploader({ api, value, onChange, label = "Image" }: Props) 
             disabled={uploading}
             onChange={(e) => {
               const f = e.target.files?.[0];
-              if (f) handleFile(f);
+              // Reset first so re-picking the same file fires `change` again.
+              e.target.value = "";
+              if (f) void handleFile(f);
             }}
             className="mt-1 text-xs"
           />

@@ -112,7 +112,7 @@ const singletons: Record<string, unknown> = {
       'Rooted in Tradition. Refined for Today.',
       'Premium Spices & Sri Lankan Agarwood Perfumes',
       'Worldwide Shipping',
-      '100% Natural',
+      '100% Organic',
       'Export Quality',
     ],
   },

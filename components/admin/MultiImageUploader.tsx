@@ -3,32 +3,28 @@
 import { useState } from "react";
 import { AdminApi } from "@/lib/api";
 import { AdminThumb } from "@/components/admin/AdminThumb";
-
-interface SignedUrlResponse {
-  uploadUrl: string;
-  path: string;
-  publicUrl: string;
-  /**
-   * Headers the API signed into `uploadUrl` — currently `Content-Type` and the
-   * `Cache-Control` that Garage stores with the object. They are part of the
-   * SigV4 signature, so the PUT has to send exactly these and nothing else, or
-   * Garage rejects it as a mismatch.
-   */
-  requiredHeaders?: Record<string, string>;
-}
+import { uploadImage, describeRejection } from "@/lib/uploadImage";
 
 interface Props {
   api: AdminApi;
   values: string[];
   onChange: (urls: string[]) => void;
   label?: string;
+  /** Server schema caps `sideImages` at 10 — stop the user here rather than failing on save. */
+  max?: number;
 }
 
+/** How many uploads run at once. Keeps a 10-file batch quick without flooding the API rate limit. */
+const CONCURRENCY = 3;
+
 /** Ordered list of image URLs with move/remove controls plus upload/paste-URL appenders. */
-export function MultiImageUploader({ api, values, onChange, label = "Images" }: Props) {
-  const [uploading, setUploading] = useState(false);
+export function MultiImageUploader({ api, values, onChange, label = "Images", max = 10 }: Props) {
+  const [progress, setProgress] = useState<{ done: number; total: number } | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [urlDraft, setUrlDraft] = useState("");
+
+  const uploading = progress !== null;
+  const remaining = max - values.length;
 
   const move = (from: number, to: number) => {
     if (to < 0 || to >= values.length) return;
@@ -38,38 +34,86 @@ export function MultiImageUploader({ api, values, onChange, label = "Images" }: 
     onChange(next);
   };
 
-  const handleFile = async (file: File) => {
+  /**
+   * Uploads a whole selection and appends the results in one `onChange`.
+   *
+   * Calling `onChange` per file would drop images: each call spreads the
+   * `values` captured when this handler started, so every upload after the
+   * first would overwrite its predecessor's addition.
+   */
+  const handleFiles = async (files: File[]) => {
     setError(null);
-    setUploading(true);
+
+    const problems: string[] = [];
+    const accepted: File[] = [];
+    for (const file of files) {
+      const rejection = describeRejection(file);
+      if (rejection) problems.push(rejection);
+      else accepted.push(file);
+    }
+
+    if (accepted.length > remaining) {
+      problems.push(
+        `Only ${remaining} more image${remaining === 1 ? "" : "s"} allowed (max ${max}) — extras were skipped.`
+      );
+      accepted.length = Math.max(remaining, 0);
+    }
+
+    if (accepted.length === 0) {
+      setError(problems.join(" ") || "Nothing to upload.");
+      return;
+    }
+
+    // Results are written by index so the saved order matches the pick order
+    // even though uploads finish out of order.
+    const uploaded = new Array<string | null>(accepted.length).fill(null);
+    let done = 0;
+    setProgress({ done: 0, total: accepted.length });
+
+    let next = 0;
+    const worker = async () => {
+      while (next < accepted.length) {
+        const i = next++;
+        const file = accepted[i];
+        try {
+          uploaded[i] = await uploadImage(api, file);
+        } catch (e) {
+          problems.push(`${file.name}: ${e instanceof Error ? e.message : "upload failed"}`);
+        }
+        done++;
+        setProgress({ done, total: accepted.length });
+      }
+    };
+
     try {
-      const signed = await api.post<SignedUrlResponse>("/uploads/signed-url", {
-        filename: file.name,
-        contentType: file.type,
-      });
-      const put = await fetch(signed.uploadUrl, {
-        method: "PUT",
-        headers: signed.requiredHeaders ?? { "Content-Type": file.type },
-        body: file,
-      });
-      if (!put.ok) throw new Error(`Upload failed (${put.status})`);
-      onChange([...values, signed.publicUrl]);
-    } catch (e) {
-      setError(e instanceof Error ? e.message : "Upload failed");
+      await Promise.all(
+        Array.from({ length: Math.min(CONCURRENCY, accepted.length) }, worker)
+      );
+      // Keep whatever succeeded — a single bad file shouldn't discard the batch.
+      const succeeded = uploaded.filter((u): u is string => u !== null);
+      if (succeeded.length > 0) onChange([...values, ...succeeded]);
+      setError(problems.length > 0 ? problems.join(" ") : null);
     } finally {
-      setUploading(false);
+      setProgress(null);
     }
   };
 
   const addUrl = () => {
     const url = urlDraft.trim();
     if (!url) return;
+    if (remaining <= 0) {
+      setError(`Maximum of ${max} images reached.`);
+      return;
+    }
     onChange([...values, url]);
     setUrlDraft("");
   };
 
   return (
     <div>
-      <label className="block text-xs font-medium text-slate-600 mb-1">{label}</label>
+      <label className="block text-xs font-medium text-slate-600 mb-1">
+        {label} <span className="text-slate-400">({values.length}/{max})</span>
+      </label>
       {values.length > 0 && (
         <ul className="space-y-2 mb-2">
           {values.map((url, i) => (
@@ -94,7 +138,7 @@ export function MultiImageUploader({ api, values, onChange, label = "Images" }: 
         <button
           type="button"
           onClick={addUrl}
-          disabled={!urlDraft.trim()}
+          disabled={!urlDraft.trim() || remaining <= 0}
           className="px-3 py-2 text-sm border border-slate-300 rounded disabled:opacity-40"
         >
           Add
@@ -103,15 +147,24 @@ export function MultiImageUploader({ api, values, onChange, label = "Images" }: 
       <input
         type="file"
         accept="image/*"
-        disabled={uploading}
+        multiple
+        disabled={uploading || remaining <= 0}
         onChange={(e) => {
-          const f = e.target.files?.[0];
-          if (f) handleFile(f);
+          const files = Array.from(e.target.files ?? []);
+          // Reset first so re-picking the same files fires `change` again.
           e.target.value = "";
+          if (files.length > 0) void handleFiles(files);
         }}
         className="mt-1 text-xs"
       />
-      {uploading && <p className="text-xs text-slate-500 mt-1">Uploading…</p>}
+      <p className="text-[11px] text-slate-400 mt-1">
+        Select several files at once — they upload together and keep the order you picked.
+      </p>
+      {progress && (
+        <p className="text-xs text-slate-500 mt-1">
+          Uploading {progress.done}/{progress.total}…
+        </p>
+      )}
       {error && <p className="text-xs text-red-600 mt-1">{error}</p>}
     </div>
   );

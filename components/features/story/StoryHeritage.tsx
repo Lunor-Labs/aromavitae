@@ -19,7 +19,7 @@ const STORY: StoryContent = {
     ctaHref: "/about",
     badges: [
       { icon: "book", label: "Centuries of\ntradition" },
-      { icon: "leaf", label: "100% natural" },
+      { icon: "leaf", label: "100% organic" },
       { icon: "shield", label: "Purity assured" },
     ],
   },

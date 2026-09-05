@@ -32,6 +32,11 @@ export default function ProductsPage() {
   const [saving, setSaving] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
 
+  // Functional update — two uploads finishing in the same tick would otherwise
+  // each spread the same stale `editing` and clobber the other's image.
+  const patch = (fields: Partial<Product>) =>
+    setEditing((prev) => (prev ? { ...prev, ...fields } : prev));
+
   const reload = useCallback(async () => {
     if (!api) return;
     setLoading(true);
@@ -191,16 +196,16 @@ export default function ProductsPage() {
           <div className="bg-white rounded-lg p-6 w-full max-w-lg max-h-[90vh] overflow-y-auto">
             <h2 className="text-lg font-semibold mb-4">{editing.id ? "Edit" : "New"} product</h2>
             <div className="space-y-3">
-              <Field label="Name" required value={editing.name ?? ""} onChange={(v) => setEditing({ ...editing, name: v })} />
-              <NumberField label="Price (LKR)" value={editing.price ?? 0} onChange={(v) => setEditing({ ...editing, price: v })} />
-              <Field label="Currency" required value={editing.currency ?? "LKR"} onChange={(v) => setEditing({ ...editing, currency: v })} />
-              <NumberField label="Rating (0-5)" value={editing.rating ?? 5} onChange={(v) => setEditing({ ...editing, rating: v })} step={0.5} />
-              <NumberField label="Review count" value={editing.reviewCount ?? 0} onChange={(v) => setEditing({ ...editing, reviewCount: v })} />
+              <Field label="Name" required value={editing.name ?? ""} onChange={(v) => patch({ name: v })} />
+              <NumberField label="Price (LKR)" value={editing.price ?? 0} onChange={(v) => patch({ price: v })} />
+              <Field label="Currency" required value={editing.currency ?? "LKR"} onChange={(v) => patch({ currency: v })} />
+              <NumberField label="Rating (0-5)" value={editing.rating ?? 5} onChange={(v) => patch({ rating: v })} step={0.5} />
+              <NumberField label="Review count" value={editing.reviewCount ?? 0} onChange={(v) => patch({ reviewCount: v })} />
               <div>
                 <label className="block text-xs font-medium text-slate-600 mb-1">Category</label>
                 <select
                   value={editing.categoryId ?? ""}
-                  onChange={(e) => setEditing({ ...editing, categoryId: e.target.value || null })}
+                  onChange={(e) => patch({ categoryId: e.target.value || null })}
                   className="w-full px-3 py-2 border border-slate-300 rounded text-sm"
                 >
                   <option value="">No category</option>
@@ -209,21 +214,21 @@ export default function ProductsPage() {
                   ))}
                 </select>
               </div>
-              <TextareaField label="Description" value={editing.description ?? ""} onChange={(v) => setEditing({ ...editing, description: v })} />
-              <TagInput values={editing.tags ?? []} onChange={(v) => setEditing({ ...editing, tags: v })} label="Tags (optional)" />
+              <TextareaField label="Description" value={editing.description ?? ""} onChange={(v) => patch({ description: v })} />
+              <TagInput values={editing.tags ?? []} onChange={(v) => patch({ tags: v })} label="Tags (optional)" />
               <label className="flex items-center gap-2 text-sm text-slate-700">
                 <input
                   type="checkbox"
                   checked={editing.isBestSeller ?? false}
-                  onChange={(e) => setEditing({ ...editing, isBestSeller: e.target.checked })}
+                  onChange={(e) => patch({ isBestSeller: e.target.checked })}
                 />
                 Mark as best seller
               </label>
-              <ImageUploader api={api} value={editing.image ?? ""} onChange={(v) => setEditing({ ...editing, image: v })} label="Main image *" />
+              <ImageUploader api={api} value={editing.image ?? ""} onChange={(v) => patch({ image: v })} label="Main image *" />
               <MultiImageUploader
                 api={api}
                 values={editing.sideImages ?? []}
-                onChange={(v) => setEditing({ ...editing, sideImages: v })}
+                onChange={(v) => patch({ sideImages: v })}
                 label="Side images (optional)"
               />
             </div>
