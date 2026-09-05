@@ -1,7 +1,7 @@
 import Image from "next/image";
 
 const BADGES = [
-  { image: "/images/misc/100-natural.png", title: "100% NATURAL", subtitle: "No Additives. No Compromise." },
+  { image: "/images/misc/100-natural.png", title: "100% ORGANIC", subtitle: "Pure & Natural Ingredients." },
   { image: "/images/misc/sri-lankan-origin.png", title: "SRI LANKAN ORIGIN", subtitle: "Proudly Ceylon. Pure & Authentic." },
   { image: "/images/misc/premium-quality.png", title: "PREMIUM QUALITY", subtitle: "Carefully Sourced. Expertly Crafted." },
   { image: "/images/misc/luxury-experience.png", title: "LUXURY EXPERIENCE", subtitle: "Perfect for You & Your Loved Ones." },
