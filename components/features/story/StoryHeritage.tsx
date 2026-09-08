@@ -19,7 +19,7 @@ const STORY: StoryContent = {
     ctaHref: "/about",
     badges: [
       { icon: "book", label: "Centuries of\ntradition" },
-      { icon: "leaf", label: "100% organic" },
+      { icon: "leaf", label: "100% Organic" },
       { icon: "shield", label: "Purity assured" },
     ],
   },
@@ -48,13 +48,6 @@ export function StoryHeritage() {
       <div className="grid md:grid-cols-2">
         {/* Left Panel — Our Story */}
         <div className="relative bg-forest text-warm-white p-10 md:p-16 flex flex-col justify-center items-center text-center overflow-hidden">
-          <div className="absolute top-0 right-0 w-64 h-64 opacity-10">
-            <svg viewBox="0 0 200 200" fill="none" className="w-full h-full">
-              <path d="M100 10C60 30 20 70 30 120s60 60 100 70c40-10 80-20 70-70S140 30 100 10z" stroke="currentColor" strokeWidth="1" />
-              <path d="M80 40c-20 30-30 60-10 90s50 30 70 10 20-60 0-80-40-50-60-20z" stroke="currentColor" strokeWidth="0.5" />
-            </svg>
-          </div>
-
           <div className="relative w-full overflow-hidden mb-4" style={{ height: '36px' }}>
             <Image
               src="/images/misc/line.png"
