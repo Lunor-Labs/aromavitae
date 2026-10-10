@@ -54,7 +54,7 @@ const TIMELINE = [
     year: "Vision",
     title: "A New Chapter",
     description:
-      "AROMAVITAE was born from a passion to share Sri Lanka's finest natural treasures with the world — premium spices and exquisite agarwood perfumes, crafted with uncompromising quality.",
+      "AROMAVITAE was born from a passion to share Sri Lanka's finest natural treasures with the world, premium spices and exquisite agarwood perfumes, crafted with uncompromising quality.",
   },
   {
     year: "Today",
@@ -66,7 +66,7 @@ const TIMELINE = [
     year: "Future",
     title: "Growing Together",
     description:
-      "We continue to expand our collection, exploring new ways to bring the essence of Ceylon to your home — from rare spice blends to artisanal agarwood creations.",
+      "We continue to expand our collection, exploring new ways to bring the essence of Ceylon to your home. From rare spice blends to artisanal agarwood creations.",
   },
 ];
 
@@ -118,9 +118,9 @@ export default function AboutPage() {
                     authentic essence of Sri Lankan heritage.
                   </p>
                   <p>
-                    Our collection has grown to include exquisite agarwood perfumes — capturing
+                    Our collection has grown to include exquisite agarwood perfumes. Capturing
                     the mystical fragrance of one of the world&apos;s most precious natural
-                    ingredients — alongside our signature spice range and curated gift sets.
+                    ingredients. Alongside our signature spice range and curated gift sets.
                   </p>
                 </div>
               </div>
@@ -160,7 +160,7 @@ export default function AboutPage() {
                   </h3>
                   <p className="text-warm-white/80 text-sm leading-relaxed mb-6">
                     From the moment our spices are hand-harvested to the careful packaging
-                    that preserves their potency — we never compromise. Our perfumes are
+                    that preserves their potency. We never compromise. Our perfumes are
                     crafted from sustainably sourced agarwood, honoring both nature and
                     tradition.
                   </p>

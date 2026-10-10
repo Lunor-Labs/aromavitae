@@ -13,7 +13,7 @@ const SLIDES: HeroSlide[] = [
   {
     heading: "Nature's Finest,\nCeylon's Pride",
     subheading:
-      "Discover the timeless aroma of Sri Lanka — premium spices and agarwood perfumes handcrafted with passion.",
+      "Discover the timeless aroma of Sri Lanka, premium spices and agarwood perfumes handcrafted with passion.",
     image: "/images/hero/hero-banner.png",
     ctaPrimary: { label: "SHOP SPICES", href: "/products" },
     ctaSecondary: { label: "EXPLORE PERFUMES", href: "/products" },
@@ -23,7 +23,7 @@ const AUTOPLAY_MS = 6000;
 
 /**
  * The desktop and mobile banners are different crops of the same shot
- * (2560x1067 landscape vs 800x1000 portrait), so this is art direction, not a
+ * (3992x1711 landscape vs 1368x1710 portrait), so this is art direction, not a
  * responsive image — the two cannot be collapsed into a single srcSet.
  *
  * Two <Image>s toggled with hidden/md:block is the obvious way to write that

@@ -14,7 +14,7 @@ const STORY: StoryContent = {
   heritage: {
     eyebrow: "HERITAGE",
     heading: "Crafted with care, aged with time",
-    body: "Small-batch, hand-selected, and slow-cured — our products are made the way they always have been.",
+    body: "Small-batch, hand-selected, and slow-cured. Our products are made the way they always have been.",
     ctaLabel: "EXPLORE OUR HERITAGE",
     ctaHref: "/about",
     badges: [

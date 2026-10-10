@@ -32,7 +32,7 @@ export default async function GalleryPage() {
       <PageHero
         title="Our Gallery"
         tagline="VISUAL JOURNEY"
-        subtitle="A visual journey through Ceylon's finest — from lush spice gardens to the artisan crafting of our premium products."
+        subtitle="A visual journey through Ceylon's finest. From lush spice gardens to the artisan crafting of our premium products."
         breadcrumbs={[
           { label: "Home", href: "/" },
           { label: "Gallery" },

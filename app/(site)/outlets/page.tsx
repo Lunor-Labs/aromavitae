@@ -32,7 +32,7 @@ export default async function OutletsPage() {
       <PageHero
         title="Our Outlets"
         tagline="FIND US IN CEYLON"
-        subtitle="Visit AROMAVITAE in person — discover our stores across Ceylon and experience the true aromas of Sri Lanka."
+        subtitle="Visit AROMAVITAE in person. Discover our stores across Ceylon and experience the true aromas of Sri Lanka."
         breadcrumbs={[
           { label: "Home", href: "/" },
           { label: "Outlets" },
