@@ -6,12 +6,15 @@ import { ImageUploader } from "@/components/admin/ImageUploader";
 import { MultiImageUploader } from "@/components/admin/MultiImageUploader";
 import { TagInput } from "@/components/admin/TagInput";
 import { SortableList } from "@/components/admin/SortableList";
-import type { Category, Product } from "@/types/product";
+import { SIZE_UNITS, type Category, type Product, type SizeUnit } from "@/types/product";
 import { AdminThumb } from "@/components/admin/AdminThumb";
+import { formatSize } from "@/lib/utils";
 
 const empty: Omit<Product, "id"> = {
   name: "",
   price: 0,
+  sizeValue: null,
+  sizeUnit: null,
   currency: "LKR",
   rating: 5,
   reviewCount: 0,
@@ -70,6 +73,7 @@ export default function ProductsPage() {
 
     const missing: string[] = [];
     if (!editing.name?.trim()) missing.push("Name");
+    if (!editing.sizeValue || editing.sizeValue <= 0 || !editing.sizeUnit) missing.push("Volume / Weight");
     if (!editing.image?.trim()) missing.push("Main image");
     if (!editing.currency?.trim()) missing.push("Currency");
     if (missing.length > 0) {
@@ -84,6 +88,8 @@ export default function ProductsPage() {
       const payload = {
         name: editing.name,
         price: editing.price ?? 0,
+        sizeValue: editing.sizeValue,
+        sizeUnit: editing.sizeUnit,
         currency: editing.currency ?? "LKR",
         rating: editing.rating ?? 5,
         reviewCount: editing.reviewCount ?? 0,
@@ -167,6 +173,13 @@ export default function ProductsPage() {
                 )}
                 <span className="truncate">
                   {p.name}
+                  {formatSize(p) ? (
+                    <span className="ml-2 text-xs text-slate-500">{formatSize(p)}</span>
+                  ) : (
+                    <span className="ml-2 px-1.5 py-0.5 bg-amber-100 text-amber-700 text-[10px] rounded uppercase tracking-wide">
+                      No size
+                    </span>
+                  )}
                   {p.isBestSeller && (
                     <span className="ml-2 px-1.5 py-0.5 bg-gold/15 text-gold text-[10px] rounded uppercase tracking-wide">
                       Best seller
@@ -198,6 +211,11 @@ export default function ProductsPage() {
             <div className="space-y-3">
               <Field label="Name" required value={editing.name ?? ""} onChange={(v) => patch({ name: v })} />
               <NumberField label="Price (LKR)" value={editing.price ?? 0} onChange={(v) => patch({ price: v })} />
+              <SizeField
+                value={editing.sizeValue ?? null}
+                unit={editing.sizeUnit ?? null}
+                onChange={(sizeValue, sizeUnit) => patch({ sizeValue, sizeUnit })}
+              />
               <Field label="Currency" required value={editing.currency ?? "LKR"} onChange={(v) => patch({ currency: v })} />
               <NumberField label="Rating (0-5)" value={editing.rating ?? 5} onChange={(v) => patch({ rating: v })} step={0.5} />
               <NumberField label="Review count" value={editing.reviewCount ?? 0} onChange={(v) => patch({ reviewCount: v })} />
@@ -260,6 +278,36 @@ function NumberField({ label, value, onChange, step }: { label: string; value: n
     <div>
       <label className="block text-xs font-medium text-slate-600 mb-1">{label}</label>
       <input type="number" step={step ?? 1} value={value} onChange={(e) => onChange(Number(e.target.value))} className="w-full px-3 py-2 border border-slate-300 rounded text-sm" />
+    </div>
+  );
+}
+
+function SizeField({ value, unit, onChange }: { value: number | null; unit: SizeUnit | null; onChange: (value: number | null, unit: SizeUnit | null) => void }) {
+  return (
+    <div>
+      <label className="block text-xs font-medium text-slate-600 mb-1">Volume / Weight *</label>
+      <div className="flex gap-2">
+        <input
+          type="number"
+          min={0}
+          step="any"
+          placeholder="e.g. 3"
+          value={value ?? ""}
+          onChange={(e) => onChange(e.target.value === "" ? null : Number(e.target.value), unit)}
+          className="flex-1 min-w-0 px-3 py-2 border border-slate-300 rounded text-sm"
+        />
+        <select
+          value={unit ?? ""}
+          onChange={(e) => onChange(value, (e.target.value || null) as SizeUnit | null)}
+          className="w-28 px-3 py-2 border border-slate-300 rounded text-sm"
+        >
+          <option value="">Unit</option>
+          {SIZE_UNITS.map((u) => (
+            <option key={u} value={u}>{u}</option>
+          ))}
+        </select>
+      </div>
+      <p className="mt-1 text-xs text-slate-500">e.g. 3 ml for perfumes, 100 g for spices.</p>
     </div>
   );
 }

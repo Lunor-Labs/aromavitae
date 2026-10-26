@@ -11,6 +11,8 @@ model Product {
   id           String    @id @default(cuid())
   name         String
   price        Int                          // whole units of `currency` (e.g. 1450 LKR)
+  sizeValue    Float?    @map("size_value") // volume/weight amount, paired with sizeUnit (e.g. 3 + "ml")
+  sizeUnit     String?   @map("size_unit")  // one of SIZE_UNITS; null only on rows created before sizes existed
   currency     String    @default("LKR")
   rating       Float
   reviewCount  Int       @map("review_count")
