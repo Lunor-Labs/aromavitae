@@ -24,11 +24,11 @@ async function main() {
 
   // ---- Products (prices stored as whole LKR units) ----
   const products = [
-    { id: 'seed-prod-1', name: 'Ceylon Cinnamon Premium Quality',    price: 1450, rating: 5,   reviewCount: 128, image: asset('products/cinnamon.png'), categoryId: 'seed-cat-1', description: 'True Ceylon cinnamon, hand-rolled into delicate quills with a sweet, warm aroma.', sortOrder: 1 },
-    { id: 'seed-prod-2', name: 'Clove Whole Premium Quality',        price: 1350, rating: 4.5, reviewCount: 96,  image: asset('products/clove.png'),    categoryId: 'seed-cat-2', description: 'Whole cloves picked at peak maturity for deep, rich flavour and fragrance.', sortOrder: 2 },
-    { id: 'seed-prod-3', name: 'Cardamom Green Premium Quality',     price: 1750, rating: 5,   reviewCount: 123, image: asset('products/cardamom.png'), categoryId: 'seed-cat-3', description: 'Vibrant green cardamom pods with an intense, citrusy-sweet aroma.', sortOrder: 3 },
-    { id: 'seed-prod-4', name: 'Black Pepper Whole Premium Quality', price: 1750, rating: 4.5, reviewCount: 118, image: asset('products/pepper.png'),   categoryId: 'seed-cat-4', description: 'Sun-dried Ceylon black peppercorns, bold and sharp with a fruity finish.', sortOrder: 4 },
-    { id: 'seed-prod-5', name: 'Ceylon Oud Pure Perfume 12ml',       price: 9950, rating: 5,   reviewCount: 87,  image: asset('products/perfume.png'),  categoryId: 'seed-cat-5', description: 'Rare Sri Lankan agarwood distilled into a subtle, long-lasting pure perfume.', sortOrder: 5 },
+    { id: 'seed-prod-1', name: 'Ceylon Cinnamon Premium Quality',    price: 1450, sizeValue: 100, sizeUnit: 'g', rating: 5,   reviewCount: 128, image: asset('products/cinnamon.png'), categoryId: 'seed-cat-1', description: 'True Ceylon cinnamon, hand-rolled into delicate quills with a sweet, warm aroma.', sortOrder: 1 },
+    { id: 'seed-prod-2', name: 'Clove Whole Premium Quality',        price: 1350, sizeValue: 100, sizeUnit: 'g', rating: 4.5, reviewCount: 96,  image: asset('products/clove.png'),    categoryId: 'seed-cat-2', description: 'Whole cloves picked at peak maturity for deep, rich flavour and fragrance.', sortOrder: 2 },
+    { id: 'seed-prod-3', name: 'Cardamom Green Premium Quality',     price: 1750, sizeValue: 50, sizeUnit: 'g', rating: 5,   reviewCount: 123, image: asset('products/cardamom.png'), categoryId: 'seed-cat-3', description: 'Vibrant green cardamom pods with an intense, citrusy-sweet aroma.', sortOrder: 3 },
+    { id: 'seed-prod-4', name: 'Black Pepper Whole Premium Quality', price: 1750, sizeValue: 100, sizeUnit: 'g', rating: 4.5, reviewCount: 118, image: asset('products/pepper.png'),   categoryId: 'seed-cat-4', description: 'Sun-dried Ceylon black peppercorns, bold and sharp with a fruity finish.', sortOrder: 4 },
+    { id: 'seed-prod-5', name: 'Ceylon Oud Pure Perfume 12ml',       price: 9950, sizeValue: 12, sizeUnit: 'ml', rating: 5,   reviewCount: 87,  image: asset('products/perfume.png'),  categoryId: 'seed-cat-5', description: 'Rare Sri Lankan agarwood distilled into a subtle, long-lasting pure perfume.', sortOrder: 5 },
   ].map((p) => ({ ...p, sideImages: [] as string[], tags: [] as string[], isBestSeller: true }));
   for (const p of products) {
     await prisma.product.upsert({ where: { id: p.id }, update: p, create: { ...p, currency: 'LKR' } });

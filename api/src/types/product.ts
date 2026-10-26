@@ -1,9 +1,14 @@
 import { z } from 'zod';
 import type { Prisma } from '@prisma/client';
 
+// Keep in sync with SIZE_UNITS in the frontend's types/product.ts
+export const SIZE_UNITS = ['ml', 'g', 'kg', 'pcs'] as const;
+
 export const productCreateSchema = z.object({
   name: z.string().min(1).max(200),
   price: z.number().int().nonnegative(),
+  sizeValue: z.number().positive().max(100000),
+  sizeUnit: z.enum(SIZE_UNITS),
   currency: z.string().min(1).max(8).default('LKR'),
   rating: z.number().min(0).max(5),
   reviewCount: z.number().int().nonnegative(),

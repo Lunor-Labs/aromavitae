@@ -1,12 +1,15 @@
 import Link from "next/link";
 import { RotatingImage } from "@/components/ui/RotatingImage";
 import type { Product } from "@/types/product";
+import { formatSize } from "@/lib/utils";
 
 interface ProductCardProps {
   product: Product;
 }
 
 export function ProductCard({ product }: ProductCardProps) {
+  const size = formatSize(product);
+
   return (
     <div className="group bg-warm-white border border-border rounded-lg overflow-hidden
                     hover:shadow-lg transition-all duration-300 hover:-translate-y-1">
@@ -52,9 +55,10 @@ export function ProductCard({ product }: ProductCardProps) {
           <span className="text-xs text-muted">({product.reviewCount})</span>
         </div>
 
-        {/* Price */}
+        {/* Price + size */}
         <p className="text-sm font-bold text-charcoal mb-3">
           {product.currency} {product.price.toLocaleString()}
+          {size && <span className="ml-1.5 text-xs font-normal text-muted">/ {size}</span>}
         </p>
 
         {/* Add to Cart */}

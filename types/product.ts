@@ -1,7 +1,14 @@
+// Keep in sync with SIZE_UNITS in api/src/types/product.ts
+export const SIZE_UNITS = ["ml", "g", "kg", "pcs"] as const;
+export type SizeUnit = (typeof SIZE_UNITS)[number];
+
 export interface Product {
   id: string;
   name: string;
   price: number;
+  /** Volume/weight amount, paired with sizeUnit. Null on products created before sizes existed. */
+  sizeValue?: number | null;
+  sizeUnit?: SizeUnit | null;
   currency: string;
   rating: number;
   reviewCount: number;

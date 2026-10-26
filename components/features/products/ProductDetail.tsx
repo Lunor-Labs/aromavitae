@@ -1,5 +1,6 @@
 import { ProductImageGallery } from "@/components/features/products/ProductImageGallery";
 import type { Product } from "@/types/product";
+import { formatSize } from "@/lib/utils";
 
 interface Props {
   product: Product;
@@ -9,6 +10,7 @@ export function ProductDetail({ product }: Props) {
   const tags = product.tags.filter(
     (tag) => !(product.isBestSeller && tag.trim().toLowerCase() === "best seller")
   );
+  const size = formatSize(product);
 
   return (
     <section className="py-16 md:py-24 bg-warm-white reveal">
@@ -71,6 +73,7 @@ export function ProductDetail({ product }: Props) {
 
             <p className="text-2xl font-bold text-charcoal mb-8">
               {product.currency} {product.price.toLocaleString()}
+              {size && <span className="ml-2 text-base font-normal text-muted">/ {size}</span>}
             </p>
 
             {product.description && (
