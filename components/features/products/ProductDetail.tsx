@@ -48,9 +48,10 @@ export function ProductDetail({ product }: Props) {
               </p>
             )}
 
-            <h1 className="font-heading text-3xl md:text-4xl font-bold text-charcoal leading-tight mb-4">
+            <h1 className={`font-heading text-3xl md:text-4xl font-bold text-charcoal leading-tight ${size ? "mb-2" : "mb-4"}`}>
               {product.name}
             </h1>
+            {size && <p className="text-base text-muted mb-4">{size}</p>}
 
             {/* Rating */}
             <div className="flex items-center gap-2 mb-6">
@@ -73,7 +74,6 @@ export function ProductDetail({ product }: Props) {
 
             <p className="text-2xl font-bold text-charcoal mb-8">
               {product.currency} {product.price.toLocaleString()}
-              {size && <span className="ml-2 text-base font-normal text-muted">/ {size}</span>}
             </p>
 
             {product.description && (

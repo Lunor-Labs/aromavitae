@@ -33,10 +33,11 @@ export function ProductCard({ product }: ProductCardProps) {
       {/* Details */}
       <div className="p-4">
         <Link href={`/products/${product.id}`}>
-          <h3 className="text-sm font-medium text-charcoal leading-tight mb-2 line-clamp-2 hover:text-forest transition-colors duration-200">
+          <h3 className={`text-sm font-medium text-charcoal leading-tight line-clamp-2 hover:text-forest transition-colors duration-200 ${size ? "mb-1" : "mb-2"}`}>
             {product.name}
           </h3>
         </Link>
+        {size && <p className="text-xs text-muted mb-2">{size}</p>}
 
         {/* Rating */}
         <div className="flex items-center gap-1.5 mb-2">
@@ -55,10 +56,9 @@ export function ProductCard({ product }: ProductCardProps) {
           <span className="text-xs text-muted">({product.reviewCount})</span>
         </div>
 
-        {/* Price + size */}
+        {/* Price */}
         <p className="text-sm font-bold text-charcoal mb-3">
           {product.currency} {product.price.toLocaleString()}
-          {size && <span className="ml-1.5 text-xs font-normal text-muted">/ {size}</span>}
         </p>
 
         {/* Add to Cart */}

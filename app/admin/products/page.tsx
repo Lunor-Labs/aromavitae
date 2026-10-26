@@ -171,21 +171,23 @@ export default function ProductsPage() {
                 ) : (
                   <span />
                 )}
-                <span className="truncate">
-                  {p.name}
+                <div className="min-w-0">
+                  <p className="truncate">
+                    {p.name}
+                    {p.isBestSeller && (
+                      <span className="ml-2 px-1.5 py-0.5 bg-gold/15 text-gold text-[10px] rounded uppercase tracking-wide">
+                        Best seller
+                      </span>
+                    )}
+                  </p>
                   {formatSize(p) ? (
-                    <span className="ml-2 text-xs text-slate-500">{formatSize(p)}</span>
+                    <p className="text-xs text-slate-500">{formatSize(p)}</p>
                   ) : (
-                    <span className="ml-2 px-1.5 py-0.5 bg-amber-100 text-amber-700 text-[10px] rounded uppercase tracking-wide">
+                    <span className="inline-block mt-0.5 px-1.5 py-0.5 bg-amber-100 text-amber-700 text-[10px] rounded uppercase tracking-wide">
                       No size
                     </span>
                   )}
-                  {p.isBestSeller && (
-                    <span className="ml-2 px-1.5 py-0.5 bg-gold/15 text-gold text-[10px] rounded uppercase tracking-wide">
-                      Best seller
-                    </span>
-                  )}
-                </span>
+                </div>
                 <span className="text-slate-600 hidden sm:block truncate">{p.category?.name ?? "—"}</span>
                 <span className="text-right whitespace-nowrap">
                   {p.currency} {p.price.toLocaleString()}
