@@ -1,14 +1,14 @@
 import type { Metadata } from "next";
-import { notFound } from "next/navigation";
+import { notFound, permanentRedirect } from "next/navigation";
 import { PageHero } from "@/components/ui/PageHero";
 import { ScrollRevealWrapper } from "@/components/ui/ScrollRevealWrapper";
 import { ProductDetail } from "@/components/features/products/ProductDetail";
 import { RelatedProducts } from "@/components/features/products/RelatedProducts";
-import { fetchProduct, fetchContent } from "@/lib/api";
+import { getContent, getProduct, getProductIdByLegacyId } from "@/lib/content";
 
 const MAX_RELATED = 4;
 
-// Product data comes from the API at request time — see the note in lib/api.ts
+// Product data comes from Payload at request time — see lib/content.ts
 export const dynamic = "force-dynamic";
 
 export async function generateMetadata({
@@ -17,7 +17,7 @@ export async function generateMetadata({
   params: Promise<{ id: string }>;
 }): Promise<Metadata> {
   const { id } = await params;
-  const product = await fetchProduct(id);
+  const product = await getProduct(id);
   if (!product) return { title: "Product not found" };
   return {
     title: `${product.name} — AROMAVITAE`,
@@ -36,10 +36,15 @@ export default async function ProductDetailPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
-  const product = await fetchProduct(id);
-  if (!product) notFound();
+  const product = await getProduct(id);
+  if (!product) {
+    // Links shared before the move to Payload use the old admin's ids
+    const currentId = await getProductIdByLegacyId(id);
+    if (currentId) permanentRedirect(`/products/${currentId}`);
+    notFound();
+  }
 
-  const content = await fetchContent();
+  const content = await getContent();
   const sameCategory = content.products.filter(
     (p) => p.id !== product.id && p.categoryId && p.categoryId === product.categoryId
   );

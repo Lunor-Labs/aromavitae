@@ -1,14 +1,13 @@
-# VPS Deploy Setup — Aromavitae Backend
+# VPS Deploy Setup — Aromavitae
 
 End-to-end steps for taking a bare 2 vCPU / 4GB Linux VPS to a working run of
-[`.github/workflows/backend-coolify.yml`](../.github/workflows/backend-coolify.yml).
+[`.github/workflows/deploy.yml`](../.github/workflows/deploy.yml).
 Do the phases in order — each one depends on values (IPs, keys, webhook URLs)
 produced by the phase before it.
 
-**Scope**: this VPS hosts the backend API, its shared Postgres, and Garage
-(self-hosted S3-compatible object storage) only. The frontend stays on
-Vercel — [`frontend.yml`](../.github/workflows/frontend.yml) is unaffected by
-anything here.
+**Scope**: this VPS hosts the whole app — one Next.js server that serves the
+site and the Payload admin at `/admin` — plus the shared Postgres and Garage
+(self-hosted S3-compatible object storage) it uses.
 
 Throughout this doc, `$DOMAIN` is the domain you point at the VPS (e.g.
 `example.com`) and `$NODE` is a short label for this box (e.g. `vps1`) —
@@ -30,13 +29,12 @@ Set these up as A records in Phase B, all pointing at the VPS's public IP:
 |---|---|
 | `vps.$DOMAIN` | SSH access to the box itself — `ssh ubuntu@vps.$DOMAIN` instead of the raw IP |
 | `coolify.$DOMAIN` | Coolify dashboard |
-| `aromavitae-api.$DOMAIN` | Backend API — production |
-| `aromavitae-api-dev.$DOMAIN` | Backend API — dev (set up later, only when needed) |
+| the site's own domain (`ceylonaromavitae.lk`, `www.ceylonaromavitae.lk`) | The app — site and `/admin` — production |
 | `s3-$NODE.$DOMAIN` | Garage's S3 API endpoint (shared by every bucket — path-style) |
 | `aromavitae-media.web-$NODE.$DOMAIN` | Garage's public web endpoint — production bucket |
 | `aromavitae-media-dev.web-$NODE.$DOMAIN` | Garage's public web endpoint — dev bucket (later) |
 
-Garage's S3 API is used **path-style** (`s3.ts` sets `forcePathStyle: true`),
+Garage's S3 API is used **path-style** (`payload/payload.config.ts` sets `forcePathStyle: true`),
 so one subdomain covers every bucket. Its *web* (public GET) endpoint is
 virtual-hosted-style instead, so each bucket needs its own subdomain — see
 Phase E. Garage's RPC (3901) and admin (3903) ports are never exposed
@@ -87,8 +85,7 @@ publicly; they're reached with `docker exec`.
    only, with no pre-made user, then create one the traditional way instead:
    `adduser ubuntu && usermod -aG sudo ubuntu && rsync --archive
    --chown=ubuntu:ubuntu ~/.ssh /home/ubuntu`, then apply the same
-   `sshd_config` hardening above.) `deploy` in Phase G is a different,
-   narrower user created later just for CI — not this one.
+   `sshd_config` hardening above.)
 
 4. Install and enable the firewall — allow SSH, HTTP/HTTPS, and Coolify's
    setup port. Do **not** open 3901 (Garage RPC) or 3903 (Garage admin) —
@@ -128,9 +125,8 @@ publicly; they're reached with `docker exec`.
 
 ## Phase D — Shared Postgres
 
-No Supabase anywhere in this stack — auth and file storage are handled by
-the backend app itself (bcrypt + JWT, and Garage), backed by one shared
-Postgres. See "Two things replaced Supabase" below for why.
+No Supabase anywhere in this stack — admin logins are Payload's own `users`
+collection and files go to Garage, all backed by one shared Postgres.
 
 9. Create a Coolify Project called **`core`** — this holds only the shared,
    platform-level Postgres and Garage, not any single app's resources.
@@ -146,16 +142,17 @@ Postgres. See "Two things replaced Supabase" below for why.
 
     ```bash
     docker exec -it <postgres-container> psql -U postgres -c \
-      "CREATE ROLE aromavitae WITH LOGIN PASSWORD '<generate with: openssl rand -hex 24>';"
+      "CREATE ROLE aromavitae_payload WITH LOGIN PASSWORD '<generate with: openssl rand -hex 24>';"
 
     docker exec -it <postgres-container> psql -U postgres -c \
-      "CREATE DATABASE aromavitae OWNER aromavitae;"
+      "CREATE DATABASE aromavitae_payload OWNER aromavitae_payload;"
     ```
 
-    That gives `DATABASE_URL=postgresql://aromavitae:<password>@core-postgres:5432/aromavitae`
-    for Phase F. Only add a **dev** database/environment when you actually
+    That gives `DATABASE_URI=postgresql://aromavitae_payload:<password>@<postgres-host>:5432/aromavitae_payload`
+    for Phase F. Payload creates the tables itself: `npm run migrate`, or
+    automatically when the production container starts. Only add a **dev** database/environment when you actually
     need one — same pattern, with `_dev` names throughout (role
-    `aromavitae_dev`, database `aromavitae_dev`) instead of duplicating
+    `aromavitae_payload_dev`, database `aromavitae_payload_dev`) instead of duplicating
     everything up front.
 
     > If you're pasting these into an already-open `psql` session (e.g. via
@@ -167,7 +164,7 @@ Postgres. See "Two things replaced Supabase" below for why.
     > meaning it's still waiting on an unclosed quote), clear it with `';`
     > or `Ctrl+C` before retyping the statement.
 12. Note `core-postgres`'s internal Docker hostname and the Docker network
-    it's on — the backend app needs both (Phase F, Phase I).
+    it's on — the app needs both (Phase F).
 
 ## Phase E — Install Garage (self-hosted object storage)
 
@@ -281,246 +278,91 @@ Postgres. See "Two things replaced Supabase" below for why.
     ["One-time VPS setup for a new bucket"](../README.md#one-time-vps-setup-for-a-new-bucket)
     section for the short version.
 
-## Phase F — Deploy the backend app
+## Phase F — Deploy the app
 
 18. Create a Coolify Project called **`aromavitae`** and add a new
-    **Docker Compose** resource for production (same resource type as
-    Garage in Phase E — no build happens here, it just runs the image
-    `backend-coolify.yml` already built and pushed to GHCR). Add a second,
-    `dev` resource the same way later, only once you actually need one.
-    Paste in [`deploy/docker-compose.prod.yml`](../deploy/docker-compose.prod.yml):
-
-    ```yaml
-    services:
-      api:
-        image: ghcr.io/lunor-labs/aromavitae-backend:latest
-        restart: unless-stopped
-        healthcheck:
-          test: ["CMD", "wget", "-qO-", "http://localhost:4000/health"]
-          interval: 30s
-          timeout: 5s
-          retries: 3
-          start_period: 10s
-        environment:
-          DATABASE_URL: ${DATABASE_URL}
-          ADMIN_JWT_SECRET: ${ADMIN_JWT_SECRET}
-          S3_ENDPOINT: ${S3_ENDPOINT}
-          S3_REGION: ${S3_REGION}
-          S3_BUCKET: ${S3_BUCKET}
-          S3_ACCESS_KEY_ID: ${S3_ACCESS_KEY_ID}
-          S3_SECRET_ACCESS_KEY: ${S3_SECRET_ACCESS_KEY}
-          S3_PUBLIC_URL: ${S3_PUBLIC_URL}
-          FRONTEND_URL: ${FRONTEND_URL}
-          NODE_ENV: production
-          LOG_LEVEL: info
-          PORT: 4000
-        ports:
-          - "4000:4000"
-    ```
-
-    A future `dev` resource points the `image:` line at the `:dev` tag
-    instead of `:latest`.
+    **Docker Compose** resource for production (no build happens on the
+    VPS — it runs the image `deploy.yml` already built and pushed to GHCR).
+    Paste in [`deploy/docker-compose.prod.yml`](../deploy/docker-compose.prod.yml).
 
 19. Set the actual values in Coolify's **Environment Variables** tab for
-    this resource (not hardcoded in the compose file above — Coolify
-    substitutes `${VAR}` references in the compose file from whatever's set
-    there at deploy time):
+    this resource (Coolify substitutes the `${VAR}` references in the
+    compose file from there at deploy time):
 
     ```
-    DATABASE_URL              # postgresql://aromavitae:<password>@core-postgres:5432/aromavitae
-    ADMIN_JWT_SECRET          # random 32+ char string — same value goes on the Vercel frontend for this environment
-    S3_ENDPOINT               # https://s3-$NODE.$DOMAIN
-    S3_REGION                 # garage                    — matches garage.toml's s3_api.s3_region
-    S3_BUCKET                 # aromavitae-media
-    S3_ACCESS_KEY_ID          # from `garage key info aromavitae-prod`
-    S3_SECRET_ACCESS_KEY      # from the same command
-    S3_PUBLIC_URL             # https://aromavitae-media.web-$NODE.$DOMAIN
-    FRONTEND_URL
+    DATABASE_URI              # postgresql://aromavitae_payload:<password>@<postgres-host>:5432/aromavitae_payload
+    PAYLOAD_SECRET            # same value as in your local .env — a different one logs everyone out
+    SERVER_URL                # https://ceylonaromavitae.lk  (no trailing slash; the site's public URL)
+    S3_ENDPOINT               # https://s3.lunorlabs.com
+    S3_REGION                 # garage
+    S3_BUCKET                 # aromavitae
+    S3_ACCESS_KEY_ID          # same as local .env
+    S3_SECRET_ACCESS_KEY      # same as local .env
     ```
 
-    These map directly to [`api/src/config/env.ts`](../api/src/config/env.ts) — that's
-    the source of truth if the schema changes later. A future `dev`
-    resource uses the `aromavitae_dev` database/role and
-    `aromavitae-media-dev` bucket/key from Phases D and E instead.
+    `SERVER_URL` is read when the container starts, so changing it (for
+    example from a temporary test domain to the real one) only needs a
+    restart, not a new build. `NEXT_PUBLIC_ASSET_BASE_URL` is not set here:
+    it's baked into the image at build time (Phase G).
 
-20. In Coolify, set the domain for the `api` service's **4000** port to
-    `aromavitae-api.$DOMAIN` (a future `dev` resource: `aromavitae-api-dev.$DOMAIN`) —
-    same per-port domain assignment as Garage in Phase E.
-21. Attach the resource to the same Docker network as `core-postgres` so
-    `DATABASE_URL` can resolve it by hostname. Note that network's name —
-    it becomes the `DOCKER_NETWORK` GitHub variable in Phase I. (It doesn't
-    need network access to Garage: presigning an S3 URL is a local HMAC
-    computation, not a network call — only the browser's subsequent `PUT`
-    actually talks to Garage, over the public `S3_ENDPOINT`.)
+20. Set the domain(s) for the `web` service's **3000** port, e.g.
+    `https://ceylonaromavitae.lk:3000,https://www.ceylonaromavitae.lk:3000`.
+    Coolify issues the certificate once DNS points at the VPS.
+21. Attach the resource to the same Docker network as the Postgres database
+    so `DATABASE_URI` can reach it by its internal hostname. It doesn't need
+    a private route to Garage: uploads go to the public `S3_ENDPOINT`.
 22. Under Coolify's Registries settings, add GHCR credentials — a GitHub PAT
     scoped to `read:packages` — so Coolify can pull the private image.
-23. `backend-coolify.yml`'s last step hits Coolify's **API deploy
-    endpoint** via `POST`, not the resource's own "Webhook" URL (that one's
-    for git-connected auto-deploy and doesn't apply to an image/Compose
-    resource with no connected repo). Build the URL from the resource's
-    UUID, visible in Coolify's address bar while viewing it
-    (`.../application/<uuid>`):
+23. `deploy.yml`'s last step calls Coolify's **API deploy endpoint**. Build
+    the URL from the resource's UUID, visible in Coolify's address bar while
+    viewing it:
 
     ```
     https://coolify.$DOMAIN/api/v1/deploy?uuid=<resource-uuid>
     ```
 
-    Verify it manually first:
+    Generate a Coolify API token (Keys & Tokens → API tokens, with deploy
+    permission) and verify the call manually first:
 
     ```bash
     curl -fsS -X POST "https://coolify.$DOMAIN/api/v1/deploy?uuid=<resource-uuid>" \
       -H "Authorization: Bearer <COOLIFY_API_TOKEN>"
     ```
 
-    Once that queues a deployment instead of erroring, that full URL
-    becomes the `COOLIFY_DEPLOY_WEBHOOK` secret for the `prod` GitHub
-    environment in Phase I.
-24. On the frontend (Vercel), for the production environment set
-    `NEXT_PUBLIC_API_URL` (the backend's domain), `NEXT_PUBLIC_ASSET_BASE_URL`
-    (= `S3_PUBLIC_URL` above), and `ADMIN_JWT_SECRET` (the exact same value
-    as the backend's).
-25. Create the first admin account, run from anywhere with network access
-    to Postgres:
-    ```bash
-    DATABASE_URL=<aromavitae DATABASE_URL> \
-      npm --prefix api run create-admin -- --email you@aromavitae.com --password '...'
-    ```
+    Once that queues a deployment instead of erroring, the URL and token
+    become GitHub secrets in Phase G.
 
-### Two things replaced Supabase
+## Phase G — Configure GitHub
 
-- **Auth**: `AdminUser` table (bcrypt password hash) + a JWT the backend
-  signs/verifies itself (`api/src/lib/auth.ts`). The frontend stores the
-  token in a plain (non-httpOnly) cookie so both `middleware.ts` (via `jose`,
-  edge-compatible) and client-side API calls can use it — same trust model
-  the old Supabase session token had.
-- **Storage**: signed S3 `PutObjectCommand` URLs (`api/src/services/UploadService.ts`)
-  against Garage, instead of Supabase Storage's signed upload URLs.
-  Functionally a drop-in swap — the frontend still does a plain
-  `fetch(uploadUrl, { method: "PUT" })`.
-
-## Phase G — Give CI its own SSH access
-
-26. Generate a dedicated keypair for CI, on your laptop — don't reuse your
-    personal one. A leaked CI key should only ever be able to run
-    containers, nothing more, which is what the rest of this phase enforces.
-
-    ```bash
-    ssh-keygen -t ed25519 -f ~/.ssh/coolify-ci-deploy -C "github-actions" -N ""
-    ```
-
-27. On the VPS, create a `deploy` user with **no password login at all**
-    (SSH key only) and **not** in `sudo`:
-
-    ```bash
-    ssh ubuntu@<vps-ip> "sudo adduser --disabled-password --gecos '' deploy && \
-      sudo mkdir -p /home/deploy/.ssh && \
-      sudo chmod 700 /home/deploy/.ssh && \
-      sudo chown deploy:deploy /home/deploy/.ssh"
-    ```
-
-28. Attach the CI key to `deploy` by appending its public half into
-    `deploy`'s own `authorized_keys` — every user has a separate one of
-    these, so this is what scopes the key to `deploy` specifically rather
-    than `ubuntu`. `sudo` is required because `ubuntu` has no write access
-    into `deploy`'s (mode-700) home directory:
-
-    ```bash
-    cat ~/.ssh/coolify-ci-deploy.pub | ssh ubuntu@<vps-ip> \
-      "sudo tee -a /home/deploy/.ssh/authorized_keys > /dev/null"
-
-    ssh ubuntu@<vps-ip> "sudo chmod 600 /home/deploy/.ssh/authorized_keys && \
-      sudo chown deploy:deploy /home/deploy/.ssh/authorized_keys"
-    ```
-
-29. Verify, then add `deploy` to the `docker` group — only possible now that
-    Coolify's install script (Phase C) has created that group:
-
-    ```bash
-    ssh -i ~/.ssh/coolify-ci-deploy deploy@<vps-ip>   # logs in, no password
-    # whoami       → deploy
-    # sudo -v      → should FAIL, deploy has no sudo — that's by design
-
-    ssh ubuntu@<vps-ip> "sudo usermod -aG docker deploy"
-    ```
-
-30. Keep the **private** half (`~/.ssh/coolify-ci-deploy`) — it becomes the
-    `VPS_SSH_KEY` GitHub secret; `deploy` becomes `VPS_SSH_USER`.
-
-## Phase H — Authenticate `deploy` to GHCR
-
-31. Log `deploy` itself into GHCR — this is a per-user credential
-    (`~/.docker/config.json`), not daemon-wide, and separate from Coolify's
-    own registry credentials (Phase F, step 22). It's specifically what lets
-    the migration step's `docker run ghcr.io/...` — which
-    `backend-coolify.yml` runs over SSH as `deploy` — pull the private
-    image. Logging in as `ubuntu` instead does **not** cover this; that's
-    a different user's Docker config.
-
-    ```bash
-    ssh -i ~/.ssh/coolify-ci-deploy deploy@<vps-ip> \
-      "docker login ghcr.io -u <github-username> -p <PAT with read:packages>"
-    ```
-
-## Phase I — Configure GitHub
-
-32. Settings → Actions → General → Workflow permissions → set **Read and
+24. Settings → Actions → General → Workflow permissions → set **Read and
     write permissions**. Without this, `GITHUB_TOKEN` can't push to GHCR.
-33. Settings → Environments — create **`prod`** for now (add **`dev`** later,
-    only when you set up that second app). These exact names matter:
-    [`backend-coolify.yml`](../.github/workflows/backend-coolify.yml) and
-    [`frontend.yml`](../.github/workflows/frontend.yml) both select the
-    environment as `main → prod`, everything else `→ dev`.
-34. Generate a Coolify API token (your profile/team → API Tokens in the
-    Coolify UI) — this authorizes the deploy-webhook call in the workflow's
-    last step. One token works for both environments, prod and dev alike.
-35. Add the secrets and variables below to the `prod` environment (repeat
-    for `dev`, with that environment's own values, once it exists):
+25. Settings → Environments — create **`prod`** (the name `deploy.yml` uses)
+    and add:
 
-    | Name | Kind | Same across environments? | Where it came from |
-    |---|---|---|---|
-    | `COOLIFY_DEPLOY_WEBHOOK` | secret | No — one per environment | Phase F, step 23 |
-    | `COOLIFY_API_TOKEN` | secret | Yes | Phase I, step 34 |
-    | `DATABASE_URL` | secret | No — one per environment | Phase D, step 11 |
-    | `VPS_HOST` | secret | Yes | Phase A, step 2 |
-    | `VPS_SSH_USER` | secret | Yes | Phase G, step 27 (`deploy`) |
-    | `VPS_SSH_KEY` | secret | Yes | Phase G, step 30 |
-    | `DOCKER_NETWORK` | variable | Yes (same network for both apps) | Phase F, step 21 |
+    | Name | Kind | Value |
+    |---|---|---|
+    | `NEXT_PUBLIC_ASSET_BASE_URL` | variable | Garage's public web URL for the bucket (same as local `.env`) |
+    | `COOLIFY_DEPLOY_WEBHOOK` | secret | Phase F, step 23 |
+    | `COOLIFY_API_TOKEN` | secret | Phase F, step 23 |
 
-## Phase J — Run it end to end
+    No database or SSH secrets: CI never talks to the VPS except through
+    Coolify's API, and migrations run inside the new container when it starts.
 
-36. Since only `prod` is set up so far, push to `main` (or use **Run
-    workflow** in GitHub's Actions tab — `workflow_dispatch` — to test from
-    a feature branch first without merging). This triggers
-    `backend-coolify.yml` against the `prod` environment: image build &
-    push to GHCR → SSH migration step → Coolify webhook call.
-37. In Coolify, check the app's deployment log — confirm the new container
-    passed its health check and swapped in.
-38. Hit the health endpoint directly and confirm it responds.
+## Phase H — Run it end to end
 
-    ```bash
-    curl https://aromavitae-api.$DOMAIN/health
-    # → {"data":{"status":"ok","timestamp":"..."}}
-    ```
+26. Push to `main` (or use **Run workflow** on `deploy.yml` in GitHub's
+    Actions tab). The workflow lints, typechecks, builds and pushes the
+    image to GHCR, then asks Coolify to deploy it.
+27. In Coolify, check the deployment log — the container should start,
+    apply any pending migration, and pass its health check
+    (`/admin/login`).
+28. Open the site and `/admin`, log in, and edit something small to confirm
+    saving and image upload work.
 
-39. When you set up the `dev` app/environment later (Phases D–I, `_dev`
-    naming throughout), repeat this same sequence pushing to `dev` instead,
-    checking `aromavitae-api-dev.$DOMAIN`.
-
-## Two SSH identities, kept separate
-
-- **Your personal SSH access** (Phase A, step 3) — for you to administer the
-  server directly: installing Coolify, running `docker login` once,
-  debugging, maintenance. Has `sudo`.
-- **GitHub Actions' SSH access** (Phase G) — a separate, narrower key used
-  only by the automated workflow's migration step. Docker-group only, no
-  `sudo` — if it ever leaks, the blast radius is "can run containers," not
-  "can do anything root can do."
-
-Day-to-day, deployment is fully automated through GitHub and needs no manual
-SSH step:
+Day-to-day:
 
 ```
-git push origin dev  →  GitHub Actions builds image, pushes to GHCR,
-                         SSHes in (its own key) to run migrations,
-                         calls Coolify's webhook  →  Coolify swaps the container
+git push origin main  →  GitHub Actions builds the image, pushes it to GHCR,
+                          calls Coolify's deploy API  →  Coolify pulls it and
+                          swaps the container (pending migrations run on start)
 ```

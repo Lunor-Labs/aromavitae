@@ -1,52 +1,61 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# AROMAVITAE
 
-## Getting Started
+The AROMAVITAE website and its content admin: one Next.js app with
+[Payload CMS](https://payloadcms.com) running inside it.
 
-First, run the development server:
+- `/` and the other site pages: `app/(site)/`. They read content through
+  Payload's Local API (a direct database call, no HTTP), in `lib/content.ts`.
+- `/admin`: the Payload admin panel, `app/(payload)/`. Products, categories,
+  gallery, testimonials, outlets, blog, the homepage sections and site-wide
+  bits are all edited there. Changes show on the site on the next page load.
+- `payload/`: the Payload config. `collections/` and `globals/` define every
+  content type and its admin form; `migrations/` holds the database schema.
+
+## Getting started
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+cp .env.example .env   # then fill it in
+npm install
+npm run dev            # http://localhost:3000, admin at /admin
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+There is no local database. `DATABASE_URI` points at the Payload database on the
+VPS through an SSH tunnel, so **anything saved in the local admin is live**.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Changing a content type
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+1. Edit the collection or global in `payload/collections/` or `payload/globals/`.
+2. `npm run generate:types` refreshes `payload/payload-types.ts`.
+3. `npm run generate:importmap` if you added admin components or editor features.
+4. `npm run migrate:create <name>` writes a migration into `payload/migrations/`.
+   It only diffs the config and never connects to the database.
+5. `npm run migrate` applies it. This writes to the production database.
 
-## Learn More
+`push` is off in `payload/payload.config.ts`, so `next dev` never changes the
+schema on its own.
 
-To learn more about Next.js, take a look at the following resources:
+## Moving content over from the old admin (one-off)
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+`npm run migrate:legacy` copies everything from the old Express/Prisma database
+(`LEGACY_DATABASE_URL`, read-only) into Payload. It runs in one transaction,
+refuses to run if Payload already has content, re-uploads every image as Media,
+and prints a new password for each old admin account. See the header of
+`payload/scripts/migrate-legacy.ts` for details.
 
 ## Image storage (Garage / S3)
 
-Uploads go through the API's `POST /uploads/signed-url` → browser `PUT` to Garage → the returned `publicUrl` is what's stored in the DB and rendered later. Because Garage has **two** endpoints, the API needs both env vars set correctly:
+Uploads go through Payload's Media collection into the bucket under `media/`
+(`@payloadcms/storage-s3`). Garage has **two** endpoints and both are needed:
 
-| Var             | Purpose                                                       | Host shape                                        |
-| --------------- | ------------------------------------------------------------- | ------------------------------------------------- |
-| `S3_ENDPOINT`   | S3 API — used server-side to presign PUT uploads              | `https://s3-<node>.example.com`                   |
-| `S3_PUBLIC_URL` | Public web endpoint — embedded in DB rows, fetched by browser | `https://<bucket>.web-<node>.example.com`         |
+| Var                          | Purpose                                                   | Host shape                                |
+| ---------------------------- | --------------------------------------------------------- | ----------------------------------------- |
+| `S3_ENDPOINT`                | S3 API: Payload uploads and deletes files through it       | `https://s3-<node>.example.com`           |
+| `NEXT_PUBLIC_ASSET_BASE_URL` | Public web endpoint: image URLs on the site point here     | `https://<bucket>.web-<node>.example.com` |
 
-`S3_PUBLIC_URL` **must** point at Garage's web endpoint (bucket-as-subdomain), not the S3 API host. Anonymous browser GETs against the S3 API return `SignatureDoesNotMatch`, so images render broken even though the object exists.
-
-The frontend also needs `NEXT_PUBLIC_ASSET_BASE_URL` set to the same web endpoint — `next.config.ts` derives `images.remotePatterns` from it, and any URL from a different host will be blocked by the Next image optimizer.
+`NEXT_PUBLIC_ASSET_BASE_URL` **must** be Garage's web endpoint (bucket-as-subdomain),
+not the S3 API host: anonymous GETs against the S3 API return `SignatureDoesNotMatch`.
+`next.config.ts` also derives `images.remotePatterns` from it, so images from any
+other host are blocked by the Next image optimizer.
 
 ### One-time VPS setup for a new bucket
 
@@ -80,31 +89,3 @@ curl -I https://<bucket>.web-<node>.<domain>/<year>/<object-key>
 ```
 
 Expect `HTTP/2 200`. `403` means `bucket website --allow` didn't run; a connection error / cert warning means the reverse proxy route is missing.
-
-### Fixing broken URLs from an older misconfiguration
-
-If a batch of rows was written while `S3_PUBLIC_URL` was pointing at the wrong host, either re-upload those assets through the admin panel (new uploads always use the current env), or run the one-off backfill.
-
-You need the API's `DATABASE_URL` — grab it from Coolify (your project → the API service → Environment Variables). The value there uses an internal Docker hostname that isn't reachable from your laptop, so rebuild the URL against the host-published port on the Postgres service (in Coolify → the Postgres service → Configuration → Ports Mappings, e.g. `<host-port>:5432`):
-
-```powershell
-# PowerShell (Windows) — replace with values from Coolify
-$env:DATABASE_URL = "postgresql://<db-user>:<pw>@<vps-host>:<host-port>/<db-name>"
-$env:OLD_PREFIX   = "https://s3-<node>.<domain>"
-$env:NEW_PREFIX   = "https://<bucket>.web-<node>.<domain>"
-
-cd api
-npm run backfill:image-urls
-```
-
-Expected output:
-
-```
-Rewriting host: https://s3-<node>.<domain>/ → https://<bucket>.web-<node>.<domain>/
-[products]   scanned=N rewritten=M
-[categories] scanned=N rewritten=M
-[outlets]    scanned=N rewritten=M
-[singletons] scanned=N rewritten=M
-```
-
-The script only rewrites rows whose URL starts with `OLD_PREFIX`, so it's safe to re-run and won't touch correctly-uploaded newer rows. If `scanned=0` across the board, you're pointed at the wrong Postgres (an empty DB) — double-check which Postgres container Coolify has your API service connected to.

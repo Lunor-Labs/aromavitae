@@ -2,9 +2,9 @@ import type { Metadata } from "next";
 import { PageHero } from "@/components/ui/PageHero";
 import { ScrollRevealWrapper } from "@/components/ui/ScrollRevealWrapper";
 import { GalleryGrid } from "@/components/features/gallery/GalleryGrid";
-import { fetchContent } from "@/lib/api";
+import { getContent } from "@/lib/content";
 
-// Gallery images come from the API at request time — see the note in lib/api.ts
+// Gallery images come from Payload at request time — see lib/content.ts
 export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
@@ -25,7 +25,7 @@ export const metadata: Metadata = {
 };
 
 export default async function GalleryPage() {
-  const content = await fetchContent();
+  const content = await getContent();
 
   return (
     <>

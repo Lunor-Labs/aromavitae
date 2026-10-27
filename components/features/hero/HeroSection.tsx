@@ -6,20 +6,7 @@ import heroDesktop from "@/public/images/hero/hero-banner-desktop.webp";
 import heroMobile from "@/public/images/hero/hero-banner-mobile.webp";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
-import type { HeroSlide } from "@/types/content";
-
-// TODO(admin): editorial content to be supplied — replace slides / autoplay below.
-const SLIDES: HeroSlide[] = [
-  {
-    heading: "Nature's Finest,\nCeylon's Pride",
-    subheading:
-      "Discover the timeless aroma of Sri Lanka, premium spices and agarwood perfumes handcrafted with passion.",
-    image: "/images/hero/hero-banner.png",
-    ctaPrimary: { label: "SHOP SPICES", href: "/products" },
-    ctaSecondary: { label: "EXPLORE PERFUMES", href: "/products" },
-  },
-];
-const AUTOPLAY_MS = 6000;
+import type { HeroContent, ImageAsset } from "@/types/content";
 
 /**
  * The desktop and mobile banners are different crops of the same shot
@@ -33,26 +20,37 @@ const AUTOPLAY_MS = 6000;
  * will not show, so the banners are built with getImageProps — still optimized
  * and still served through /_next/image, just chosen before the fetch rather
  * than hidden after it.
+ *
+ * Slides without uploaded pictures use the built-in banner. It is imported
+ * rather than referenced by path, which buys three things: the intrinsic
+ * dimensions come from the file, Next generates the blurred `placeholder` at
+ * build time, and the emitted URL is content-hashed — so the year-long
+ * `minimumCacheTTL` can never pin a stale banner after a redeploy. Uploaded
+ * pictures get their dimensions from the Media record instead and go without
+ * the blur.
  */
-function HeroBanner() {
-  // Imported rather than referenced by path, which buys three things: the
-  // intrinsic dimensions come from the file, Next generates the blurred
-  // `placeholder` at build time, and the emitted URL is content-hashed — so the
-  // year-long `minimumCacheTTL` can never pin a stale banner after a redeploy.
+function HeroBanner({ desktop, mobile }: { desktop: ImageAsset | null; mobile: ImageAsset | null }) {
   const common = {
-    alt: "AROMAVITAE premium products",
+    alt: desktop?.alt || "AROMAVITAE premium products",
     sizes: "100vw",
     priority: true,
-    placeholder: "blur",
   } as const;
+
+  const desktopSrc = desktop
+    ? { src: desktop.url, width: desktop.width, height: desktop.height }
+    : { src: heroDesktop, placeholder: "blur" as const };
+  const mobileImage = mobile ?? desktop;
+  const mobileSrc = mobileImage
+    ? { src: mobileImage.url, width: mobileImage.width, height: mobileImage.height }
+    : { src: heroMobile, placeholder: "blur" as const };
 
   const {
     props: { srcSet: desktopSrcSet },
-  } = getImageProps({ ...common, src: heroDesktop });
+  } = getImageProps({ ...common, ...desktopSrc });
 
   const {
     props: { srcSet: mobileSrcSet, ...imgProps },
-  } = getImageProps({ ...common, src: heroMobile });
+  } = getImageProps({ ...common, ...mobileSrc });
 
   return (
     <picture>
@@ -73,9 +71,12 @@ function HeroBanner() {
   );
 }
 
-export function HeroSection() {
-  const slides = SLIDES;
-  const autoPlayMs = AUTOPLAY_MS;
+interface Props {
+  content: HeroContent;
+}
+
+export function HeroSection({ content }: Props) {
+  const { slides, autoPlayMs } = content;
 
   const [current, setCurrent] = useState(0);
   const [isTransitioning, setIsTransitioning] = useState(false);
@@ -107,7 +108,7 @@ export function HeroSection() {
   return (
     <section className="relative w-full h-[500px] md:h-[600px] lg:h-[650px] overflow-hidden">
       <div className="absolute inset-0">
-        <HeroBanner />
+        <HeroBanner desktop={slide.desktopImage} mobile={slide.mobileImage} />
         <div className="absolute inset-0 bg-gradient-to-r from-warm-white/90 via-warm-white/50 to-transparent" />
       </div>
 

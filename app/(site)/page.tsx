@@ -7,23 +7,23 @@ import { GiftSetsBanner } from "@/components/features/gifts/GiftSetsBanner";
 import { OutletsPreview } from "@/components/features/outlets/OutletsPreview";
 import { Testimonials } from "@/components/features/testimonials/Testimonials";
 import { ScrollRevealWrapper } from "@/components/ui/ScrollRevealWrapper";
-import { fetchContent } from "@/lib/api";
+import { getContent } from "@/lib/content";
 
 export const dynamic = "force-dynamic";
 
 export default async function HomePage() {
-  const content = await fetchContent();
+  const content = await getContent();
   const { products, categories, testimonials, outlets, singletons } = content;
 
   return (
     <>
-      <HeroSection />
+      <HeroSection content={singletons.hero} />
       <ScrollRevealWrapper>
-        <StoryHeritage />
+        <StoryHeritage content={singletons.story} />
         <OurBestProducts products={products} />
         <ShopByCategory categories={categories} products={products} />
         <TrustBadges />
-        <GiftSetsBanner content={singletons.giftSetsBanner} />
+        {singletons.giftSetsBanner && <GiftSetsBanner content={singletons.giftSetsBanner} />}
         <OutletsPreview outlets={outlets} />
         <Testimonials testimonials={testimonials} />
       </ScrollRevealWrapper>

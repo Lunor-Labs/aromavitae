@@ -1,11 +1,13 @@
 import type { NextConfig } from "next";
+import { withPayload } from "@payloadcms/next/withPayload";
 
 /**
  * Images live in two places and both must be optimizable:
  *
- *  - `public/images/hero|story/**` — shipped with the build, referenced by path
- *  - everything else — uploaded through the admin and served from Garage's
- *    public web endpoint (`NEXT_PUBLIC_ASSET_BASE_URL`)
+ *  - `public/images/**` — shipped with the build: logo, ornaments and the
+ *    built-in hero banner used until one is uploaded
+ *  - everything else — uploaded through the Payload admin (Media) and served
+ *    from Garage's public web endpoint (`NEXT_PUBLIC_ASSET_BASE_URL`)
  *
  * The optimizer refuses any remote host that isn't listed here, so a missing
  * asset base URL means every admin-uploaded image 400s. That used to be masked
@@ -24,6 +26,8 @@ if (!assetBaseUrl && process.env.NODE_ENV === "production") {
 const assetUrl = assetBaseUrl ? new URL(assetBaseUrl) : undefined;
 
 const nextConfig: NextConfig = {
+  // Self-contained server bundle for the Docker image (see Dockerfile).
+  output: "standalone",
   images: {
     remotePatterns: assetUrl
       ? [
@@ -51,7 +55,8 @@ const nextConfig: NextConfig = {
     // 200 (testimonials), 260 (outlet cards) and 320 (divider).
     imageSizes: [16, 32, 48, 64, 96, 128, 160, 256, 320, 384],
 
-    // Upload keys are `YYYY/<uuid>-<name>` and never rewritten, so an optimized
+    // Upload keys are never reused for different bytes (old admin: `YYYY/<uuid>-<name>`,
+    // Payload: `media/<random>-<name>`, see payload/collections/Media.ts), so an optimized
     // variant can be held for as long as the CDN will hold it. See the note in
     // README about re-deploying changed `public/` images.
     minimumCacheTTL: 31536000,
@@ -62,4 +67,4 @@ const nextConfig: NextConfig = {
   },
 };
 
-export default nextConfig;
+export default withPayload(nextConfig);

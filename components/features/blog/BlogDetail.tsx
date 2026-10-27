@@ -6,8 +6,8 @@ interface Props {
   post: BlogPost;
 }
 
-// `post.content` is sanitized server-side (see api/src/lib/sanitizeHtml.ts) to a
-// fixed tag allowlist matching the admin editor's toolbar — safe to render as-is.
+// `post.content` is HTML rendered from the Lexical editor state in lib/content.ts:
+// text is escaped and only the editor's allowed node types are emitted.
 export function BlogDetail({ post }: Props) {
   return (
     <article className="py-16 md:py-24 bg-warm-white reveal">
@@ -43,7 +43,9 @@ export function BlogDetail({ post }: Props) {
                      [&_p]:mb-5 [&_h1]:font-heading [&_h1]:text-2xl [&_h1]:md:text-3xl [&_h1]:font-bold
                      [&_h1]:text-charcoal [&_h1]:mt-10 [&_h1]:mb-4 [&_h2]:font-heading [&_h2]:text-xl
                      [&_h2]:md:text-2xl [&_h2]:font-bold [&_h2]:text-charcoal [&_h2]:mt-8 [&_h2]:mb-3
-                     [&_strong]:text-charcoal [&_strong]:font-semibold [&_u]:underline"
+                     [&_strong]:text-charcoal [&_strong]:font-semibold [&_u]:underline [&_em]:italic
+                     [&_ul]:list-disc [&_ol]:list-decimal [&_ul]:pl-6 [&_ol]:pl-6 [&_ul]:mb-5 [&_ol]:mb-5
+                     [&_li]:mb-1.5 [&_a]:text-forest [&_a]:underline [&_a]:underline-offset-2"
           dangerouslySetInnerHTML={{ __html: post.content }}
         />
       </div>

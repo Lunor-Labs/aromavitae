@@ -5,7 +5,7 @@ on:
     branches: [main]
 
 jobs:
-  frontend:
+  app:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -17,22 +17,3 @@ jobs:
       - run: npm run lint
       - run: npm run typecheck
 
-  backend:
-    runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: api
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: "22"
-          cache: "npm"
-          cache-dependency-path: api/package-lock.json
-      - run: npm ci
-      - name: Validate Prisma schema
-        env:
-          # Dummy value — prisma validate only resolves env() refs, it never connects
-          DATABASE_URL: postgresql://user:pass@localhost:5432/db
-        run: npx prisma validate
-      - run: npm run typecheck
