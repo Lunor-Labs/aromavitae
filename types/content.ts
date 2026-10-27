@@ -5,17 +5,28 @@ export interface CtaLink {
   href: string;
 }
 
+/** An uploaded picture with the intrinsic size next/image needs for art direction. */
+export interface ImageAsset {
+  url: string;
+  width: number;
+  height: number;
+  alt: string;
+}
+
 export interface HeroSlide {
   heading: string;
   subheading: string;
-  image: string;
+  /** Null shows the built-in banner from public/images/hero. */
+  desktopImage: ImageAsset | null;
+  /** Null falls back to desktopImage. */
+  mobileImage: ImageAsset | null;
   ctaPrimary: CtaLink;
   ctaSecondary: CtaLink;
 }
 
 export interface HeroContent {
   slides: HeroSlide[];
-  autoPlayMs?: number;
+  autoPlayMs: number;
 }
 
 export interface StoryPanel {
@@ -24,7 +35,6 @@ export interface StoryPanel {
   body: string;
   ctaLabel: string;
   ctaHref: string;
-  image?: string;
 }
 
 export interface StoryBadge {
@@ -37,31 +47,9 @@ export interface StoryContent {
   heritage: StoryPanel & { badges: StoryBadge[] };
 }
 
-export interface NavLinkItem {
-  label: string;
-  href: string;
-  children?: { label: string; href: string }[];
-}
-
-export interface NavbarContent {
-  brand: { name: string; tagline: string };
-  links: NavLinkItem[];
-  cta: CtaLink;
-}
-
-export interface FooterColumn {
-  title: string;
-  links: CtaLink[];
-}
-
 export interface FooterContent {
-  brand?: { name: string; tagline: string; description: string };
-  columns?: FooterColumn[];
-  contact: { phone: string; email: string; location: string };
-  newsletter?: { title: string; body: string };
+  /** `label` is the platform key (facebook, instagram, ...) that picks the icon. */
   social: CtaLink[];
-  payments?: string[];
-  legal?: { copyright: string };
 }
 
 export interface AnnouncementContent {
@@ -88,9 +76,9 @@ export interface ContentPayload {
   singletons: {
     hero: HeroContent;
     story: StoryContent;
-    navbar: NavbarContent;
     footer: FooterContent;
     announcement: AnnouncementContent;
-    giftSetsBanner: GiftSetsBannerContent;
+    /** Null until a banner with an image has been saved in the admin. */
+    giftSetsBanner: GiftSetsBannerContent | null;
   };
 }

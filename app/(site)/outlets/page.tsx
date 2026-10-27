@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { PageHero } from "@/components/ui/PageHero";
 import { ScrollRevealWrapper } from "@/components/ui/ScrollRevealWrapper";
 import { OutletsGrid } from "@/components/features/outlets/OutletsGrid";
-import { fetchContent } from "@/lib/api";
+import { getContent } from "@/lib/content";
 
 export const dynamic = "force-dynamic";
 
@@ -25,7 +25,7 @@ export const metadata: Metadata = {
 };
 
 export default async function OutletsPage() {
-  const content = await fetchContent();
+  const content = await getContent();
 
   return (
     <>

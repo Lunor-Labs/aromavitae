@@ -2,9 +2,9 @@ import type { Metadata } from "next";
 import { PageHero } from "@/components/ui/PageHero";
 import { ScrollRevealWrapper } from "@/components/ui/ScrollRevealWrapper";
 import { BlogList } from "@/components/features/blog/BlogList";
-import { fetchContent } from "@/lib/api";
+import { getContent } from "@/lib/content";
 
-// Blog content comes from the API at request time — see the note in lib/api.ts
+// Blog content comes from Payload at request time — see lib/content.ts
 export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
@@ -26,7 +26,7 @@ export const metadata: Metadata = {
 };
 
 export default async function BlogPage() {
-  const content = await fetchContent();
+  const content = await getContent();
 
   return (
     <>

@@ -2,9 +2,9 @@ import type { Metadata } from "next";
 import { PageHero } from "@/components/ui/PageHero";
 import { ScrollRevealWrapper } from "@/components/ui/ScrollRevealWrapper";
 import { ProductsGrid } from "@/components/features/products/ProductsGrid";
-import { fetchContent } from "@/lib/api";
+import { getContent } from "@/lib/content";
 
-// Content comes from the API at request time — see the note in lib/api.ts
+// Content comes from Payload at request time — see lib/content.ts
 export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
@@ -30,7 +30,7 @@ export default async function ProductsPage({
 }: {
   searchParams: Promise<{ category?: string }>;
 }) {
-  const [{ category }, content] = await Promise.all([searchParams, fetchContent()]);
+  const [{ category }, content] = await Promise.all([searchParams, getContent()]);
 
   return (
     <>

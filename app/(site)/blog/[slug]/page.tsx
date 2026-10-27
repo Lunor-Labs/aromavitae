@@ -3,9 +3,9 @@ import { notFound } from "next/navigation";
 import { PageHero } from "@/components/ui/PageHero";
 import { ScrollRevealWrapper } from "@/components/ui/ScrollRevealWrapper";
 import { BlogDetail } from "@/components/features/blog/BlogDetail";
-import { fetchBlogPost } from "@/lib/api";
+import { getBlogPost } from "@/lib/content";
 
-// Blog content comes from the API at request time — see the note in lib/api.ts
+// Blog content comes from Payload at request time — see lib/content.ts
 export const dynamic = "force-dynamic";
 
 export async function generateMetadata({
@@ -14,7 +14,7 @@ export async function generateMetadata({
   params: Promise<{ slug: string }>;
 }): Promise<Metadata> {
   const { slug } = await params;
-  const post = await fetchBlogPost(slug);
+  const post = await getBlogPost(slug);
   if (!post) return { title: "Post not found" };
   return {
     title: `${post.title} — AROMAVITAE Blog`,
@@ -33,7 +33,7 @@ export default async function BlogPostPage({
   params: Promise<{ slug: string }>;
 }) {
   const { slug } = await params;
-  const post = await fetchBlogPost(slug);
+  const post = await getBlogPost(slug);
   if (!post) notFound();
 
   return (

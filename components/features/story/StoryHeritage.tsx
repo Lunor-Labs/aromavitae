@@ -2,29 +2,6 @@ import Image from "next/image";
 import Link from "next/link";
 import type { StoryContent } from "@/types/content";
 
-// TODO(admin): editorial content to be supplied — replace copy / image / badges below.
-const STORY: StoryContent = {
-  ourStory: {
-    eyebrow: "OUR STORY",
-    heading: "Rooted in\nSri Lankan tradition",
-    body: "For generations, our family has walked the misty hills and coastal plantations of Ceylon, curating the island's finest spices and its rarest agarwood. Every jar and vial carries that heritage.",
-    ctaLabel: "READ MORE",
-    ctaHref: "/about",
-  },
-  heritage: {
-    eyebrow: "HERITAGE",
-    heading: "Crafted with care, aged with time",
-    body: "Small-batch, hand-selected, and slow-cured. Our products are made the way they always have been.",
-    ctaLabel: "EXPLORE OUR HERITAGE",
-    ctaHref: "/about",
-    badges: [
-      { icon: "book", label: "Centuries of\ntradition" },
-      { icon: "leaf", label: "100% Organic" },
-      { icon: "shield", label: "Purity assured" },
-    ],
-  },
-};
-
 const ICON_PATHS: Record<string, string> = {
   book: "M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253",
   leaf: "M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064M21 12a9 9 0 11-18 0 9 9 0 0118 0z",
@@ -40,8 +17,12 @@ function BadgeIcon({ name }: { name: string }) {
   );
 }
 
-export function StoryHeritage() {
-  const { ourStory, heritage } = STORY;
+interface Props {
+  content: StoryContent;
+}
+
+export function StoryHeritage({ content }: Props) {
+  const { ourStory, heritage } = content;
 
   return (
     <section className="reveal">

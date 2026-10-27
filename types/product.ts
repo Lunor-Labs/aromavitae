@@ -1,4 +1,4 @@
-// Keep in sync with SIZE_UNITS in api/src/types/product.ts
+// Also the options of the size unit select in payload/collections/Products.ts
 export const SIZE_UNITS = ["ml", "g", "kg", "pcs"] as const;
 export type SizeUnit = (typeof SIZE_UNITS)[number];
 
@@ -25,7 +25,6 @@ export interface Category {
   id: string;
   name: string;
   image: string;
-  href: string;
 }
 
 export interface GalleryImage {
