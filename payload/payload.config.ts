@@ -20,10 +20,13 @@ import { Story } from "./globals/Story";
 import { GiftSetsBanner } from "./globals/GiftSetsBanner";
 import { Announcement } from "./globals/Announcement";
 import { Footer } from "./globals/Footer";
+import { migrations } from "./migrations";
 
 const dirname = path.dirname(fileURLToPath(import.meta.url));
 
-const serverUrl = process.env.NEXT_PUBLIC_SERVER_URL || "http://localhost:3000";
+// Read at runtime (not NEXT_PUBLIC_, which is baked in at build time), so one
+// image can be tried on a temporary domain and then moved to the real one.
+const serverUrl = process.env.SERVER_URL || "http://localhost:3000";
 const assetBaseUrl = (process.env.NEXT_PUBLIC_ASSET_BASE_URL ?? "").replace(/\/+$/, "");
 
 export default buildConfig({
@@ -61,6 +64,9 @@ export default buildConfig({
     // letting `next dev` push schema diffs straight into it is never safe.
     push: false,
     migrationDir: path.resolve(dirname, "migrations"),
+    // The production container applies any pending migration when it starts
+    // (only when NODE_ENV=production, so never from `next dev`).
+    prodMigrations: migrations,
   }),
   upload: { limits: { fileSize: 10_000_000 } },
   plugins: [

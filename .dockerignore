@@ -1,0 +1,14 @@
+.git
+.github
+.next
+node_modules
+.env*
+!.env.example
+docs
+deploy
+*.tsbuildinfo
+next-env.d.ts
+.claude
+.playwright-mcp
+Dockerfile
+.dockerignore

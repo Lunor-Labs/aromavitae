@@ -26,6 +26,8 @@ if (!assetBaseUrl && process.env.NODE_ENV === "production") {
 const assetUrl = assetBaseUrl ? new URL(assetBaseUrl) : undefined;
 
 const nextConfig: NextConfig = {
+  // Self-contained server bundle for the Docker image (see Dockerfile).
+  output: "standalone",
   images: {
     remotePatterns: assetUrl
       ? [
