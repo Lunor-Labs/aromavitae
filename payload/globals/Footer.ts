@@ -1,4 +1,5 @@
 import type { GlobalConfig } from "payload";
+import { anyone } from "../access";
 
 // Must match the icons in components/features/footer/Footer.tsx
 export const SOCIAL_PLATFORMS = [
@@ -14,6 +15,7 @@ export const SOCIAL_PLATFORMS = [
 
 export const Footer: GlobalConfig = {
   slug: "footer",
+  access: { read: anyone },
   admin: {
     group: "Site",
     description: "The social media icons in the footer. Contact details and links are fixed in the code.",

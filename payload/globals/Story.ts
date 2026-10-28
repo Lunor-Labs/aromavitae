@@ -1,4 +1,5 @@
 import type { Field, GlobalConfig } from "payload";
+import { anyone } from "../access";
 
 const panelFields: Field[] = [
   { name: "eyebrow", label: "Small title", type: "text", required: true },
@@ -20,6 +21,7 @@ const panelFields: Field[] = [
 
 export const Story: GlobalConfig = {
   slug: "story",
+  access: { read: anyone },
   label: "Our Story",
   admin: {
     group: "Homepage",

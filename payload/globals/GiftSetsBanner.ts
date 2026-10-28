@@ -1,7 +1,9 @@
 import type { GlobalConfig } from "payload";
+import { anyone } from "../access";
 
 export const GiftSetsBanner: GlobalConfig = {
   slug: "gift-sets-banner",
+  access: { read: anyone },
   label: "Gift Sets Banner",
   admin: { group: "Homepage" },
   fields: [

@@ -1,4 +1,5 @@
 import type { CollectionConfig } from "payload";
+import { anyone } from "../access";
 import { SIZE_UNITS } from "../../types/product";
 
 type Sizes = { sizeValue?: number | null; sizeUnit?: string | null };
@@ -8,6 +9,7 @@ const wholeNumber = (label: string) => (value: number | null | undefined) =>
 
 export const Products: CollectionConfig = {
   slug: "products",
+  access: { read: anyone },
   orderable: true,
   admin: {
     group: "Shop",
