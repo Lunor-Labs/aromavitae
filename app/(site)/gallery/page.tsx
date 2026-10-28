@@ -4,9 +4,6 @@ import { ScrollRevealWrapper } from "@/components/ui/ScrollRevealWrapper";
 import { GalleryGrid } from "@/components/features/gallery/GalleryGrid";
 import { getContent } from "@/lib/content";
 
-// Gallery images come from Payload at request time — see lib/content.ts
-export const dynamic = "force-dynamic";
-
 export const metadata: Metadata = {
   title: "Gallery — Visual Journey into Ceylon's Finest",
   description:

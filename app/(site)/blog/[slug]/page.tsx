@@ -5,8 +5,11 @@ import { ScrollRevealWrapper } from "@/components/ui/ScrollRevealWrapper";
 import { BlogDetail } from "@/components/features/blog/BlogDetail";
 import { getBlogPost } from "@/lib/content";
 
-// Blog content comes from Payload at request time — see lib/content.ts
-export const dynamic = "force-dynamic";
+// No posts are built ahead of time: each is rendered on its first visit, then
+// cached and refreshed like every other page — see lib/content.ts
+export function generateStaticParams() {
+  return [];
+}
 
 export async function generateMetadata({
   params,

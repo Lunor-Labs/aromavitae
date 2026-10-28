@@ -1,8 +1,10 @@
-name: Deploy (Coolify)
+name: Deploy
 
-# Builds the one image that serves both the site and the Payload admin, pushes
-# it to GHCR and asks Coolify to pull it. Pending database migrations run when
-# the new container starts (prodMigrations in payload/payload.config.ts).
+# 1. CMS (Coolify): builds the image that serves the Payload admin and API,
+#    pushes it to GHCR and asks Coolify to pull it. Pending database migrations
+#    run when the new container starts (prodMigrations in payload/payload.config.ts).
+# 2. Site (Vercel): deploys the storefront, which reads its content from the
+#    CMS. It runs second because its build reads from the CMS just deployed.
 on:
   push:
     branches: [main]
@@ -57,3 +59,29 @@ jobs:
         run: |
           curl -fsS -X POST "${{ secrets.COOLIFY_DEPLOY_WEBHOOK }}" \
             -H "Authorization: Bearer ${{ secrets.COOLIFY_API_TOKEN }}"
+
+  site:
+    needs: build-and-deploy
+    runs-on: ubuntu-latest
+    environment: prod
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Vercel CLI
+        run: npm install --global vercel@58
+
+      - name: Link Vercel project
+        run: vercel link --yes --project=aromavitae --token=${{ secrets.VERCEL_TOKEN }}
+
+      # Built on Vercel, not on the runner (`--prebuilt` uploads a build that
+      # points at the runner's node_modules). CMS_URL is needed at build time to
+      # render pages and at runtime to refresh them and for proxy.ts.
+      - name: Deploy (Production)
+        run: |
+          vercel deploy --prod \
+            --build-env CMS_URL="${{ vars.CMS_URL }}" \
+            --build-env NEXT_PUBLIC_ASSET_BASE_URL="${{ vars.NEXT_PUBLIC_ASSET_BASE_URL }}" \
+            --env CMS_URL="${{ vars.CMS_URL }}" \
+            --token=${{ secrets.VERCEL_TOKEN }}
