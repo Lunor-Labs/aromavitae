@@ -1,8 +1,10 @@
 import { randomUUID } from "node:crypto";
 import type { CollectionConfig } from "payload";
+import { anyone } from "../access";
 
 export const Media: CollectionConfig = {
   slug: "media",
+  access: { read: anyone },
   admin: {
     group: "Media",
     useAsTitle: "filename",

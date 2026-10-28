@@ -1,8 +1,10 @@
 import type { GlobalConfig } from "payload";
+import { anyone } from "../access";
 import { linkGroup } from "../fields/link";
 
 export const Hero: GlobalConfig = {
   slug: "hero",
+  access: { read: anyone },
   admin: {
     group: "Homepage",
     description: "The banner at the top of the homepage. With no slides, the built-in banner is shown.",
