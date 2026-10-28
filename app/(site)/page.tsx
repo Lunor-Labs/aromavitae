@@ -9,8 +9,6 @@ import { Testimonials } from "@/components/features/testimonials/Testimonials";
 import { ScrollRevealWrapper } from "@/components/ui/ScrollRevealWrapper";
 import { getContent } from "@/lib/content";
 
-export const dynamic = "force-dynamic";
-
 export default async function HomePage() {
   const content = await getContent();
   const { products, categories, testimonials, outlets, singletons } = content;

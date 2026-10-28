@@ -6,10 +6,6 @@ import { Navbar } from "@/components/features/navbar/Navbar";
 import { Footer } from "@/components/features/footer/Footer";
 import { getContent } from "@/lib/content";
 
-// Content is read from Payload on every request, so the admin's edits show up
-// on the next page load without a rebuild.
-export const dynamic = "force-dynamic";
-
 const playfair = Playfair_Display({
   variable: "--font-playfair",
   subsets: ["latin"],
@@ -25,7 +21,7 @@ const ubuntu = Ubuntu({
 });
 
 export const metadata: Metadata = {
-  metadataBase: new URL("https://aromavitae.lk"),
+  metadataBase: new URL("https://www.ceylonaromavitae.lk"),
   title: {
     default: "AROMAVITAE — Premium Sri Lankan Spices & Agarwood Perfumes",
     template: "%s | AROMAVITAE",

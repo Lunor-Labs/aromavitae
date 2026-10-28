@@ -4,8 +4,6 @@ import { ScrollRevealWrapper } from "@/components/ui/ScrollRevealWrapper";
 import { OutletsGrid } from "@/components/features/outlets/OutletsGrid";
 import { getContent } from "@/lib/content";
 
-export const dynamic = "force-dynamic";
-
 export const metadata: Metadata = {
   title: "Outlets — Visit AROMAVITAE Across Ceylon",
   description:

@@ -4,9 +4,6 @@ import { ScrollRevealWrapper } from "@/components/ui/ScrollRevealWrapper";
 import { ProductsGrid } from "@/components/features/products/ProductsGrid";
 import { getContent } from "@/lib/content";
 
-// Content comes from Payload at request time — see lib/content.ts
-export const dynamic = "force-dynamic";
-
 export const metadata: Metadata = {
   title: "Products — Premium Ceylon Spices & Agarwood Perfumes",
   description:

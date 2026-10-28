@@ -9,6 +9,9 @@ services:
   web:
     image: ghcr.io/lunor-labs/aromavitae:latest
     restart: unless-stopped
+    # Coolify redeploys run `docker compose up`, which otherwise reuses the
+    # :latest already on the server instead of the one CI just pushed.
+    pull_policy: always
     healthcheck:
       test: ["CMD", "wget", "-qO-", "http://127.0.0.1:3000/admin/login"]
       interval: 30s

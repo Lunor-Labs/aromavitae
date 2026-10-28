@@ -1,25 +1,44 @@
 import { cache } from "react";
-import { getPayload } from "payload";
-import config from "@payload-config";
+import { connection } from "next/server";
 import { convertLexicalToHTML } from "@payloadcms/richtext-lexical/html";
 import type {
+  Announcement as AnnouncementDoc,
+  BlogCategory as BlogCategoryDoc,
   BlogPost as BlogPostDoc,
+  Category as CategoryDoc,
+  Footer as FooterDoc,
+  GalleryImage as GalleryImageDoc,
+  GiftSetsBanner as GiftSetsBannerDoc,
   Hero as HeroDoc,
   Media,
+  Outlet as OutletDoc,
   Product as ProductDoc,
   Story as StoryDoc,
+  Testimonial as TestimonialDoc,
 } from "@/payload/payload-types";
 import type { ContentPayload, HeroContent, HeroSlide, ImageAsset, StoryContent } from "@/types/content";
 import type { BlogPost, Product } from "@/types/product";
 
 /**
- * The site's read side. Everything goes through Payload's Local API — a direct
- * database call inside this Next.js process, no HTTP — and is mapped onto the
- * view models in `types/` so components never see Payload's document shapes.
+ * The site's read side. Everything is read from Payload's REST API — on Vercel
+ * that is the CMS on the VPS (`CMS_URL`) — and mapped onto the view models in
+ * `types/` so components never see Payload's document shapes.
  *
- * Every read degrades to empty content rather than throwing, so a database
- * hiccup blanks sections instead of taking the whole site down.
+ * Responses are cached and refreshed at most once a minute, so admin edits
+ * reach the site within a minute without a redeploy. A failed read throws
+ * instead of returning empty content: a failed refresh then keeps serving the
+ * last good page rather than replacing it with a blank one.
  */
+
+/** How often, in seconds, cached CMS content is refreshed. */
+const REVALIDATE_SECONDS = 60;
+
+/**
+ * Vercel sets `CMS_URL`. Without it (local dev, and the CMS's own deployment)
+ * the app reads from its own API.
+ */
+const cmsUrl = () =>
+  (process.env.CMS_URL || process.env.SERVER_URL || "http://localhost:3000").replace(/\/+$/, "");
 
 // Shown until the Hero / Our Story globals are filled in the admin.
 const DEFAULT_HERO_SLIDES: HeroSlide[] = [
@@ -57,31 +76,57 @@ const DEFAULT_STORY: StoryContent = {
   },
 };
 
-const EMPTY_CONTENT: ContentPayload = {
-  products: [],
-  categories: [],
-  testimonials: [],
-  outlets: [],
-  gallery: [],
-  blogPosts: [],
-  blogCategories: [],
-  singletons: {
-    hero: { slides: DEFAULT_HERO_SLIDES, autoPlayMs: DEFAULT_AUTOPLAY_MS },
-    story: DEFAULT_STORY,
-    footer: { social: [] },
-    announcement: { messages: [] },
-    giftSetsBanner: null,
-  },
-};
-
-/**
- * `next build` has no database to talk to. Every page that calls in here is
- * `force-dynamic`, so nothing built during this phase is ever served — this
- * only keeps the build from trying to connect.
- */
 const isBuildPhase = () => process.env.NEXT_PHASE === "phase-production-build";
 
-const getClient = () => getPayload({ config });
+/**
+ * A build with `CMS_URL` (Vercel) renders pages from the CMS ahead of time. A
+ * build without it (the Docker image) has no CMS to read from yet, so its pages
+ * are left to render on request instead.
+ */
+async function waitForCms() {
+  if (isBuildPhase() && !process.env.CMS_URL) await connection();
+}
+
+/**
+ * A merge to main redeploys the CMS just before the site, so a site build can
+ * catch it mid-restart. Builds retry through that; requests fail at once and
+ * keep the last good page. Kept under Next's 60s per-page build timeout.
+ */
+const BUILD_ATTEMPTS = 5;
+const BUILD_RETRY_MS = 10_000;
+
+async function fetchCms(url: URL): Promise<Response> {
+  const attempts = isBuildPhase() ? BUILD_ATTEMPTS : 1;
+  for (let attempt = 1; ; attempt++) {
+    try {
+      const res = await fetch(url, { next: { revalidate: REVALIDATE_SECONDS, tags: ["cms"] } });
+      if (res.status < 500 || attempt >= attempts) return res;
+    } catch (error) {
+      if (attempt >= attempts) throw error;
+    }
+    await new Promise((resolve) => setTimeout(resolve, BUILD_RETRY_MS));
+  }
+}
+
+/** GET a Payload REST endpoint. Resolves to null on 404, throws on any other failure. */
+async function cms<T>(path: string, params: Record<string, string | number> = {}): Promise<T | null> {
+  const url = new URL(`/api/${path}`, cmsUrl());
+  for (const [key, value] of Object.entries(params)) url.searchParams.set(key, String(value));
+
+  const res = await fetchCms(url);
+  if (res.status === 404) return null;
+  if (!res.ok) throw new Error(`CMS request failed: ${res.status} ${url.pathname}${url.search}`);
+  return (await res.json()) as T;
+}
+
+/** A collection or global, which always exists. */
+async function cmsRequired<T>(path: string, params?: Record<string, string | number>): Promise<T> {
+  const data = await cms<T>(path, params);
+  if (!data) throw new Error(`CMS request failed: 404 /api/${path}`);
+  return data;
+}
+
+type Docs<T> = { docs: T[] };
 
 /** Upload fields come back as a populated doc at depth >= 1, or a bare id when not. */
 function mediaUrl(media: number | Media | null | undefined): string {
@@ -158,104 +203,93 @@ function toStory(doc: StoryDoc): StoryContent {
 
 /**
  * Everything the layout and pages render. Wrapped in `cache` so the layout and
- * the page share one round of queries per request.
+ * the page share one round of requests per render.
  */
 export const getContent = cache(async (): Promise<ContentPayload> => {
-  if (isBuildPhase()) return EMPTY_CONTENT;
-  try {
-    const payload = await getClient();
-    const all = { pagination: false, sort: "_order", depth: 1 } as const;
+  await waitForCms();
+  const all = { pagination: "false", sort: "_order", depth: 1 };
 
-    const [products, categories, testimonials, outlets, gallery, blogPosts, blogCategories] =
-      await Promise.all([
-        payload.find({ collection: "products", ...all }),
-        payload.find({ collection: "categories", ...all }),
-        payload.find({ collection: "testimonials", ...all }),
-        payload.find({ collection: "outlets", ...all }),
-        payload.find({ collection: "gallery-images", ...all }),
-        payload.find({ collection: "blog-posts", ...all }),
-        payload.find({ collection: "blog-categories", ...all }),
-      ]);
-
-    const [hero, story, footer, announcement, giftSetsBanner] = await Promise.all([
-      payload.findGlobal({ slug: "hero", depth: 1 }),
-      payload.findGlobal({ slug: "story" }),
-      payload.findGlobal({ slug: "footer" }),
-      payload.findGlobal({ slug: "announcement" }),
-      payload.findGlobal({ slug: "gift-sets-banner", depth: 1 }),
+  const [products, categories, testimonials, outlets, gallery, blogPosts, blogCategories] =
+    await Promise.all([
+      cmsRequired<Docs<ProductDoc>>("products", all),
+      cmsRequired<Docs<CategoryDoc>>("categories", all),
+      cmsRequired<Docs<TestimonialDoc>>("testimonials", all),
+      cmsRequired<Docs<OutletDoc>>("outlets", all),
+      cmsRequired<Docs<GalleryImageDoc>>("gallery-images", all),
+      cmsRequired<Docs<BlogPostDoc>>("blog-posts", all),
+      cmsRequired<Docs<BlogCategoryDoc>>("blog-categories", all),
     ]);
 
-    const giftSetsImage = mediaUrl(giftSetsBanner.image);
+  const [hero, story, footer, announcement, giftSetsBanner] = await Promise.all([
+    cmsRequired<HeroDoc>("globals/hero", { depth: 1 }),
+    cmsRequired<StoryDoc>("globals/story"),
+    cmsRequired<FooterDoc>("globals/footer"),
+    cmsRequired<AnnouncementDoc>("globals/announcement"),
+    cmsRequired<GiftSetsBannerDoc>("globals/gift-sets-banner", { depth: 1 }),
+  ]);
 
-    return {
-      products: products.docs.map(toProduct),
-      categories: categories.docs.map((c) => ({
-        id: String(c.id),
-        name: c.name,
-        image: mediaUrl(c.image),
-      })),
-      testimonials: testimonials.docs.map((t) => ({
-        id: String(t.id),
-        quote: t.quote,
-        author: t.author,
-        location: t.location,
-        rating: t.rating,
-        imageA: mediaUrl(t.imageA) || null,
-        imageB: mediaUrl(t.imageB) || null,
-      })),
-      outlets: outlets.docs.map((o) => ({
-        id: String(o.id),
-        name: o.name,
-        address: o.address,
-        phone: o.phone,
-        description: o.description,
-        image: mediaUrl(o.image),
-      })),
-      gallery: gallery.docs.map((g) => ({
-        id: String(g.id),
-        image: mediaUrl(g.image),
-        alt: g.alt ?? "",
-        tags: g.tags,
-        span: g.span ?? null,
-      })),
-      blogPosts: blogPosts.docs.map(toBlogPost),
-      blogCategories: blogCategories.docs.map((c) => ({ id: String(c.id), name: c.name })),
-      singletons: {
-        hero: toHero(hero),
-        story: toStory(story),
-        footer: { social: (footer.social ?? []).map((s) => ({ label: s.platform, href: s.url })) },
-        announcement: { messages: (announcement.messages ?? []).map((m) => m.text) },
-        giftSetsBanner: giftSetsImage
-          ? {
-              eyebrow: giftSetsBanner.eyebrow ?? "",
-              heading: giftSetsBanner.heading,
-              body: giftSetsBanner.body ?? "",
-              image: giftSetsImage,
-              ctaLabel: giftSetsBanner.ctaLabel ?? "",
-              ctaHref: giftSetsBanner.ctaHref ?? "",
-            }
-          : null,
-      },
-    };
-  } catch (error) {
-    console.error("Failed to load site content", error);
-    return EMPTY_CONTENT;
-  }
+  const giftSetsImage = mediaUrl(giftSetsBanner.image);
+
+  return {
+    products: products.docs.map(toProduct),
+    categories: categories.docs.map((c) => ({
+      id: String(c.id),
+      name: c.name,
+      image: mediaUrl(c.image),
+    })),
+    testimonials: testimonials.docs.map((t) => ({
+      id: String(t.id),
+      quote: t.quote,
+      author: t.author,
+      location: t.location,
+      rating: t.rating,
+      imageA: mediaUrl(t.imageA) || null,
+      imageB: mediaUrl(t.imageB) || null,
+    })),
+    outlets: outlets.docs.map((o) => ({
+      id: String(o.id),
+      name: o.name,
+      address: o.address,
+      phone: o.phone,
+      description: o.description,
+      image: mediaUrl(o.image),
+    })),
+    gallery: gallery.docs.map((g) => ({
+      id: String(g.id),
+      image: mediaUrl(g.image),
+      alt: g.alt ?? "",
+      tags: g.tags,
+      span: g.span ?? null,
+    })),
+    blogPosts: blogPosts.docs.map(toBlogPost),
+    blogCategories: blogCategories.docs.map((c) => ({ id: String(c.id), name: c.name })),
+    singletons: {
+      hero: toHero(hero),
+      story: toStory(story),
+      footer: { social: (footer.social ?? []).map((s) => ({ label: s.platform, href: s.url })) },
+      announcement: { messages: (announcement.messages ?? []).map((m) => m.text) },
+      giftSetsBanner: giftSetsImage
+        ? {
+            eyebrow: giftSetsBanner.eyebrow ?? "",
+            heading: giftSetsBanner.heading,
+            body: giftSetsBanner.body ?? "",
+            image: giftSetsImage,
+            ctaLabel: giftSetsBanner.ctaLabel ?? "",
+            ctaHref: giftSetsBanner.ctaHref ?? "",
+          }
+        : null,
+    },
+  };
 });
 
 const isPayloadId = (id: string) => /^\d+$/.test(id);
 
 /** A single product by its id, or null when there is none — callers notFound(). */
 export const getProduct = cache(async (id: string): Promise<Product | null> => {
-  if (isBuildPhase() || !isPayloadId(id)) return null;
-  try {
-    const payload = await getClient();
-    const doc = await payload.findByID({ collection: "products", id: Number(id), depth: 1, disableErrors: true });
-    return doc ? toProduct(doc) : null;
-  } catch (error) {
-    console.error(`Failed to load product ${id}`, error);
-    return null;
-  }
+  if (!isPayloadId(id)) return null;
+  await waitForCms();
+  const doc = await cms<ProductDoc>(`products/${id}`, { depth: 1 });
+  return doc ? toProduct(doc) : null;
 });
 
 /**
@@ -263,37 +297,24 @@ export const getProduct = cache(async (id: string): Promise<Product | null> => {
  * (`/products/cm1x...`). Returns the current id so those links can redirect.
  */
 export async function getProductIdByLegacyId(legacyId: string): Promise<string | null> {
-  if (isBuildPhase() || isPayloadId(legacyId)) return null;
-  try {
-    const payload = await getClient();
-    const { docs } = await payload.find({
-      collection: "products",
-      where: { legacyId: { equals: legacyId } },
-      limit: 1,
-      depth: 0,
-      select: {},
-    });
-    return docs[0] ? String(docs[0].id) : null;
-  } catch (error) {
-    console.error(`Failed to look up legacy product ${legacyId}`, error);
-    return null;
-  }
+  if (isPayloadId(legacyId)) return null;
+  await waitForCms();
+  const { docs } = await cmsRequired<Docs<Pick<ProductDoc, "id">>>("products", {
+    "where[legacyId][equals]": legacyId,
+    limit: 1,
+    depth: 0,
+    "select[id]": "true",
+  });
+  return docs[0] ? String(docs[0].id) : null;
 }
 
 /** A single blog post by slug, or null when there is none — callers notFound(). */
 export const getBlogPost = cache(async (slug: string): Promise<BlogPost | null> => {
-  if (isBuildPhase()) return null;
-  try {
-    const payload = await getClient();
-    const { docs } = await payload.find({
-      collection: "blog-posts",
-      where: { slug: { equals: slug } },
-      limit: 1,
-      depth: 1,
-    });
-    return docs[0] ? toBlogPost(docs[0]) : null;
-  } catch (error) {
-    console.error(`Failed to load blog post ${slug}`, error);
-    return null;
-  }
+  await waitForCms();
+  const { docs } = await cmsRequired<Docs<BlogPostDoc>>("blog-posts", {
+    "where[slug][equals]": slug,
+    limit: 1,
+    depth: 1,
+  });
+  return docs[0] ? toBlogPost(docs[0]) : null;
 });
