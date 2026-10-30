@@ -143,7 +143,9 @@ function toProduct(doc: ProductDoc): Product {
   return {
     id: String(doc.id),
     name: doc.name,
-    price: doc.price,
+    // Only null on a product with sizes saved before its hook filled it in.
+    price: doc.price ?? 0,
+    salePrice: doc.salePrice ?? null,
     sizeValue: doc.sizeValue ?? null,
     sizeUnit: doc.sizeUnit ?? null,
     currency: doc.currency,
@@ -156,6 +158,14 @@ function toProduct(doc: ProductDoc): Product {
     isBestSeller: Boolean(doc.isBestSeller),
     categoryId: category ? String(category.id) : doc.category ? String(doc.category) : null,
     category: category ? { id: String(category.id), name: category.name } : null,
+    variants: (doc.variants ?? []).map((v, i) => ({
+      id: v.id ?? String(i),
+      sizeValue: v.sizeValue,
+      sizeUnit: v.sizeUnit,
+      price: v.price,
+      salePrice: v.salePrice ?? null,
+      image: mediaUrl(v.image) || null,
+    })),
   };
 }
 

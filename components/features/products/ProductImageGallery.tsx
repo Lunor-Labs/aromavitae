@@ -9,6 +9,8 @@ import { cn } from "@/lib/utils";
 interface Props {
   images: string[];
   alt: string;
+  /** Jump to this image whenever it changes, e.g. the photo of a size just picked. */
+  focus?: string;
 }
 
 const SWIPE_THRESHOLD_PX = 50;
@@ -26,7 +28,7 @@ const FRAME_SIZES = "(max-width: 1024px) 100vw, 50vw";
  * wraps endlessly, and refuses to advance onto a shot that hasn't decoded yet —
  * with arrows, thumbnails and touch swipe layered on for manual control.
  */
-export function ProductImageGallery({ images, alt }: Props) {
+export function ProductImageGallery({ images, alt, focus }: Props) {
   const list = images.filter(Boolean);
   const count = list.length;
 
@@ -45,6 +47,31 @@ export function ProductImageGallery({ images, alt }: Props) {
   const imagesKey = list.join("\n");
 
   const touchStartX = useRef<number | null>(null);
+
+  // Follow `focus` as it changes. Adjusted during render rather than in an
+  // effect, so the frame never paints a step behind.
+  const [focused, setFocused] = useState(focus);
+  if (focus !== focused) {
+    setFocused(focus);
+    const index = focus ? list.indexOf(focus) : -1;
+    if (index >= 0) {
+      setAnimated(true);
+      setTrack(index);
+    }
+  }
+
+  // The focused shot jumps the preload queue, like a clicked thumbnail does.
+  useEffect(() => {
+    if (!focus) return;
+    let cancelled = false;
+    const candidates = fillImageCandidates(focus, FRAME_SIZES);
+    preloadImage(candidates.src, candidates).then(() => {
+      if (!cancelled) setReady((prev) => (prev.has(focus) ? prev : new Set(prev).add(focus)));
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [focus]);
 
   // Pull every shot into cache up front, so arrows and thumbnails respond
   // immediately instead of starting a download on click. Strictly one at a
