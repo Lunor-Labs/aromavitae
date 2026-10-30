@@ -1,6 +1,10 @@
+"use client";
+
+import { useState } from "react";
 import { ProductImageGallery } from "@/components/features/products/ProductImageGallery";
+import { Price } from "@/components/ui/Price";
 import type { Product } from "@/types/product";
-import { formatSize } from "@/lib/utils";
+import { cn, formatSize } from "@/lib/utils";
 
 interface Props {
   product: Product;
@@ -10,7 +14,16 @@ export function ProductDetail({ product }: Props) {
   const tags = product.tags.filter(
     (tag) => !(product.isBestSeller && tag.trim().toLowerCase() === "best seller")
   );
-  const size = formatSize(product);
+  const { variants } = product;
+  // Null until the customer picks a size: the price shows the first size, but
+  // the gallery stays on the main shot rather than opening on one bottle.
+  const [picked, setPicked] = useState<number | null>(null);
+  const variant = variants[picked ?? 0];
+  const size = variants.length > 0 ? null : formatSize(product);
+
+  // Every size's photo is in the gallery, so each one can also be browsed to.
+  const images = [product.image, ...(product.sideImages ?? [])];
+  for (const v of variants) if (v.image && !images.includes(v.image)) images.push(v.image);
 
   return (
     <section className="py-16 md:py-24 bg-warm-white reveal">
@@ -18,8 +31,9 @@ export function ProductDetail({ product }: Props) {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 lg:gap-16">
           {/* Images */}
           <ProductImageGallery
-            images={[product.image, ...(product.sideImages ?? [])]}
+            images={images}
             alt={product.name}
+            focus={picked == null ? undefined : (variant.image ?? undefined)}
           />
 
           {/* Info */}
@@ -72,9 +86,42 @@ export function ProductDetail({ product }: Props) {
               </span>
             </div>
 
-            <p className="text-2xl font-bold text-charcoal mb-8">
-              {product.currency} {product.price.toLocaleString()}
-            </p>
+            <Price
+              currency={product.currency}
+              price={variant?.price ?? product.price}
+              salePrice={variant ? variant.salePrice : product.salePrice}
+              size="lg"
+              className={variants.length > 0 ? "mb-6" : "mb-8"}
+            />
+
+            {variants.length > 0 && (
+              <div className="mb-8">
+                <h2 className="text-xs font-medium tracking-[0.2em] text-charcoal uppercase mb-3">
+                  Size
+                </h2>
+                <div className="flex flex-wrap gap-2" role="group" aria-label="Size">
+                  {variants.map((v, i) => {
+                    const selected = v === variant;
+                    return (
+                      <button
+                        key={v.id}
+                        type="button"
+                        aria-pressed={selected}
+                        onClick={() => setPicked(i)}
+                        className={cn(
+                          "min-w-16 px-4 py-2 border rounded text-sm font-medium transition-colors duration-200",
+                          selected
+                            ? "bg-forest border-forest text-warm-white"
+                            : "border-border text-charcoal hover:border-forest hover:text-forest"
+                        )}
+                      >
+                        {formatSize(v)}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
 
             {product.description && (
               <div className="border-t border-border pt-6">

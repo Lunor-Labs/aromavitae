@@ -2,10 +2,23 @@
 export const SIZE_UNITS = ["ml", "g", "kg", "pcs"] as const;
 export type SizeUnit = (typeof SIZE_UNITS)[number];
 
+/** One size of a product, with its own price and photo. */
+export interface ProductVariant {
+  id: string;
+  sizeValue: number;
+  sizeUnit: SizeUnit;
+  price: number;
+  salePrice?: number | null;
+  image?: string | null;
+}
+
 export interface Product {
   id: string;
   name: string;
+  /** With variants, the cheapest size's price — the "From" price. */
   price: number;
+  /** Discounted price, shown with `price` struck through. */
+  salePrice?: number | null;
   /** Volume/weight amount, paired with sizeUnit. Null on products created before sizes existed. */
   sizeValue?: number | null;
   sizeUnit?: SizeUnit | null;
@@ -19,6 +32,8 @@ export interface Product {
   isBestSeller: boolean;
   categoryId?: string | null;
   category?: { id: string; name: string } | null;
+  /** Empty for a single-size product. The first one is the default pick. */
+  variants: ProductVariant[];
 }
 
 export interface Category {

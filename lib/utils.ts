@@ -13,6 +13,17 @@ export function slugify(text: string): string {
     .replace(/^-+|-+$/g, "");
 }
 
+/** "LKR 5,300" */
+export function formatPrice(currency: string, amount: number): string {
+  return `${currency} ${amount.toLocaleString()}`;
+}
+
+/** 7,575 → 5,300 is 30 (percent off), or null when there is no discount. */
+export function percentOff(price: number, salePrice?: number | null): number | null {
+  if (salePrice == null || price <= 0 || salePrice >= price) return null;
+  return Math.round(((price - salePrice) / price) * 100);
+}
+
 /** "3ml", "100g", "1kg", "12 pcs" — or null when the product has no size yet. */
 export function formatSize(product: Pick<Product, "sizeValue" | "sizeUnit">): string | null {
   const { sizeValue, sizeUnit } = product;

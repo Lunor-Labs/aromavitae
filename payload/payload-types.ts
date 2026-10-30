@@ -156,13 +156,42 @@ export interface Product {
   /**
    * Whole amount, no cents.
    */
-  price: number;
+  price?: number | null;
+  /**
+   * Optional. Shown with the price struck through.
+   */
+  salePrice?: number | null;
   currency: string;
   /**
    * Volume or weight, e.g. 100 for 100g.
    */
   sizeValue?: number | null;
   sizeUnit?: ('ml' | 'g' | 'kg' | 'pcs') | null;
+  /**
+   * Leave empty for a single-size product. The first size is selected by default on the product page.
+   */
+  variants?:
+    | {
+        /**
+         * Volume or weight, e.g. 100 for 100g.
+         */
+        sizeValue: number;
+        sizeUnit: 'ml' | 'g' | 'kg' | 'pcs';
+        /**
+         * Whole amount, no cents.
+         */
+        price: number;
+        /**
+         * Optional.
+         */
+        salePrice?: number | null;
+        /**
+         * Optional. Shown when this size is picked.
+         */
+        image?: (number | null) | Media;
+        id?: string | null;
+      }[]
+    | null;
   category?: (number | null) | Category;
   image: number | Media;
   sideImages?: (number | Media)[] | null;
@@ -175,20 +204,6 @@ export interface Product {
    * ID from the old admin. Old /products/<id> links redirect here through it.
    */
   legacyId?: string | null;
-  updatedAt: string;
-  createdAt: string;
-}
-/**
- * Drag rows to change the order categories appear on the site.
- *
- * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "categories".
- */
-export interface Category {
-  id: number;
-  _order?: string | null;
-  name: string;
-  image: number | Media;
   updatedAt: string;
   createdAt: string;
 }
@@ -225,6 +240,20 @@ export interface Media {
       filename?: string | null;
     };
   };
+}
+/**
+ * Drag rows to change the order categories appear on the site.
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "categories".
+ */
+export interface Category {
+  id: number;
+  _order?: string | null;
+  name: string;
+  image: number | Media;
+  updatedAt: string;
+  createdAt: string;
 }
 /**
  * Drag rows to change the order pictures appear in the gallery.
@@ -465,9 +494,20 @@ export interface ProductsSelect<T extends boolean = true> {
   _order?: T;
   name?: T;
   price?: T;
+  salePrice?: T;
   currency?: T;
   sizeValue?: T;
   sizeUnit?: T;
+  variants?:
+    | T
+    | {
+        sizeValue?: T;
+        sizeUnit?: T;
+        price?: T;
+        salePrice?: T;
+        image?: T;
+        id?: T;
+      };
   category?: T;
   image?: T;
   sideImages?: T;

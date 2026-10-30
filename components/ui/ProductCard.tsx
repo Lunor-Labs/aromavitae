@@ -1,14 +1,24 @@
 import Link from "next/link";
+import { Price } from "@/components/ui/Price";
 import { RotatingImage } from "@/components/ui/RotatingImage";
 import type { Product } from "@/types/product";
-import { formatSize } from "@/lib/utils";
+import { formatSize, percentOff } from "@/lib/utils";
 
 interface ProductCardProps {
   product: Product;
 }
 
 export function ProductCard({ product }: ProductCardProps) {
-  const size = formatSize(product);
+  const hasSizes = product.variants.length > 0;
+  // "10ml / 30ml / 50ml" under the name when the product comes in several sizes.
+  const size = hasSizes
+    ? product.variants.map(formatSize).filter(Boolean).join(" / ")
+    : formatSize(product);
+  const offs = (hasSizes ? product.variants : [product]).map(
+    (p) => percentOff(p.price, p.salePrice) ?? 0
+  );
+  const off = Math.max(...offs);
+  const offLabel = offs.every((o) => o === off) ? `${off}% off` : `Up to ${off}% off`;
 
   return (
     <div className="group bg-warm-white border border-border rounded-lg overflow-hidden
@@ -21,11 +31,18 @@ export function ProductCard({ product }: ProductCardProps) {
           className="object-cover group-hover:scale-105 transition-transform duration-500"
           sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 20vw"
         />
-        {product.isBestSeller && (
-          <div className="absolute top-3 left-3 z-10">
-            <span className="bg-gold text-warm-white text-[10px] font-bold tracking-[0.15em] px-3 py-1 rounded-sm uppercase">
-              Best Seller
-            </span>
+        {(product.isBestSeller || off > 0) && (
+          <div className="absolute top-3 left-3 z-10 flex flex-wrap gap-1.5">
+            {product.isBestSeller && (
+              <span className="bg-gold text-warm-white text-[10px] font-bold tracking-[0.15em] px-3 py-1 rounded-sm uppercase">
+                Best Seller
+              </span>
+            )}
+            {off > 0 && (
+              <span className="bg-forest text-warm-white text-[10px] font-bold tracking-[0.15em] px-3 py-1 rounded-sm uppercase">
+                {offLabel}
+              </span>
+            )}
           </div>
         )}
       </Link>
@@ -57,9 +74,13 @@ export function ProductCard({ product }: ProductCardProps) {
         </div>
 
         {/* Price */}
-        <p className="text-sm font-bold text-charcoal mb-3">
-          {product.currency} {product.price.toLocaleString()}
-        </p>
+        <Price
+          currency={product.currency}
+          price={product.price}
+          salePrice={product.salePrice}
+          from={hasSizes}
+          className="mb-3"
+        />
 
         {/* Add to Cart */}
         <button
