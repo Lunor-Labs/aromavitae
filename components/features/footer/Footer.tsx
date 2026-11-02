@@ -1,10 +1,11 @@
 import Image from "next/image";
 import Link from "next/link";
 import type { FooterContent } from "@/types/content";
-import { BRAND_DESCRIPTION, BRAND_NAME, CONTACT, COPYRIGHT } from "@/lib/site";
+import { BRAND_DESCRIPTION, BRAND_NAME, COPYRIGHT, type ContactDetails } from "@/lib/site";
 
 interface Props {
   content: FooterContent;
+  contact: ContactDetails;
 }
 
 const QUICK_LINKS = [
@@ -74,7 +75,7 @@ function normalizeSocialUrl(href: string, platform: string): string {
   return `https://${trimmed}`;
 }
 
-export function Footer({ content }: Props) {
+export function Footer({ content, contact }: Props) {
   const socials = (content.social ?? []).filter((s) => s.href && s.href.trim() !== "");
 
   return (
@@ -144,7 +145,7 @@ export function Footer({ content }: Props) {
             </h3>
             <ul className="space-y-3 text-xs text-warm-white/60">
               <li>
-                {CONTACT.phones.map((phone, i) => (
+                {contact.phones.map((phone, i) => (
                   <a
                     key={phone.tel}
                     href={`tel:${phone.tel}`}
@@ -163,19 +164,19 @@ export function Footer({ content }: Props) {
 
               <li>
                 <a
-                  href={`mailto:${CONTACT.email}`}
+                  href={`mailto:${contact.email}`}
                   className="hover:text-gold transition-colors duration-200 break-all"
                 >
                   <svg className={ICON_CLASS} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
                   </svg>
-                  {CONTACT.email}
+                  {contact.email}
                 </a>
               </li>
 
               <li>
                 <address className="not-italic">
-                  {CONTACT.addressLines.map((line, i) => (
+                  {contact.addressLines.map((line, i) => (
                     <span key={line} className="block">
                       {i === 0 && (
                         <svg className={ICON_CLASS} fill="none" stroke="currentColor" viewBox="0 0 24 24">

@@ -3,7 +3,8 @@ import Image from "next/image";
 import { PageHero } from "@/components/ui/PageHero";
 import { ScrollRevealWrapper } from "@/components/ui/ScrollRevealWrapper";
 import { ContactForm } from "@/components/features/contact/ContactForm";
-import { BRAND_NAME, CONTACT } from "@/lib/site";
+import { BRAND_NAME, type ContactDetails } from "@/lib/site";
+import { getContent } from "@/lib/content";
 
 export const metadata: Metadata = {
   title: "Contact Us — Get in Touch",
@@ -27,7 +28,7 @@ interface ContactLine {
   href?: string;
 }
 
-const CONTACT_INFO: { icon: React.ReactNode; title: string; lines: ContactLine[] }[] = [
+const contactInfo = (contact: ContactDetails): { icon: React.ReactNode; title: string; lines: ContactLine[] }[] => [
   {
     icon: (
       <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -40,7 +41,7 @@ const CONTACT_INFO: { icon: React.ReactNode; title: string; lines: ContactLine[]
       </svg>
     ),
     title: "Phone",
-    lines: CONTACT.phones.map((phone) => ({
+    lines: contact.phones.map((phone) => ({
       text: phone.whatsapp ? `${phone.label} (WhatsApp)` : phone.label,
       href: `tel:${phone.tel}`,
     })),
@@ -57,7 +58,7 @@ const CONTACT_INFO: { icon: React.ReactNode; title: string; lines: ContactLine[]
       </svg>
     ),
     title: "Email",
-    lines: [{ text: CONTACT.email, href: `mailto:${CONTACT.email}` }],
+    lines: [{ text: contact.email, href: `mailto:${contact.email}` }],
   },
   {
     icon: (
@@ -78,7 +79,7 @@ const CONTACT_INFO: { icon: React.ReactNode; title: string; lines: ContactLine[]
     ),
     title: "Location",
     lines: [
-      ...CONTACT.addressLines.map((text) => ({ text })),
+      ...contact.addressLines.map((text) => ({ text })),
       { text: "Worldwide Shipping Available" },
     ],
   },
@@ -90,7 +91,9 @@ const BUSINESS_HOURS = [
   { day: "Sunday", hours: "Closed" },
 ];
 
-export default function ContactPage() {
+export default async function ContactPage() {
+  const { singletons } = await getContent();
+
   return (
     <>
       <PageHero
@@ -108,7 +111,7 @@ export default function ContactPage() {
         <section className="py-16 md:py-24 bg-warm-white reveal">
           <div className="max-w-[1400px] mx-auto px-6">
             <div className="grid md:grid-cols-3 gap-6 mb-16">
-              {CONTACT_INFO.map((info) => (
+              {contactInfo(singletons.contact).map((info) => (
                 <div
                   key={info.title}
                   className="bg-cream border border-border rounded-lg p-8 text-center

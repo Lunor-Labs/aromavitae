@@ -18,7 +18,7 @@ export const Footer: GlobalConfig = {
   access: { read: anyone },
   admin: {
     group: "Site",
-    description: "The social media icons in the footer. Contact details and links are fixed in the code.",
+    description: "The social media icons in the footer. Phone numbers, email and address are under Contact Details.",
   },
   fields: [
     {

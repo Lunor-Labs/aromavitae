@@ -20,6 +20,7 @@ import { Story } from "./globals/Story";
 import { GiftSetsBanner } from "./globals/GiftSetsBanner";
 import { Announcement } from "./globals/Announcement";
 import { Footer } from "./globals/Footer";
+import { ContactDetails } from "./globals/ContactDetails";
 import { migrations } from "./migrations";
 
 const dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -49,7 +50,7 @@ export default buildConfig({
     Media,
     Users,
   ],
-  globals: [Hero, Story, GiftSetsBanner, Announcement, Footer],
+  globals: [Hero, Story, GiftSetsBanner, Announcement, Footer, ContactDetails],
   editor: lexicalEditor(),
   sharp,
   secret: process.env.PAYLOAD_SECRET ?? "",

@@ -6,6 +6,7 @@ import type {
   BlogCategory as BlogCategoryDoc,
   BlogPost as BlogPostDoc,
   Category as CategoryDoc,
+  ContactDetail as ContactDetailsDoc,
   Footer as FooterDoc,
   GalleryImage as GalleryImageDoc,
   GiftSetsBanner as GiftSetsBannerDoc,
@@ -18,6 +19,7 @@ import type {
 } from "@/payload/payload-types";
 import type { ContentPayload, HeroContent, HeroSlide, ImageAsset, StoryContent } from "@/types/content";
 import type { BlogPost, Product } from "@/types/product";
+import { CONTACT, type ContactDetails } from "@/lib/site";
 
 /**
  * The site's read side. Everything is read from Payload's REST API — on Vercel
@@ -211,6 +213,19 @@ function toStory(doc: StoryDoc): StoryContent {
   };
 }
 
+/** Each part left empty in the admin (or the whole global, before it exists) shows the usual details. */
+function toContact(doc: ContactDetailsDoc | null): ContactDetails {
+  const phones = (doc?.phones ?? [])
+    .map((p) => ({ label: p.number.trim(), tel: p.number.replace(/[^\d+]/g, ""), whatsapp: Boolean(p.whatsapp) }))
+    .filter((p) => p.tel);
+  const addressLines = (doc?.address ?? "").split("\n").map((line) => line.trim()).filter(Boolean);
+  return {
+    phones: phones.length > 0 ? phones : CONTACT.phones,
+    email: doc?.email?.trim() || CONTACT.email,
+    addressLines: addressLines.length > 0 ? addressLines : CONTACT.addressLines,
+  };
+}
+
 /**
  * Everything the layout and pages render. Wrapped in `cache` so the layout and
  * the page share one round of requests per render.
@@ -230,12 +245,14 @@ export const getContent = cache(async (): Promise<ContentPayload> => {
       cmsRequired<Docs<BlogCategoryDoc>>("blog-categories", all),
     ]);
 
-  const [hero, story, footer, announcement, giftSetsBanner] = await Promise.all([
+  const [hero, story, footer, announcement, giftSetsBanner, contact] = await Promise.all([
     cmsRequired<HeroDoc>("globals/hero", { depth: 1 }),
     cmsRequired<StoryDoc>("globals/story"),
     cmsRequired<FooterDoc>("globals/footer"),
     cmsRequired<AnnouncementDoc>("globals/announcement"),
     cmsRequired<GiftSetsBannerDoc>("globals/gift-sets-banner", { depth: 1 }),
+    // Not required: a site deployed ahead of the CMS that adds it still renders
+    cms<ContactDetailsDoc>("globals/contact-details"),
   ]);
 
   const giftSetsImage = mediaUrl(giftSetsBanner.image);
@@ -278,6 +295,7 @@ export const getContent = cache(async (): Promise<ContentPayload> => {
       story: toStory(story),
       footer: { social: (footer.social ?? []).map((s) => ({ label: s.platform, href: s.url })) },
       announcement: { messages: (announcement.messages ?? []).map((m) => m.text) },
+      contact: toContact(contact),
       giftSetsBanner: giftSetsImage
         ? {
             eyebrow: giftSetsBanner.eyebrow ?? "",

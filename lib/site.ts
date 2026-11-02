@@ -3,9 +3,11 @@
  *
  * The footer used to read contact info from the `footer` singleton (DB), while
  * the Contact page hardcoded its own — the two drifted apart. Both now read
- * from here.
+ * the Contact Details global (lib/content.ts), and `CONTACT` here fills in
+ * whatever it leaves empty.
  */
 
+export const SITE_URL = "https://www.ceylonaromavitae.lk";
 export const BRAND_NAME = "AROMAVITAE";
 export const LEGAL_NAME = "Ceylon AROMAVITAE (Pvt) Ltd";
 export const BRAND_TAGLINE = "NATURE'S FINEST · CEYLON'S PRIDE";
@@ -18,11 +20,13 @@ export interface ContactPhone {
   whatsapp?: boolean;
 }
 
-export const CONTACT: {
+export interface ContactDetails {
   phones: ContactPhone[];
   email: string;
   addressLines: string[];
-} = {
+}
+
+export const CONTACT: ContactDetails = {
   phones: [
     { label: "+94 74 027 0258", tel: "+94740270258" },
     { label: "+94 77 602 8676", tel: "+94776028676", whatsapp: true },

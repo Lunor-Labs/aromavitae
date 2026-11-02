@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { Price } from "@/components/ui/Price";
 import { RotatingImage } from "@/components/ui/RotatingImage";
+import { WhatsAppOrderButton } from "@/components/ui/WhatsAppOrderButton";
 import type { Product } from "@/types/product";
 import { formatSize, percentOff } from "@/lib/utils";
 
@@ -82,13 +83,9 @@ export function ProductCard({ product }: ProductCardProps) {
           className="mb-3"
         />
 
-        {/* Add to Cart */}
-        <button
-          className="w-full py-2.5 bg-forest text-warm-white text-xs font-medium tracking-[0.15em]
-                     hover:bg-forest-light transition-colors duration-200 rounded"
-        >
-          ADD TO CART
-        </button>
+        <WhatsAppOrderButton product={product} className="w-full py-2.5 text-xs">
+          Order Now
+        </WhatsAppOrderButton>
       </div>
     </div>
   );

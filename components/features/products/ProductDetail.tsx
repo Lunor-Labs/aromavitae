@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { ProductImageGallery } from "@/components/features/products/ProductImageGallery";
 import { Price } from "@/components/ui/Price";
+import { WhatsAppOrderButton } from "@/components/ui/WhatsAppOrderButton";
 import type { Product } from "@/types/product";
 import { cn, formatSize } from "@/lib/utils";
 
@@ -122,6 +123,14 @@ export function ProductDetail({ product }: Props) {
                 </div>
               </div>
             )}
+
+            <WhatsAppOrderButton
+              product={product}
+              variant={variant}
+              className="w-full sm:w-auto sm:inline-flex px-10 py-3.5 text-sm mb-8"
+            >
+              Order on WhatsApp
+            </WhatsAppOrderButton>
 
             {product.description && (
               <div className="border-t border-border pt-6">
