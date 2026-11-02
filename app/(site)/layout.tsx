@@ -5,6 +5,9 @@ import { AnnouncementBar } from "@/components/ui/AnnouncementBar";
 import { Navbar } from "@/components/features/navbar/Navbar";
 import { Footer } from "@/components/features/footer/Footer";
 import { getContent } from "@/lib/content";
+import { SITE_URL } from "@/lib/site";
+import { whatsappNumber } from "@/lib/whatsapp";
+import { WhatsAppNumberProvider } from "@/components/ui/WhatsAppOrderButton";
 
 const playfair = Playfair_Display({
   variable: "--font-playfair",
@@ -21,7 +24,7 @@ const ubuntu = Ubuntu({
 });
 
 export const metadata: Metadata = {
-  metadataBase: new URL("https://www.ceylonaromavitae.lk"),
+  metadataBase: new URL(SITE_URL),
   title: {
     default: "AROMAVITAE — Premium Sri Lankan Spices & Agarwood Perfumes",
     template: "%s | AROMAVITAE",
@@ -64,8 +67,10 @@ export default async function SiteLayout({
           <AnnouncementBar content={singletons.announcement} />
         )}
         <Navbar />
-        <main className="flex-1">{children}</main>
-        <Footer content={singletons.footer} />
+        <WhatsAppNumberProvider number={whatsappNumber(singletons.contact)}>
+          <main className="flex-1">{children}</main>
+        </WhatsAppNumberProvider>
+        <Footer content={singletons.footer} contact={singletons.contact} />
       </body>
     </html>
   );

@@ -107,6 +107,7 @@ export interface Config {
     'gift-sets-banner': GiftSetsBanner;
     announcement: Announcement;
     footer: Footer;
+    'contact-details': ContactDetail;
   };
   globalsSelect: {
     hero: HeroSelect<false> | HeroSelect<true>;
@@ -114,6 +115,7 @@ export interface Config {
     'gift-sets-banner': GiftSetsBannerSelect<false> | GiftSetsBannerSelect<true>;
     announcement: AnnouncementSelect<false> | AnnouncementSelect<true>;
     footer: FooterSelect<false> | FooterSelect<true>;
+    'contact-details': ContactDetailsSelect<false> | ContactDetailsSelect<true>;
   };
   locale: null;
   widgets: {
@@ -816,7 +818,7 @@ export interface Announcement {
   createdAt?: string | null;
 }
 /**
- * The social media icons in the footer. Contact details and links are fixed in the code.
+ * The social media icons in the footer. Phone numbers, email and address are under Contact Details.
  *
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "footer".
@@ -833,6 +835,38 @@ export interface Footer {
         id?: string | null;
       }[]
     | null;
+  updatedAt?: string | null;
+  createdAt?: string | null;
+}
+/**
+ * The phone numbers, email and address in the footer and on the Contact page. Anything left empty shows the shop's usual details.
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "contact-details".
+ */
+export interface ContactDetail {
+  id: number;
+  /**
+   * Leave empty to show the usual numbers.
+   */
+  phones?:
+    | {
+        /**
+         * With the country code, e.g. +94 77 602 8676
+         */
+        number: string;
+        /**
+         * The first number ticked gets the orders from the Order buttons.
+         */
+        whatsapp?: boolean | null;
+        id?: string | null;
+      }[]
+    | null;
+  email?: string | null;
+  /**
+   * One line per row, as it should appear on the site.
+   */
+  address?: string | null;
   updatedAt?: string | null;
   createdAt?: string | null;
 }
@@ -943,6 +977,24 @@ export interface FooterSelect<T extends boolean = true> {
         url?: T;
         id?: T;
       };
+  updatedAt?: T;
+  createdAt?: T;
+  globalType?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "contact-details_select".
+ */
+export interface ContactDetailsSelect<T extends boolean = true> {
+  phones?:
+    | T
+    | {
+        number?: T;
+        whatsapp?: T;
+        id?: T;
+      };
+  email?: T;
+  address?: T;
   updatedAt?: T;
   createdAt?: T;
   globalType?: T;

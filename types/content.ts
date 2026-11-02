@@ -1,3 +1,4 @@
+import type { ContactDetails } from "@/lib/site";
 import type { BlogCategory, BlogPost, Category, GalleryImage, Outlet, Product, Testimonial } from "./product";
 
 export interface CtaLink {
@@ -78,6 +79,7 @@ export interface ContentPayload {
     story: StoryContent;
     footer: FooterContent;
     announcement: AnnouncementContent;
+    contact: ContactDetails;
     /** Null until a banner with an image has been saved in the admin. */
     giftSetsBanner: GiftSetsBannerContent | null;
   };
