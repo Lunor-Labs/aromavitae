@@ -160,7 +160,7 @@ export default async function ContactPage() {
                 <h2 className="font-heading text-3xl md:text-4xl font-bold text-charcoal mb-8">
                   Get in Touch
                 </h2>
-                <ContactForm />
+                <ContactForm email={singletons.contact.email} />
               </div>
 
               {/* Sidebar */}
