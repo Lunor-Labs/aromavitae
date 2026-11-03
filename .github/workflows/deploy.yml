@@ -83,5 +83,6 @@ jobs:
           vercel deploy --prod \
             --build-env CMS_URL="${{ vars.CMS_URL }}" \
             --build-env NEXT_PUBLIC_ASSET_BASE_URL="${{ vars.NEXT_PUBLIC_ASSET_BASE_URL }}" \
+            --build-env NEXT_PUBLIC_WEB3FORMS_ACCESS_KEY="${{ vars.NEXT_PUBLIC_WEB3FORMS_ACCESS_KEY }}" \
             --env CMS_URL="${{ vars.CMS_URL }}" \
             --token=${{ secrets.VERCEL_TOKEN }}
