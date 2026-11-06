@@ -156,13 +156,17 @@ export interface Product {
   _order?: string | null;
   name: string;
   /**
-   * Whole amount, no cents.
+   * Whole amount, no cents. With a range, the lowest price.
    */
   price?: number | null;
   /**
    * Optional. Shown with the price struck through.
    */
   salePrice?: number | null;
+  /**
+   * Optional. Shows a range, e.g. LKR 18,000–24,000, with no discount badge.
+   */
+  priceMax?: number | null;
   currency: string;
   /**
    * Volume or weight, e.g. 100 for 100g.
@@ -197,6 +201,17 @@ export interface Product {
   category?: (number | null) | Category;
   image: number | Media;
   sideImages?: (number | Media)[] | null;
+  /**
+   * Optional. One line under the name on the product page.
+   */
+  tagline?: string | null;
+  /**
+   * Optional. One or two sentences under the name on product cards.
+   */
+  cardText?: string | null;
+  /**
+   * The full text on the product page.
+   */
   description?: string | null;
   tags?: string[] | null;
   rating: number;
@@ -254,6 +269,22 @@ export interface Category {
   _order?: string | null;
   name: string;
   image: number | Media;
+  /**
+   * The section heading. Without it, the category name is the heading.
+   */
+  headline?: string | null;
+  /**
+   * A paragraph under the heading.
+   */
+  intro?: string | null;
+  /**
+   * A short gold line under the paragraph, e.g. MAYURA | THISARA | KOKILA | LIHINI.
+   */
+  highlight?: string | null;
+  /**
+   * A small closing line.
+   */
+  signoff?: string | null;
   updatedAt: string;
   createdAt: string;
 }
@@ -497,6 +528,7 @@ export interface ProductsSelect<T extends boolean = true> {
   name?: T;
   price?: T;
   salePrice?: T;
+  priceMax?: T;
   currency?: T;
   sizeValue?: T;
   sizeUnit?: T;
@@ -513,6 +545,8 @@ export interface ProductsSelect<T extends boolean = true> {
   category?: T;
   image?: T;
   sideImages?: T;
+  tagline?: T;
+  cardText?: T;
   description?: T;
   tags?: T;
   rating?: T;
@@ -530,6 +564,10 @@ export interface CategoriesSelect<T extends boolean = true> {
   _order?: T;
   name?: T;
   image?: T;
+  headline?: T;
+  intro?: T;
+  highlight?: T;
+  signoff?: T;
   updatedAt?: T;
   createdAt?: T;
 }

@@ -63,9 +63,12 @@ export function ProductDetail({ product }: Props) {
               </p>
             )}
 
-            <h1 className={`font-heading text-3xl md:text-4xl font-bold text-charcoal leading-tight ${size ? "mb-2" : "mb-4"}`}>
+            <h1 className={`font-heading text-3xl md:text-4xl font-bold text-charcoal leading-tight ${size || product.tagline ? "mb-2" : "mb-4"}`}>
               {product.name}
             </h1>
+            {product.tagline && (
+              <p className={`font-heading text-lg italic text-forest ${size ? "mb-1" : "mb-4"}`}>{product.tagline}</p>
+            )}
             {size && <p className="text-base text-muted mb-4">{size}</p>}
 
             {/* Rating */}
@@ -91,6 +94,7 @@ export function ProductDetail({ product }: Props) {
               currency={product.currency}
               price={variant?.price ?? product.price}
               salePrice={variant ? variant.salePrice : product.salePrice}
+              priceMax={variant ? null : product.priceMax}
               size="lg"
               className={variants.length > 0 ? "mb-6" : "mb-8"}
             />

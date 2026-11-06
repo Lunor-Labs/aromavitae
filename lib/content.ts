@@ -148,6 +148,7 @@ function toProduct(doc: ProductDoc): Product {
     // Only null on a product with sizes saved before its hook filled it in.
     price: doc.price ?? 0,
     salePrice: doc.salePrice ?? null,
+    priceMax: doc.priceMax ?? null,
     sizeValue: doc.sizeValue ?? null,
     sizeUnit: doc.sizeUnit ?? null,
     currency: doc.currency,
@@ -155,6 +156,8 @@ function toProduct(doc: ProductDoc): Product {
     reviewCount: doc.reviewCount,
     image: mediaUrl(doc.image),
     sideImages: (doc.sideImages ?? []).map(mediaUrl).filter(Boolean),
+    tagline: doc.tagline ?? null,
+    cardText: doc.cardText ?? null,
     description: doc.description ?? null,
     tags: doc.tags ?? [],
     isBestSeller: Boolean(doc.isBestSeller),
@@ -263,6 +266,10 @@ export const getContent = cache(async (): Promise<ContentPayload> => {
       id: String(c.id),
       name: c.name,
       image: mediaUrl(c.image),
+      headline: c.headline ?? null,
+      intro: c.intro ?? null,
+      highlight: c.highlight ?? null,
+      signoff: c.signoff ?? null,
     })),
     testimonials: testimonials.docs.map((t) => ({
       id: String(t.id),

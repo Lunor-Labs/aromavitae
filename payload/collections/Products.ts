@@ -3,7 +3,7 @@ import { anyone } from "../access";
 import { SIZE_UNITS } from "../../types/product";
 
 type Sizes = { sizeValue?: number | null; sizeUnit?: string | null };
-type Prices = { price?: number | null; salePrice?: number | null };
+type Prices = { price?: number | null; salePrice?: number | null; priceMax?: number | null };
 type Variant = Prices & Sizes;
 
 const wholeNumber = (label: string) => (value: number | null | undefined) =>
@@ -18,6 +18,15 @@ const salePrice = (value: number | null | undefined, { siblingData }: { siblingD
     value < siblingData.price ||
     "Sale price must be lower than the price."
   );
+};
+
+/** The top of a price range: above the price, and never alongside a sale price. */
+const priceMax = (value: number | null | undefined, { siblingData }: { siblingData: Prices }) => {
+  const whole = wholeNumber("Price up to")(value);
+  if (whole !== true) return whole;
+  if (value == null) return true;
+  if (siblingData.salePrice != null) return "A price range can't have a sale price. Clear one of them.";
+  return siblingData.price == null || value > siblingData.price || "Must be higher than the price.";
 };
 
 const hasVariants = (data: Partial<{ variants: unknown[] | null }> | undefined) =>
@@ -71,6 +80,7 @@ const priceFromVariants: CollectionBeforeValidateHook = ({ data }) => {
     ...data,
     price: cheapest.price,
     salePrice: cheapest.salePrice ?? null,
+    priceMax: null,
     sizeValue: null,
     sizeUnit: null,
   };
@@ -100,8 +110,8 @@ export const Products: CollectionConfig = {
           min: 0,
           admin: {
             step: 1,
-            width: "33%",
-            description: "Whole amount, no cents.",
+            width: "25%",
+            description: "Whole amount, no cents. With a range, the lowest price.",
             condition: (data) => !hasVariants(data),
           },
           validate: wholeNumber("Price"),
@@ -113,11 +123,24 @@ export const Products: CollectionConfig = {
           min: 0,
           admin: {
             step: 1,
-            width: "33%",
+            width: "25%",
             description: "Optional. Shown with the price struck through.",
             condition: (data) => !hasVariants(data),
           },
           validate: salePrice,
+        },
+        {
+          name: "priceMax",
+          label: "Price up to",
+          type: "number",
+          min: 0,
+          admin: {
+            step: 1,
+            width: "25%",
+            description: "Optional. Shows a range, e.g. LKR 18,000–24,000, with no discount badge.",
+            condition: (data) => !hasVariants(data),
+          },
+          validate: priceMax,
         },
         {
           name: "currency",
@@ -125,7 +148,7 @@ export const Products: CollectionConfig = {
           required: true,
           defaultValue: "LKR",
           maxLength: 8,
-          admin: { width: "33%" },
+          admin: { width: "25%" },
         },
       ],
     },
@@ -184,7 +207,25 @@ export const Products: CollectionConfig = {
       hasMany: true,
       maxRows: 10,
     },
-    { name: "description", type: "textarea", maxLength: 5000 },
+    {
+      name: "tagline",
+      type: "text",
+      maxLength: 200,
+      admin: { description: "Optional. One line under the name on the product page." },
+    },
+    {
+      name: "cardText",
+      label: "Card text",
+      type: "textarea",
+      maxLength: 300,
+      admin: { description: "Optional. One or two sentences under the name on product cards." },
+    },
+    {
+      name: "description",
+      type: "textarea",
+      maxLength: 5000,
+      admin: { description: "The full text on the product page." },
+    },
     { name: "tags", type: "text", hasMany: true, maxRows: 10 },
     {
       type: "row",

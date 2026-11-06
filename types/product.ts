@@ -19,6 +19,8 @@ export interface Product {
   price: number;
   /** Discounted price, shown with `price` struck through. */
   salePrice?: number | null;
+  /** Top of a price range ("LKR 18,000–24,000"); `price` is the bottom. Never with a sale price. */
+  priceMax?: number | null;
   /** Volume/weight amount, paired with sizeUnit. Null on products created before sizes existed. */
   sizeValue?: number | null;
   sizeUnit?: SizeUnit | null;
@@ -27,6 +29,10 @@ export interface Product {
   reviewCount: number;
   image: string;
   sideImages: string[];
+  /** One line under the name on the product page. */
+  tagline?: string | null;
+  /** A sentence or two on product cards. */
+  cardText?: string | null;
   description?: string | null;
   tags: string[];
   isBestSeller: boolean;
@@ -40,6 +46,11 @@ export interface Category {
   id: string;
   name: string;
   image: string;
+  /** The products page section: heading (else the name), paragraph, gold line, closing line. */
+  headline?: string | null;
+  intro?: string | null;
+  highlight?: string | null;
+  signoff?: string | null;
 }
 
 export interface GalleryImage {

@@ -62,6 +62,9 @@ export default async function ProductDetailPage({
         breadcrumbs={[
           { label: "Home", href: "/" },
           { label: "Products", href: "/products" },
+          ...(product.category
+            ? [{ label: product.category.name, href: `/products?category=${product.category.id}` }]
+            : []),
           { label: product.name },
         ]}
       />

@@ -22,7 +22,7 @@ export function ProductCard({ product }: ProductCardProps) {
   const offLabel = offs.every((o) => o === off) ? `${off}% off` : `Up to ${off}% off`;
 
   return (
-    <div className="group bg-warm-white border border-border rounded-lg overflow-hidden
+    <div className="group flex flex-col h-full bg-warm-white border border-border rounded-lg overflow-hidden
                     hover:shadow-lg transition-all duration-300 hover:-translate-y-1">
       {/* Image */}
       <Link href={`/products/${product.id}`} className="block relative aspect-[4/5] bg-cream overflow-hidden">
@@ -48,14 +48,17 @@ export function ProductCard({ product }: ProductCardProps) {
         )}
       </Link>
 
-      {/* Details */}
-      <div className="p-4">
+      {/* Details — the button sits at the bottom so a row of cards lines up */}
+      <div className="flex flex-col flex-1 p-4">
         <Link href={`/products/${product.id}`}>
           <h3 className={`text-sm font-medium text-charcoal leading-tight line-clamp-2 hover:text-forest transition-colors duration-200 ${size ? "mb-1" : "mb-2"}`}>
             {product.name}
           </h3>
         </Link>
         {size && <p className="text-xs text-muted mb-2">{size}</p>}
+        {product.cardText && (
+          <p className="text-xs text-muted leading-relaxed line-clamp-3 mb-3">{product.cardText}</p>
+        )}
 
         {/* Rating */}
         <div className="flex items-center gap-1.5 mb-2">
@@ -79,11 +82,12 @@ export function ProductCard({ product }: ProductCardProps) {
           currency={product.currency}
           price={product.price}
           salePrice={product.salePrice}
+          priceMax={hasSizes ? null : product.priceMax}
           from={hasSizes}
           className="mb-3"
         />
 
-        <WhatsAppOrderButton product={product} className="w-full py-2.5 text-xs">
+        <WhatsAppOrderButton product={product} className="w-full py-2.5 text-xs mt-auto">
           Order Now
         </WhatsAppOrderButton>
       </div>
