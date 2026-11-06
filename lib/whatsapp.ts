@@ -5,7 +5,7 @@
  */
 import { BRAND_NAME, SITE_URL, type ContactDetails } from "@/lib/site";
 import type { Product, ProductVariant } from "@/types/product";
-import { formatPrice, formatSize, percentOff } from "@/lib/utils";
+import { formatPrice, formatPriceRange, formatSize, percentOff } from "@/lib/utils";
 
 /** The number orders go to, digits only: the first one ticked as WhatsApp in Contact Details. */
 export function whatsappNumber(contact: ContactDetails): string {
@@ -22,8 +22,12 @@ export function whatsappOrderUrl(number: string, product: Product, variant?: Pro
   if (item) {
     const size = formatSize(item);
     const price = percentOff(item.price, item.salePrice) ? item.salePrice! : item.price;
+    // A range is quoted as shown; the shop agrees the exact price in the chat.
+    const max = item === product ? product.priceMax : null;
     if (size) lines.push(`Size: ${size}`);
-    lines.push(`Price: ${formatPrice(product.currency, price)}`);
+    lines.push(
+      `Price: ${max != null && max > price ? formatPriceRange(product.currency, price, max) : formatPrice(product.currency, price)}`
+    );
   }
   lines.push("", `${SITE_URL}/products/${product.id}`);
   return `https://wa.me/${number}?text=${encodeURIComponent(lines.join("\n"))}`;
