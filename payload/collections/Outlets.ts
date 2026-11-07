@@ -1,9 +1,9 @@
 import type { CollectionConfig } from "payload";
-import { anyone } from "../access";
+import { anyone, staffWrites } from "../access";
 
 export const Outlets: CollectionConfig = {
   slug: "outlets",
-  access: { read: anyone },
+  access: { read: anyone, ...staffWrites },
   orderable: true,
   admin: {
     group: "Content",

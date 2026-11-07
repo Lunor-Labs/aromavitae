@@ -74,6 +74,7 @@ export interface Config {
     outlets: Outlet;
     'blog-posts': BlogPost;
     'blog-categories': BlogCategory;
+    'legal-pages': LegalPage;
     media: Media;
     users: User;
     'payload-kv': PayloadKv;
@@ -90,6 +91,7 @@ export interface Config {
     outlets: OutletsSelect<false> | OutletsSelect<true>;
     'blog-posts': BlogPostsSelect<false> | BlogPostsSelect<true>;
     'blog-categories': BlogCategoriesSelect<false> | BlogCategoriesSelect<true>;
+    'legal-pages': LegalPagesSelect<false> | LegalPagesSelect<true>;
     media: MediaSelect<false> | MediaSelect<true>;
     users: UsersSelect<false> | UsersSelect<true>;
     'payload-kv': PayloadKvSelect<false> | PayloadKvSelect<true>;
@@ -108,6 +110,7 @@ export interface Config {
     announcement: Announcement;
     footer: Footer;
     'contact-details': ContactDetail;
+    'shop-settings': ShopSetting;
   };
   globalsSelect: {
     hero: HeroSelect<false> | HeroSelect<true>;
@@ -116,6 +119,7 @@ export interface Config {
     announcement: AnnouncementSelect<false> | AnnouncementSelect<true>;
     footer: FooterSelect<false> | FooterSelect<true>;
     'contact-details': ContactDetailsSelect<false> | ContactDetailsSelect<true>;
+    'shop-settings': ShopSettingsSelect<false> | ShopSettingsSelect<true>;
   };
   locale: null;
   widgets: {
@@ -391,6 +395,38 @@ export interface BlogCategory {
   createdAt: string;
 }
 /**
+ * Terms, returns and privacy. Each one is linked from the footer.
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "legal-pages".
+ */
+export interface LegalPage {
+  id: number;
+  _order?: string | null;
+  title: string;
+  /**
+   * The page's address: /policies/<slug>. Filled in from the title when left empty.
+   */
+  slug: string;
+  content: {
+    root: {
+      type: string;
+      children: {
+        type: any;
+        version: number;
+        [k: string]: unknown;
+      }[];
+      direction: ('ltr' | 'rtl') | null;
+      format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | '';
+      indent: number;
+      version: number;
+    };
+    [k: string]: unknown;
+  };
+  updatedAt: string;
+  createdAt: string;
+}
+/**
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "users".
  */
@@ -468,6 +504,10 @@ export interface PayloadLockedDocument {
     | ({
         relationTo: 'blog-categories';
         value: number | BlogCategory;
+      } | null)
+    | ({
+        relationTo: 'legal-pages';
+        value: number | LegalPage;
       } | null)
     | ({
         relationTo: 'media';
@@ -637,6 +677,18 @@ export interface BlogPostsSelect<T extends boolean = true> {
 export interface BlogCategoriesSelect<T extends boolean = true> {
   _order?: T;
   name?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "legal-pages_select".
+ */
+export interface LegalPagesSelect<T extends boolean = true> {
+  _order?: T;
+  title?: T;
+  slug?: T;
+  content?: T;
   updatedAt?: T;
   createdAt?: T;
 }
@@ -909,6 +961,47 @@ export interface ContactDetail {
   createdAt?: string | null;
 }
 /**
+ * Turns the online shop on and off, and sets its exchange rates and defaults.
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "shop-settings".
+ */
+export interface ShopSetting {
+  id: number;
+  mode: 'off' | 'test' | 'live';
+  /**
+   * What customers pay in each currency. PayHere pays the shop in LKR at the bank's rate and adds a fee, so keep a small margin here.
+   */
+  exchangeRates?: {
+    /**
+     * Leave empty to stop offering USD.
+     */
+    usd?: number | null;
+    /**
+     * Leave empty to stop offering EUR.
+     */
+    eur?: number | null;
+    /**
+     * Leave empty to stop offering GBP.
+     */
+    gbp?: number | null;
+  };
+  /**
+   * Used for shipping when a product has no weight.
+   */
+  defaultWeightGrams?: number | null;
+  /**
+   * Staff are alerted at or below this many left.
+   */
+  lowStockLevel?: number | null;
+  /**
+   * Set to your PayHere plan's per-payment limit. Larger orders are asked to contact you.
+   */
+  maxOrderLkr?: number | null;
+  updatedAt?: string | null;
+  createdAt?: string | null;
+}
+/**
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "hero_select".
  */
@@ -1033,6 +1126,26 @@ export interface ContactDetailsSelect<T extends boolean = true> {
       };
   email?: T;
   address?: T;
+  updatedAt?: T;
+  createdAt?: T;
+  globalType?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "shop-settings_select".
+ */
+export interface ShopSettingsSelect<T extends boolean = true> {
+  mode?: T;
+  exchangeRates?:
+    | T
+    | {
+        usd?: T;
+        eur?: T;
+        gbp?: T;
+      };
+  defaultWeightGrams?: T;
+  lowStockLevel?: T;
+  maxOrderLkr?: T;
   updatedAt?: T;
   createdAt?: T;
   globalType?: T;

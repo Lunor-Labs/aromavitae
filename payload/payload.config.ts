@@ -7,6 +7,7 @@ import { s3Storage } from "@payloadcms/storage-s3";
 import sharp from "sharp";
 
 import { Users } from "./collections/Users";
+import { LegalPages } from "./collections/LegalPages";
 import { Media } from "./collections/Media";
 import { Products } from "./collections/Products";
 import { Categories } from "./collections/Categories";
@@ -21,6 +22,8 @@ import { GiftSetsBanner } from "./globals/GiftSetsBanner";
 import { Announcement } from "./globals/Announcement";
 import { Footer } from "./globals/Footer";
 import { ContactDetails } from "./globals/ContactDetails";
+import { ShopSettings } from "./globals/ShopSettings";
+import { statusEndpoint } from "./shop/endpoints/status";
 import { migrations } from "./migrations";
 
 const dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -47,10 +50,12 @@ export default buildConfig({
     Outlets,
     BlogPosts,
     BlogCategories,
+    LegalPages,
     Media,
     Users,
   ],
-  globals: [Hero, Story, GiftSetsBanner, Announcement, Footer, ContactDetails],
+  globals: [Hero, Story, GiftSetsBanner, Announcement, Footer, ContactDetails, ShopSettings],
+  endpoints: [statusEndpoint],
   editor: lexicalEditor(),
   sharp,
   secret: process.env.PAYLOAD_SECRET ?? "",

@@ -1,10 +1,10 @@
 import type { GlobalConfig } from "payload";
-import { anyone } from "../access";
+import { adminsOnly, anyone } from "../access";
 
 // Anything left empty falls back to the details in lib/site.ts
 export const ContactDetails: GlobalConfig = {
   slug: "contact-details",
-  access: { read: anyone },
+  access: { read: anyone, update: adminsOnly },
   label: "Contact Details",
   admin: {
     group: "Site",

@@ -1,9 +1,9 @@
 import type { CollectionConfig } from "payload";
-import { anyone } from "../access";
+import { anyone, staffWrites } from "../access";
 
 export const GalleryImages: CollectionConfig = {
   slug: "gallery-images",
-  access: { read: anyone },
+  access: { read: anyone, ...staffWrites },
   labels: { singular: "Gallery Image", plural: "Gallery" },
   orderable: true,
   admin: {

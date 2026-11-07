@@ -1,5 +1,5 @@
 import type { CollectionConfig } from "payload";
-import { anyone } from "../access";
+import { anyone, staffWrites } from "../access";
 import {
   BoldFeature,
   FixedToolbarFeature,
@@ -19,7 +19,7 @@ const SLUG_PATTERN = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
 
 export const BlogPosts: CollectionConfig = {
   slug: "blog-posts",
-  access: { read: anyone },
+  access: { read: anyone, ...staffWrites },
   orderable: true,
   admin: {
     group: "Blog",

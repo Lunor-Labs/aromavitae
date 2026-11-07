@@ -1,5 +1,5 @@
 import type { CollectionBeforeValidateHook, CollectionConfig } from "payload";
-import { anyone } from "../access";
+import { anyone, staffWrites } from "../access";
 import { SIZE_UNITS } from "../../types/product";
 
 type Sizes = { sizeValue?: number | null; sizeUnit?: string | null };
@@ -88,7 +88,7 @@ const priceFromVariants: CollectionBeforeValidateHook = ({ data }) => {
 
 export const Products: CollectionConfig = {
   slug: "products",
-  access: { read: anyone },
+  access: { read: anyone, ...staffWrites },
   orderable: true,
   admin: {
     group: "Shop",
