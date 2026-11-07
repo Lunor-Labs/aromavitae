@@ -6,7 +6,8 @@ import { NextResponse, type NextRequest } from "next/server";
  *  - Vercel serves the storefront and reads content from the CMS over HTTP.
  *    `CMS_URL` is set there, so `/admin` and `/api` are sent across to it.
  *  - The VPS (Coolify) serves the Payload admin and API. `SITE_URL` is set
- *    there, so storefront pages are sent back to the public site.
+ *    there, so storefront pages are sent back to the public site. The one
+ *    exception is its root, which opens the admin so nobody has to type `/admin`.
  *
  * Never set both on one deployment. With neither (local dev), nothing redirects.
  */
@@ -14,6 +15,13 @@ const isCmsPath = (pathname: string) => /^\/(admin|api)(\/|$)/.test(pathname);
 
 export function proxy(request: NextRequest) {
   const { pathname, search } = request.nextUrl;
+
+  if (pathname === "/" && process.env.SITE_URL) {
+    const adminUrl = request.nextUrl.clone();
+    adminUrl.pathname = "/admin";
+    return NextResponse.redirect(adminUrl);
+  }
+
   const target = isCmsPath(pathname) ? process.env.CMS_URL : process.env.SITE_URL;
   if (!target) return NextResponse.next();
   return NextResponse.redirect(new URL(pathname + search, target));
