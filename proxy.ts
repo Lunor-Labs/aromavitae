@@ -1,4 +1,5 @@
 import { NextResponse, type NextRequest } from "next/server";
+import { CURRENCY_COOKIE, currencyForCountry } from "@/lib/shop/money";
 
 /**
  * One codebase, two deployments:
@@ -10,7 +11,12 @@ import { NextResponse, type NextRequest } from "next/server";
  *    exception is its root, which opens the admin so nobody has to type `/admin`.
  *
  * Never set both on one deployment. With neither (local dev), nothing redirects.
+ *
+ * Pages are cached for everyone, so a first-time visitor's currency is decided
+ * here, from the country Vercel reports, and left in a cookie for the browser.
  */
+const ONE_YEAR = 60 * 60 * 24 * 365;
+
 const isCmsPath = (pathname: string) => /^\/(admin|api)(\/|$)/.test(pathname);
 
 export function proxy(request: NextRequest) {
@@ -23,7 +29,18 @@ export function proxy(request: NextRequest) {
   }
 
   const target = isCmsPath(pathname) ? process.env.CMS_URL : process.env.SITE_URL;
-  if (!target) return NextResponse.next();
+  if (!target) {
+    const response = NextResponse.next();
+    const country = request.headers.get("x-vercel-ip-country");
+    if (country && !request.cookies.has(CURRENCY_COOKIE)) {
+      response.cookies.set(CURRENCY_COOKIE, currencyForCountry(country), {
+        maxAge: ONE_YEAR,
+        sameSite: "lax",
+        path: "/",
+      });
+    }
+    return response;
+  }
   return NextResponse.redirect(new URL(pathname + search, target));
 }
 

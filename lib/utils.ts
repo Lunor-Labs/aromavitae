@@ -16,15 +16,20 @@ export function slugify(text: string): string {
 /** "LKR 5,300" */
 // A fixed locale: the visitor's own could render 1,19,539 or 119.539, and differ
 // between the server render and the browser.
-const amountFormat = new Intl.NumberFormat("en-US");
+const wholeFormat = new Intl.NumberFormat("en-US");
+const centsFormat = new Intl.NumberFormat("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+
+/** LKR prices are whole; foreign ones always show the cents. */
+const formatAmount = (currency: string, amount: number) =>
+  (currency === "LKR" ? wholeFormat : centsFormat).format(amount);
 
 export function formatPrice(currency: string, amount: number): string {
-  return `${currency} ${amountFormat.format(amount)}`;
+  return `${currency} ${formatAmount(currency, amount)}`;
 }
 
 /** "LKR 18,000–24,000" */
 export function formatPriceRange(currency: string, min: number, max: number): string {
-  return `${currency} ${amountFormat.format(min)}–${amountFormat.format(max)}`;
+  return `${currency} ${formatAmount(currency, min)}–${formatAmount(currency, max)}`;
 }
 
 /** 7,575 → 5,300 is 30 (percent off), or null when there is no discount. */

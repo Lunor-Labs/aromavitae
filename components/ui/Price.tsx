@@ -1,3 +1,6 @@
+"use client";
+
+import { useCurrency } from "@/hooks/useCurrency";
 import { cn, formatPrice, formatPriceRange, percentOff } from "@/lib/utils";
 
 interface PriceProps {
@@ -15,14 +18,18 @@ interface PriceProps {
 /**
  * A price, or a sale price with the original struck through. The large one, on
  * the product page, also spells out the % off; cards carry that as a badge.
+ * `currency` is what the amounts are in (LKR); it shows in the visitor's own.
  */
 export function Price({ currency, price, salePrice, priceMax, size = "sm", from, className }: PriceProps) {
   const lg = size === "lg";
+  const { code, convert } = useCurrency();
+  const shown = currency === "LKR" ? code : currency;
+  const money = (amount: number) => (currency === "LKR" ? convert(amount) : amount);
 
   if (priceMax != null && priceMax > price) {
     return (
       <p className={cn("font-bold text-charcoal", lg ? "text-2xl" : "text-sm", className)}>
-        {formatPriceRange(currency, price, priceMax)}
+        {formatPriceRange(shown, money(price), money(priceMax))}
       </p>
     );
   }
@@ -33,11 +40,11 @@ export function Price({ currency, price, salePrice, priceMax, size = "sm", from,
     <p className={cn("flex flex-wrap items-baseline gap-x-2 gap-y-0.5", className)}>
       {from && <span className={cn("text-muted", lg ? "text-sm" : "text-xs")}>From</span>}
       <span className={cn("font-bold text-charcoal", lg ? "text-2xl" : "text-sm")}>
-        {formatPrice(currency, off ? salePrice! : price)}
+        {formatPrice(shown, money(off ? salePrice! : price))}
       </span>
       {off && (
         <>
-          <s className={cn("text-muted", lg ? "text-base" : "text-xs")}>{formatPrice(currency, price)}</s>
+          <s className={cn("text-muted", lg ? "text-base" : "text-xs")}>{formatPrice(shown, money(price))}</s>
           {lg && <span className="text-sm font-bold text-gold-dark">-{off}%</span>}
         </>
       )}
