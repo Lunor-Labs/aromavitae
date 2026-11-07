@@ -195,7 +195,7 @@ export const Products: CollectionConfig = {
           admin: {
             step: 1,
             width: "25%",
-            description: "Optional. Shows a range, e.g. LKR 18,000–24,000, with no discount badge.",
+            description: "Optional. Shows a range, e.g. LKR 18,000–24,000. A range can't be bought online: it keeps the WhatsApp button until it has one exact price or sizes.",
             condition: (data) => !hasVariants(data),
           },
           validate: priceMax,
