@@ -37,6 +37,7 @@ import { myOrdersEndpoint, orderByTokenEndpoint } from "./shop/endpoints/orders"
 import { emailTestEndpoint } from "./shop/endpoints/emailTest";
 import { expireUnpaidOrders } from "./shop/jobs/expireUnpaidOrders";
 import { sendNewOrderAlertTask, sendOrderEmailTask, sendSetPasswordTask } from "./shop/jobs/emailTasks";
+import { lowStockAlertTask } from "./shop/jobs/lowStockAlert";
 import { migrations } from "./migrations";
 
 const dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -69,6 +70,7 @@ export default buildConfig({
   admin: {
     user: Users.slug,
     importMap: { baseDir: dirname },
+    components: { beforeDashboard: ["/admin/ShopOverview#ShopOverview"] },
     meta: {
       titleSuffix: " | AROMAVITAE Admin",
       icons: [{ rel: "icon", type: "image/x-icon", url: "/favicon.ico" }],
@@ -102,7 +104,7 @@ export default buildConfig({
     emailTestEndpoint,
   ],
   jobs: {
-    tasks: [expireUnpaidOrders, sendOrderEmailTask, sendNewOrderAlertTask, sendSetPasswordTask],
+    tasks: [expireUnpaidOrders, sendOrderEmailTask, sendNewOrderAlertTask, sendSetPasswordTask, lowStockAlertTask],
     autoRun: [{ cron: "* * * * *", queue: "shop", limit: 20 }],
     // Only on the CMS's own server. `next dev` runs against the production
     // database, and must never process real orders or send real email.

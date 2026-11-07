@@ -1,6 +1,10 @@
-import type { CollectionBeforeValidateHook, CollectionConfig } from "payload";
+import type { CollectionAfterChangeHook, CollectionBeforeValidateHook, CollectionConfig } from "payload";
 import { adminsOnlyField, anyone, staffWrites } from "../access";
+import { queueLowStockAlert } from "../shop/jobs/lowStockAlert";
+import { DEFAULT_LOW_STOCK_LEVEL, crossedLowStock, type LowStockItem } from "../../lib/shop/lowStock";
 import { SIZE_UNITS } from "../../types/product";
+import { formatSize } from "../../lib/utils";
+import type { Product } from "../payload-types";
 
 type Sizes = { sizeValue?: number | null; sizeUnit?: string | null };
 type Prices = { price?: number | null; salePrice?: number | null; priceMax?: number | null };
@@ -117,6 +121,29 @@ const priceFromVariants: CollectionBeforeValidateHook = ({ data }) => {
   };
 };
 
+/** Staff saving a lower stock count can cross the level too, not only a sale. */
+const alertOnLowStock: CollectionAfterChangeHook<Product> = async ({ doc, previousDoc, operation, req }) => {
+  if (operation !== "update") return doc;
+
+  const settings = await req.payload.findGlobal({ slug: "shop-settings", req, overrideAccess: true });
+  const level = doc.lowStockAt ?? settings.lowStockLevel ?? DEFAULT_LOW_STOCK_LEVEL;
+
+  const items: LowStockItem[] = [];
+  const crossed = (before: number | null | undefined, after: number | null | undefined, sizeLabel: string | null) => {
+    if (crossedLowStock(before, after, level)) {
+      items.push({ productId: doc.id, name: doc.name, sizeLabel, stock: after as number, level });
+    }
+  };
+  crossed(previousDoc.stock, doc.stock, null);
+  for (const variant of doc.variants ?? []) {
+    const before = previousDoc.variants?.find((v) => v.id === variant.id);
+    crossed(before?.stock, variant.stock, formatSize(variant));
+  }
+
+  await queueLowStockAlert(req, items);
+  return doc;
+};
+
 export const Products: CollectionConfig = {
   slug: "products",
   access: { read: anyone, ...staffWrites },
@@ -127,7 +154,7 @@ export const Products: CollectionConfig = {
     defaultColumns: ["name", "category", "price", "isBestSeller"],
     description: "Drag rows to change the order products appear on the site.",
   },
-  hooks: { beforeValidate: [priceFromVariants] },
+  hooks: { beforeValidate: [priceFromVariants], afterChange: [alertOnLowStock] },
   fields: [
     { name: "name", type: "text", required: true, maxLength: 200 },
     {

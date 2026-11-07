@@ -145,6 +145,7 @@ export interface Config {
       sendOrderEmail: TaskSendOrderEmail;
       sendNewOrderAlert: TaskSendNewOrderAlert;
       sendSetPasswordEmail: TaskSendSetPasswordEmail;
+      sendLowStockAlert: TaskSendLowStockAlert;
       inline: {
         input: unknown;
         output: unknown;
@@ -1024,7 +1025,13 @@ export interface PayloadJob {
     | {
         executedAt: string;
         completedAt: string;
-        taskSlug: 'inline' | 'expireUnpaidOrders' | 'sendOrderEmail' | 'sendNewOrderAlert' | 'sendSetPasswordEmail';
+        taskSlug:
+          | 'inline'
+          | 'expireUnpaidOrders'
+          | 'sendOrderEmail'
+          | 'sendNewOrderAlert'
+          | 'sendSetPasswordEmail'
+          | 'sendLowStockAlert';
         taskID: string;
         input?:
           | {
@@ -1057,7 +1064,16 @@ export interface PayloadJob {
         id?: string | null;
       }[]
     | null;
-  taskSlug?: ('inline' | 'expireUnpaidOrders' | 'sendOrderEmail' | 'sendNewOrderAlert' | 'sendSetPasswordEmail') | null;
+  taskSlug?:
+    | (
+        | 'inline'
+        | 'expireUnpaidOrders'
+        | 'sendOrderEmail'
+        | 'sendNewOrderAlert'
+        | 'sendSetPasswordEmail'
+        | 'sendLowStockAlert'
+      )
+    | null;
   queue?: string | null;
   waitUntil?: string | null;
   processing?: boolean | null;
@@ -2108,6 +2124,24 @@ export interface TaskSendNewOrderAlert {
 export interface TaskSendSetPasswordEmail {
   input: {
     email: string;
+  };
+  output?: unknown;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "TaskSendLowStockAlert".
+ */
+export interface TaskSendLowStockAlert {
+  input: {
+    items:
+      | {
+          [k: string]: unknown;
+        }
+      | unknown[]
+      | string
+      | number
+      | boolean
+      | null;
   };
   output?: unknown;
 }

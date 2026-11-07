@@ -96,6 +96,11 @@ export const Orders: CollectionConfig = {
     defaultColumns: ["orderNumber", "status", "email", "total", "currency", "isTest", "createdAt"],
     listSearchableFields: ["orderNumber", "email"],
     pagination: { defaultLimit: 25 },
+    // Test orders are in the way once the shop is live. Until then they're what staff are looking at.
+    baseFilter: async ({ req }) => {
+      const { mode } = await req.payload.findGlobal({ slug: "shop-settings", req, overrideAccess: true });
+      return mode === "live" ? { isTest: { equals: false } } : null;
+    },
   },
   defaultSort: "-createdAt",
   hooks: { beforeChange: [handleStatusChange], afterChange: [queueStatusEmails] },

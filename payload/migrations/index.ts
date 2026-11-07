@@ -8,6 +8,7 @@ import * as migration_20261107_095359_shop_customers from './20261107_095359_sho
 import * as migration_20261107_100007_shop_shipping_zones from './20261107_100007_shop_shipping_zones';
 import * as migration_20261107_100853_shop_orders from './20261107_100853_shop_orders';
 import * as migration_20261107_110943_shop_email from './20261107_110943_shop_email';
+import * as migration_20261107_112000_shop_low_stock_alert from './20261107_112000_shop_low_stock_alert';
 
 export const migrations = [
   {
@@ -58,6 +59,11 @@ export const migrations = [
   {
     up: migration_20261107_110943_shop_email.up,
     down: migration_20261107_110943_shop_email.down,
-    name: '20261107_110943_shop_email'
+    name: '20261107_110943_shop_email',
+  },
+  {
+    up: migration_20261107_112000_shop_low_stock_alert.up,
+    down: migration_20261107_112000_shop_low_stock_alert.down,
+    name: '20261107_112000_shop_low_stock_alert'
   },
 ];

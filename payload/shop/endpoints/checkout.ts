@@ -1,6 +1,7 @@
 import { randomBytes } from "node:crypto";
 import { commitTransaction, initTransaction, killTransaction, type Endpoint, type PayloadRequest } from "payload";
 import { z } from "zod";
+import { crossedLowStock, type LowStockItem } from "../../../lib/shop/lowStock";
 import { PAYMENT_WINDOW_MINUTES } from "../../../lib/shop/orderStatus";
 import type { CheckoutResult } from "../../../lib/shop/orderView";
 import { sumMoney } from "../../../lib/shop/money";
@@ -9,6 +10,7 @@ import { addressSchema, emailSchema, firstIssue } from "../../../lib/shop/schema
 import { getShopAccess } from "../access";
 import { customerId, fail, readJson, shopClosed } from "../http";
 import { payHereConfig, payHereForm } from "../payhere";
+import { queueLowStockAlert } from "../jobs/lowStockAlert";
 import { loadQuote } from "../quote";
 import { takeStock } from "../stock";
 
@@ -114,7 +116,7 @@ export const checkoutEndpoint: Endpoint = {
 
     const shouldCommit = await initTransaction(req);
     try {
-      const { quote, maxOrderLkr } = await loadQuote(req, {
+      const { quote, maxOrderLkr, lowStockLevel } = await loadQuote(req, {
         items: input.items,
         currency: input.currency,
         country: input.address.country,
@@ -130,12 +132,19 @@ export const checkoutEndpoint: Endpoint = {
         throw new CheckoutProblem(400, "This order is larger than we can take online. Please contact us and we'll help.");
       }
 
+      const lowStock: LowStockItem[] = [];
       for (const line of quote.lines) {
         const taken = await takeStock(req, line);
         if (!taken) throw new CheckoutProblem(409, `${line.name} has just sold out. Please check your cart.`);
+
+        const level = lowStockLevel(line.productId);
+        if (taken.remaining != null && crossedLowStock(taken.remaining + line.quantity, taken.remaining, level)) {
+          lowStock.push({ productId: line.productId, name: line.name, sizeLabel: line.sizeLabel, stock: taken.remaining, level });
+        }
       }
 
       const order = await createOrder(req, input, email, isTest, quote, shipping);
+      await queueLowStockAlert(req, lowStock);
       if (shouldCommit) await commitTransaction(req);
 
       const result: CheckoutResult = { token: order.publicToken, payhere: payHereForm(payhere, order) };

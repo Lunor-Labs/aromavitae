@@ -1,5 +1,6 @@
 import type { PayloadRequest } from "payload";
 import type { Media, Product } from "../payload-types";
+import { DEFAULT_LOW_STOCK_LEVEL } from "../../lib/shop/lowStock";
 import { ratesFromSettings } from "../../lib/shop/money";
 import { buildQuote, type CartItemInput, type CatalogProduct, type Quote } from "../../lib/shop/pricing";
 import type { ShippingZone } from "../../lib/shop/shipping";
@@ -37,13 +38,20 @@ function toCatalog(doc: Product): CatalogProduct {
   };
 }
 
+interface LoadedQuote {
+  quote: Quote;
+  maxOrderLkr: number | null;
+  /** The stock level at which staff hear about this product. */
+  lowStockLevel: (productId: number) => number;
+}
+
 interface LoadQuoteInput {
   items: CartItemInput[];
   currency?: string | null;
   country?: string | null;
 }
 
-export async function loadQuote(req: PayloadRequest, input: LoadQuoteInput): Promise<{ quote: Quote; maxOrderLkr: number | null }> {
+export async function loadQuote(req: PayloadRequest, input: LoadQuoteInput): Promise<LoadedQuote> {
   const { payload } = req;
   const settings = await payload.findGlobal({ slug: "shop-settings", req, overrideAccess: true });
   // One after the other: during checkout these share a single database transaction.
@@ -71,6 +79,8 @@ export async function loadQuote(req: PayloadRequest, input: LoadQuoteInput): Pro
 
   return {
     maxOrderLkr: settings.maxOrderLkr ?? null,
+    lowStockLevel: (productId) =>
+      products.docs.find((p) => p.id === productId)?.lowStockAt ?? settings.lowStockLevel ?? DEFAULT_LOW_STOCK_LEVEL,
     quote: buildQuote({
       items: input.items,
       products: products.docs.map(toCatalog),
