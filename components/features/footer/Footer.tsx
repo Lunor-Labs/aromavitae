@@ -1,11 +1,12 @@
 import Image from "next/image";
 import Link from "next/link";
-import type { FooterContent } from "@/types/content";
+import type { FooterContent, LegalPageLink } from "@/types/content";
 import { BRAND_DESCRIPTION, BRAND_NAME, COPYRIGHT, type ContactDetails } from "@/lib/site";
 
 interface Props {
   content: FooterContent;
   contact: ContactDetails;
+  policies: LegalPageLink[];
 }
 
 const QUICK_LINKS = [
@@ -75,7 +76,7 @@ function normalizeSocialUrl(href: string, platform: string): string {
   return `https://${trimmed}`;
 }
 
-export function Footer({ content, contact }: Props) {
+export function Footer({ content, contact, policies }: Props) {
   const socials = (content.social ?? []).filter((s) => s.href && s.href.trim() !== "");
 
   return (
@@ -196,6 +197,20 @@ export function Footer({ content, contact }: Props) {
 
       <div className="border-t border-warm-white/10">
         <div className="max-w-[1700px] mx-auto px-6 lg:px-12 py-4">
+          {policies.length > 0 && (
+            <ul className="flex flex-wrap justify-center gap-x-5 gap-y-1 mb-2">
+              {policies.map((page) => (
+                <li key={page.slug}>
+                  <Link
+                    href={`/policies/${page.slug}`}
+                    className="text-[11px] text-warm-white/60 hover:text-gold transition-colors duration-200"
+                  >
+                    {page.title}
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          )}
           <p className="text-center text-[11px] text-warm-white/40">
             {COPYRIGHT}
           </p>

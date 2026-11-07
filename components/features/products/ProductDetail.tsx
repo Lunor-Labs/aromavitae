@@ -3,8 +3,10 @@
 import { useState } from "react";
 import { ProductImageGallery } from "@/components/features/products/ProductImageGallery";
 import { Price } from "@/components/ui/Price";
-import { WhatsAppOrderButton } from "@/components/ui/WhatsAppOrderButton";
+import { BuyButton } from "@/components/features/shop/BuyButton";
+import { useShop } from "@/components/features/shop/ShopProvider";
 import type { Product } from "@/types/product";
+import { isSoldOut } from "@/lib/shop/stock";
 import { cn, formatSize } from "@/lib/utils";
 
 interface Props {
@@ -12,6 +14,7 @@ interface Props {
 }
 
 export function ProductDetail({ product }: Props) {
+  const { enabled } = useShop();
   const tags = product.tags.filter(
     (tag) => !(product.isBestSeller && tag.trim().toLowerCase() === "best seller")
   );
@@ -107,17 +110,20 @@ export function ProductDetail({ product }: Props) {
                 <div className="flex flex-wrap gap-2" role="group" aria-label="Size">
                   {variants.map((v, i) => {
                     const selected = v === variant;
+                    const soldOut = enabled && isSoldOut(v);
                     return (
                       <button
                         key={v.id}
                         type="button"
                         aria-pressed={selected}
+                        title={soldOut ? "Sold out" : undefined}
                         onClick={() => setPicked(i)}
                         className={cn(
                           "min-w-16 px-4 py-2 border rounded text-sm font-medium transition-colors duration-200",
                           selected
                             ? "bg-forest border-forest text-warm-white"
-                            : "border-border text-charcoal hover:border-forest hover:text-forest"
+                            : "border-border text-charcoal hover:border-forest hover:text-forest",
+                          soldOut && "line-through opacity-60"
                         )}
                       >
                         {formatSize(v)}
@@ -128,13 +134,13 @@ export function ProductDetail({ product }: Props) {
               </div>
             )}
 
-            <WhatsAppOrderButton
+            <BuyButton
               product={product}
               variant={variant}
               className="w-full sm:w-auto sm:inline-flex px-10 py-3.5 text-sm mb-8"
             >
               Order on WhatsApp
-            </WhatsAppOrderButton>
+            </BuyButton>
 
             {product.description && (
               <div className="border-t border-border pt-6">

@@ -1,8 +1,12 @@
+"use client";
+
 import Link from "next/link";
 import { Price } from "@/components/ui/Price";
 import { RotatingImage } from "@/components/ui/RotatingImage";
-import { WhatsAppOrderButton } from "@/components/ui/WhatsAppOrderButton";
+import { BuyButton } from "@/components/features/shop/BuyButton";
+import { useShop } from "@/components/features/shop/ShopProvider";
 import type { Product } from "@/types/product";
+import { isProductSoldOut } from "@/lib/shop/stock";
 import { formatSize, percentOff } from "@/lib/utils";
 
 interface ProductCardProps {
@@ -10,6 +14,8 @@ interface ProductCardProps {
 }
 
 export function ProductCard({ product }: ProductCardProps) {
+  const { enabled } = useShop();
+  const soldOut = enabled && isProductSoldOut(product);
   const hasSizes = product.variants.length > 0;
   // "10ml / 30ml / 50ml" under the name when the product comes in several sizes.
   const size = hasSizes
@@ -32,11 +38,16 @@ export function ProductCard({ product }: ProductCardProps) {
           className="object-cover group-hover:scale-105 transition-transform duration-500"
           sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 20vw"
         />
-        {(product.isBestSeller || off > 0) && (
+        {(product.isBestSeller || off > 0 || soldOut) && (
           <div className="absolute top-3 left-3 z-10 flex flex-wrap gap-1.5">
             {product.isBestSeller && (
               <span className="bg-gold text-warm-white text-[10px] font-bold tracking-[0.15em] px-3 py-1 rounded-sm uppercase">
                 Best Seller
+              </span>
+            )}
+            {soldOut && (
+              <span className="bg-charcoal text-warm-white text-[10px] font-bold tracking-[0.15em] px-3 py-1 rounded-sm uppercase">
+                Sold out
               </span>
             )}
             {off > 0 && (
@@ -87,9 +98,9 @@ export function ProductCard({ product }: ProductCardProps) {
           className="mb-3"
         />
 
-        <WhatsAppOrderButton product={product} className="w-full py-2.5 text-xs mt-auto">
+        <BuyButton product={product} className="w-full py-2.5 text-xs mt-auto">
           Order Now
-        </WhatsAppOrderButton>
+        </BuyButton>
       </div>
     </div>
   );

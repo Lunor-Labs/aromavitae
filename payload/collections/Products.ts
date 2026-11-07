@@ -1,6 +1,10 @@
-import type { CollectionBeforeValidateHook, CollectionConfig } from "payload";
-import { anyone } from "../access";
+import type { CollectionAfterChangeHook, CollectionBeforeValidateHook, CollectionConfig } from "payload";
+import { adminsOnlyField, anyone, staffWrites } from "../access";
+import { queueLowStockAlert } from "../shop/jobs/lowStockAlert";
+import { DEFAULT_LOW_STOCK_LEVEL, crossedLowStock, type LowStockItem } from "../../lib/shop/lowStock";
 import { SIZE_UNITS } from "../../types/product";
+import { formatSize } from "../../lib/utils";
+import type { Product } from "../payload-types";
 
 type Sizes = { sizeValue?: number | null; sizeUnit?: string | null };
 type Prices = { price?: number | null; salePrice?: number | null; priceMax?: number | null };
@@ -28,6 +32,35 @@ const priceMax = (value: number | null | undefined, { siblingData }: { siblingDa
   if (siblingData.salePrice != null) return "A price range can't have a sale price. Clear one of them.";
   return siblingData.price == null || value > siblingData.price || "Must be higher than the price.";
 };
+
+/** How many are left, and what one weighs when shipped. On the product, or on each size. */
+const inventoryFields = (condition?: (data: Partial<{ variants: unknown[] | null }>) => boolean) => [
+  {
+    name: "stock",
+    type: "number" as const,
+    min: 0,
+    admin: {
+      step: 1,
+      width: "50%",
+      description: "How many are left. Leave empty to not track stock: it never sells out.",
+      condition,
+    },
+    validate: wholeNumber("Stock"),
+  },
+  {
+    name: "weightGrams",
+    label: "Shipping weight (g)",
+    type: "number" as const,
+    min: 0,
+    admin: {
+      step: 1,
+      width: "50%",
+      description: "Packed weight. Leave empty to use the default in Shop Settings.",
+      condition,
+    },
+    validate: wholeNumber("Shipping weight"),
+  },
+];
 
 const hasVariants = (data: Partial<{ variants: unknown[] | null }> | undefined) =>
   Boolean(data?.variants?.length);
@@ -83,12 +116,37 @@ const priceFromVariants: CollectionBeforeValidateHook = ({ data }) => {
     priceMax: null,
     sizeValue: null,
     sizeUnit: null,
+    stock: null,
+    weightGrams: null,
   };
+};
+
+/** Staff saving a lower stock count can cross the level too, not only a sale. */
+const alertOnLowStock: CollectionAfterChangeHook<Product> = async ({ doc, previousDoc, operation, req }) => {
+  if (operation !== "update") return doc;
+
+  const settings = await req.payload.findGlobal({ slug: "shop-settings", req, overrideAccess: true });
+  const level = doc.lowStockAt ?? settings.lowStockLevel ?? DEFAULT_LOW_STOCK_LEVEL;
+
+  const items: LowStockItem[] = [];
+  const crossed = (before: number | null | undefined, after: number | null | undefined, sizeLabel: string | null) => {
+    if (crossedLowStock(before, after, level)) {
+      items.push({ productId: doc.id, name: doc.name, sizeLabel, stock: after as number, level });
+    }
+  };
+  crossed(previousDoc.stock, doc.stock, null);
+  for (const variant of doc.variants ?? []) {
+    const before = previousDoc.variants?.find((v) => v.id === variant.id);
+    crossed(before?.stock, variant.stock, formatSize(variant));
+  }
+
+  await queueLowStockAlert(req, items);
+  return doc;
 };
 
 export const Products: CollectionConfig = {
   slug: "products",
-  access: { read: anyone },
+  access: { read: anyone, ...staffWrites },
   orderable: true,
   admin: {
     group: "Shop",
@@ -96,7 +154,7 @@ export const Products: CollectionConfig = {
     defaultColumns: ["name", "category", "price", "isBestSeller"],
     description: "Drag rows to change the order products appear on the site.",
   },
-  hooks: { beforeValidate: [priceFromVariants] },
+  hooks: { beforeValidate: [priceFromVariants], afterChange: [alertOnLowStock] },
   fields: [
     { name: "name", type: "text", required: true, maxLength: 200 },
     {
@@ -137,7 +195,7 @@ export const Products: CollectionConfig = {
           admin: {
             step: 1,
             width: "25%",
-            description: "Optional. Shows a range, e.g. LKR 18,000–24,000, with no discount badge.",
+            description: "Optional. Shows a range, e.g. LKR 18,000–24,000. A range can't be bought online: it keeps the WhatsApp button until it has one exact price or sizes.",
             condition: (data) => !hasVariants(data),
           },
           validate: priceMax,
@@ -153,6 +211,7 @@ export const Products: CollectionConfig = {
       ],
     },
     { type: "row", fields: sizeFields(false, (data) => !hasVariants(data)) },
+    { type: "row", fields: inventoryFields((data) => !hasVariants(data)) },
     {
       name: "variants",
       label: "Sizes",
@@ -189,6 +248,7 @@ export const Products: CollectionConfig = {
             },
           ],
         },
+        { type: "row", fields: inventoryFields() },
         {
           name: "image",
           type: "upload",
@@ -256,6 +316,29 @@ export const Products: CollectionConfig = {
       type: "checkbox",
       defaultValue: false,
       admin: { position: "sidebar" },
+    },
+    {
+      name: "domesticOnly",
+      label: "Sri Lanka only",
+      type: "checkbox",
+      defaultValue: false,
+      admin: {
+        position: "sidebar",
+        description: "Can't be shipped abroad, for example because of export rules.",
+      },
+    },
+    {
+      name: "lowStockAt",
+      label: "Low-stock level",
+      type: "number",
+      min: 0,
+      access: { read: adminsOnlyField },
+      admin: {
+        position: "sidebar",
+        step: 1,
+        description: "Optional. Overrides the level in Shop Settings for this product.",
+      },
+      validate: wholeNumber("Low-stock level"),
     },
     {
       name: "legacyId",

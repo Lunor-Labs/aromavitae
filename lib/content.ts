@@ -10,6 +10,8 @@ import type {
   Footer as FooterDoc,
   GalleryImage as GalleryImageDoc,
   GiftSetsBanner as GiftSetsBannerDoc,
+  LegalPage as LegalPageDoc,
+  ShopSetting as ShopSettingsDoc,
   Hero as HeroDoc,
   Media,
   Outlet as OutletDoc,
@@ -17,8 +19,17 @@ import type {
   Story as StoryDoc,
   Testimonial as TestimonialDoc,
 } from "@/payload/payload-types";
-import type { ContentPayload, HeroContent, HeroSlide, ImageAsset, StoryContent } from "@/types/content";
+import type {
+  ContentPayload,
+  HeroContent,
+  HeroSlide,
+  ImageAsset,
+  LegalPageLink,
+  ShopContent,
+  StoryContent,
+} from "@/types/content";
 import type { BlogPost, Product } from "@/types/product";
+import { ratesFromSettings } from "@/lib/shop/money";
 import { CONTACT, type ContactDetails } from "@/lib/site";
 
 /**
@@ -39,7 +50,7 @@ const REVALIDATE_SECONDS = 60;
  * Vercel sets `CMS_URL`. Without it (local dev, and the CMS's own deployment)
  * the app reads from its own API.
  */
-const cmsUrl = () =>
+export const cmsUrl = () =>
   (process.env.CMS_URL || process.env.SERVER_URL || "http://localhost:3000").replace(/\/+$/, "");
 
 // Shown until the Hero / Our Story globals are filled in the admin.
@@ -151,6 +162,9 @@ function toProduct(doc: ProductDoc): Product {
     priceMax: doc.priceMax ?? null,
     sizeValue: doc.sizeValue ?? null,
     sizeUnit: doc.sizeUnit ?? null,
+    stock: doc.stock ?? null,
+    weightGrams: doc.weightGrams ?? null,
+    domesticOnly: Boolean(doc.domesticOnly),
     currency: doc.currency,
     rating: doc.rating,
     reviewCount: doc.reviewCount,
@@ -170,6 +184,8 @@ function toProduct(doc: ProductDoc): Product {
       price: v.price,
       salePrice: v.salePrice ?? null,
       image: mediaUrl(v.image) || null,
+      stock: v.stock ?? null,
+      weightGrams: v.weightGrams ?? null,
     })),
   };
 }
@@ -229,6 +245,11 @@ function toContact(doc: ContactDetailsDoc | null): ContactDetails {
   };
 }
 
+/** No document (a site deployed ahead of the CMS) means the shop is off. */
+function toShop(doc: ShopSettingsDoc | null): ShopContent {
+  return { mode: doc?.mode ?? "off", rates: ratesFromSettings(doc?.exchangeRates) };
+}
+
 /**
  * Everything the layout and pages render. Wrapped in `cache` so the layout and
  * the page share one round of requests per render.
@@ -248,7 +269,7 @@ export const getContent = cache(async (): Promise<ContentPayload> => {
       cmsRequired<Docs<BlogCategoryDoc>>("blog-categories", all),
     ]);
 
-  const [hero, story, footer, announcement, giftSetsBanner, contact] = await Promise.all([
+  const [hero, story, footer, announcement, giftSetsBanner, contact, shop, legalPages] = await Promise.all([
     cmsRequired<HeroDoc>("globals/hero", { depth: 1 }),
     cmsRequired<StoryDoc>("globals/story"),
     cmsRequired<FooterDoc>("globals/footer"),
@@ -256,6 +277,8 @@ export const getContent = cache(async (): Promise<ContentPayload> => {
     cmsRequired<GiftSetsBannerDoc>("globals/gift-sets-banner", { depth: 1 }),
     // Not required: a site deployed ahead of the CMS that adds it still renders
     cms<ContactDetailsDoc>("globals/contact-details"),
+    cms<ShopSettingsDoc>("globals/shop-settings"),
+    cms<Docs<LegalPageDoc>>("legal-pages", { ...all, depth: 0, "select[title]": "true", "select[slug]": "true" }),
   ]);
 
   const giftSetsImage = mediaUrl(giftSetsBanner.image);
@@ -297,12 +320,14 @@ export const getContent = cache(async (): Promise<ContentPayload> => {
     })),
     blogPosts: blogPosts.docs.map(toBlogPost),
     blogCategories: blogCategories.docs.map((c) => ({ id: String(c.id), name: c.name })),
+    legalPages: (legalPages?.docs ?? []).map((p): LegalPageLink => ({ title: p.title, slug: p.slug })),
     singletons: {
       hero: toHero(hero),
       story: toStory(story),
       footer: { social: (footer.social ?? []).map((s) => ({ label: s.platform, href: s.url })) },
       announcement: { messages: (announcement.messages ?? []).map((m) => m.text) },
       contact: toContact(contact),
+      shop: toShop(shop),
       giftSetsBanner: giftSetsImage
         ? {
             eyebrow: giftSetsBanner.eyebrow ?? "",
@@ -352,4 +377,16 @@ export const getBlogPost = cache(async (slug: string): Promise<BlogPost | null> 
     depth: 1,
   });
   return docs[0] ? toBlogPost(docs[0]) : null;
+});
+
+/** A policy page by slug, or null when there is none — callers notFound(). */
+export const getLegalPage = cache(async (slug: string): Promise<{ title: string; content: string } | null> => {
+  await waitForCms();
+  const result = await cms<Docs<LegalPageDoc>>("legal-pages", {
+    "where[slug][equals]": slug,
+    limit: 1,
+    depth: 0,
+  });
+  const doc = result?.docs[0];
+  return doc ? { title: doc.title, content: convertLexicalToHTML({ data: doc.content, disableContainer: true }) } : null;
 });

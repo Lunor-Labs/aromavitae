@@ -8,6 +8,8 @@ import { getContent } from "@/lib/content";
 import { SITE_URL } from "@/lib/site";
 import { whatsappNumber } from "@/lib/whatsapp";
 import { WhatsAppNumberProvider } from "@/components/ui/WhatsAppOrderButton";
+import { ShopOverlays } from "@/components/features/shop/ShopOverlays";
+import { ShopProvider } from "@/components/features/shop/ShopProvider";
 
 const playfair = Playfair_Display({
   variable: "--font-playfair",
@@ -55,7 +57,7 @@ export default async function SiteLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const { singletons } = await getContent();
+  const { singletons, legalPages } = await getContent();
 
   return (
     <html
@@ -66,11 +68,14 @@ export default async function SiteLayout({
         {singletons.announcement.messages.length > 0 && (
           <AnnouncementBar content={singletons.announcement} />
         )}
-        <Navbar />
-        <WhatsAppNumberProvider number={whatsappNumber(singletons.contact)}>
-          <main className="flex-1">{children}</main>
-        </WhatsAppNumberProvider>
-        <Footer content={singletons.footer} contact={singletons.contact} />
+        <ShopProvider settings={singletons.shop}>
+          <Navbar />
+          <WhatsAppNumberProvider number={whatsappNumber(singletons.contact)}>
+            <main className="flex-1">{children}</main>
+          </WhatsAppNumberProvider>
+          <ShopOverlays />
+        </ShopProvider>
+        <Footer content={singletons.footer} contact={singletons.contact} policies={legalPages} />
       </body>
     </html>
   );

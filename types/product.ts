@@ -10,6 +10,9 @@ export interface ProductVariant {
   price: number;
   salePrice?: number | null;
   image?: string | null;
+  /** Null means stock isn't tracked, so it never sells out. */
+  stock?: number | null;
+  weightGrams?: number | null;
 }
 
 export interface Product {
@@ -24,6 +27,11 @@ export interface Product {
   /** Volume/weight amount, paired with sizeUnit. Null on products created before sizes existed. */
   sizeValue?: number | null;
   sizeUnit?: SizeUnit | null;
+  /** Null means stock isn't tracked. Always null on a product with sizes: each size has its own. */
+  stock?: number | null;
+  weightGrams?: number | null;
+  /** Can't be shipped outside Sri Lanka. */
+  domesticOnly: boolean;
   currency: string;
   rating: number;
   reviewCount: number;

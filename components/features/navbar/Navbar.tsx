@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { ShopNav } from "@/components/features/shop/ShopNav";
 import { cn } from "@/lib/utils";
 
 
@@ -90,6 +91,8 @@ export function Navbar() {
         </div>
 
         <div className="flex items-center gap-4">
+          <ShopNav />
+
           {/* CTA Button */}
           <Link
             href="/contact"

@@ -1,9 +1,9 @@
 import type { GlobalConfig } from "payload";
-import { anyone } from "../access";
+import { adminsOnly, anyone } from "../access";
 
 export const Announcement: GlobalConfig = {
   slug: "announcement",
-  access: { read: anyone },
+  access: { read: anyone, update: adminsOnly },
   label: "Announcement Bar",
   admin: {
     group: "Site",

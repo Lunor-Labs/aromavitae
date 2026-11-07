@@ -63,6 +63,7 @@ export type SupportedTimezones =
 
 export interface Config {
   auth: {
+    customers: CustomerAuthOperations;
     users: UserAuthOperations;
   };
   blocks: {};
@@ -74,9 +75,14 @@ export interface Config {
     outlets: Outlet;
     'blog-posts': BlogPost;
     'blog-categories': BlogCategory;
+    'legal-pages': LegalPage;
+    orders: Order;
+    customers: Customer;
+    'shipping-zones': ShippingZone;
     media: Media;
     users: User;
     'payload-kv': PayloadKv;
+    'payload-jobs': PayloadJob;
     'payload-locked-documents': PayloadLockedDocument;
     'payload-preferences': PayloadPreference;
     'payload-migrations': PayloadMigration;
@@ -90,9 +96,14 @@ export interface Config {
     outlets: OutletsSelect<false> | OutletsSelect<true>;
     'blog-posts': BlogPostsSelect<false> | BlogPostsSelect<true>;
     'blog-categories': BlogCategoriesSelect<false> | BlogCategoriesSelect<true>;
+    'legal-pages': LegalPagesSelect<false> | LegalPagesSelect<true>;
+    orders: OrdersSelect<false> | OrdersSelect<true>;
+    customers: CustomersSelect<false> | CustomersSelect<true>;
+    'shipping-zones': ShippingZonesSelect<false> | ShippingZonesSelect<true>;
     media: MediaSelect<false> | MediaSelect<true>;
     users: UsersSelect<false> | UsersSelect<true>;
     'payload-kv': PayloadKvSelect<false> | PayloadKvSelect<true>;
+    'payload-jobs': PayloadJobsSelect<false> | PayloadJobsSelect<true>;
     'payload-locked-documents': PayloadLockedDocumentsSelect<false> | PayloadLockedDocumentsSelect<true>;
     'payload-preferences': PayloadPreferencesSelect<false> | PayloadPreferencesSelect<true>;
     'payload-migrations': PayloadMigrationsSelect<false> | PayloadMigrationsSelect<true>;
@@ -108,6 +119,9 @@ export interface Config {
     announcement: Announcement;
     footer: Footer;
     'contact-details': ContactDetail;
+    'shop-settings': ShopSetting;
+    'email-settings': EmailSetting;
+    'payload-jobs-stats': PayloadJobsStat;
   };
   globalsSelect: {
     hero: HeroSelect<false> | HeroSelect<true>;
@@ -116,15 +130,46 @@ export interface Config {
     announcement: AnnouncementSelect<false> | AnnouncementSelect<true>;
     footer: FooterSelect<false> | FooterSelect<true>;
     'contact-details': ContactDetailsSelect<false> | ContactDetailsSelect<true>;
+    'shop-settings': ShopSettingsSelect<false> | ShopSettingsSelect<true>;
+    'email-settings': EmailSettingsSelect<false> | EmailSettingsSelect<true>;
+    'payload-jobs-stats': PayloadJobsStatsSelect<false> | PayloadJobsStatsSelect<true>;
   };
   locale: null;
   widgets: {
     collections: CollectionsWidget;
   };
-  user: User;
+  user: Customer | User;
   jobs: {
-    tasks: unknown;
+    tasks: {
+      expireUnpaidOrders: TaskExpireUnpaidOrders;
+      sendOrderEmail: TaskSendOrderEmail;
+      sendNewOrderAlert: TaskSendNewOrderAlert;
+      sendSetPasswordEmail: TaskSendSetPasswordEmail;
+      sendLowStockAlert: TaskSendLowStockAlert;
+      inline: {
+        input: unknown;
+        output: unknown;
+      };
+    };
     workflows: unknown;
+  };
+}
+export interface CustomerAuthOperations {
+  forgotPassword: {
+    email: string;
+    password: string;
+  };
+  login: {
+    email: string;
+    password: string;
+  };
+  registerFirstUser: {
+    email: string;
+    password: string;
+  };
+  unlock: {
+    email: string;
+    password: string;
   };
 }
 export interface UserAuthOperations {
@@ -174,6 +219,14 @@ export interface Product {
   sizeValue?: number | null;
   sizeUnit?: ('ml' | 'g' | 'kg' | 'pcs') | null;
   /**
+   * How many are left. Leave empty to not track stock: it never sells out.
+   */
+  stock?: number | null;
+  /**
+   * Packed weight. Leave empty to use the default in Shop Settings.
+   */
+  weightGrams?: number | null;
+  /**
    * Leave empty for a single-size product. The first size is selected by default on the product page.
    */
   variants?:
@@ -191,6 +244,14 @@ export interface Product {
          * Optional.
          */
         salePrice?: number | null;
+        /**
+         * How many are left. Leave empty to not track stock: it never sells out.
+         */
+        stock?: number | null;
+        /**
+         * Packed weight. Leave empty to use the default in Shop Settings.
+         */
+        weightGrams?: number | null;
         /**
          * Optional. Shown when this size is picked.
          */
@@ -217,6 +278,14 @@ export interface Product {
   rating: number;
   reviewCount: number;
   isBestSeller?: boolean | null;
+  /**
+   * Can't be shipped abroad, for example because of export rules.
+   */
+  domesticOnly?: boolean | null;
+  /**
+   * Optional. Overrides the level in Shop Settings for this product.
+   */
+  lowStockAt?: number | null;
   /**
    * ID from the old admin. Old /products/<id> links redirect here through it.
    */
@@ -391,6 +460,476 @@ export interface BlogCategory {
   createdAt: string;
 }
 /**
+ * Terms, returns and privacy. Each one is linked from the footer.
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "legal-pages".
+ */
+export interface LegalPage {
+  id: number;
+  _order?: string | null;
+  title: string;
+  /**
+   * The page's address: /policies/<slug>. Filled in from the title when left empty.
+   */
+  slug: string;
+  content: {
+    root: {
+      type: string;
+      children: {
+        type: any;
+        version: number;
+        [k: string]: unknown;
+      }[];
+      direction: ('ltr' | 'rtl') | null;
+      format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | '';
+      indent: number;
+      version: number;
+    };
+    [k: string]: unknown;
+  };
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "orders".
+ */
+export interface Order {
+  id: number;
+  orderNumber: string;
+  /**
+   * Paid, shipped, delivered and cancelled each email the customer. Cancelling puts the items back in stock.
+   */
+  status: 'pending_payment' | 'processing' | 'shipped' | 'delivered' | 'cancelled' | 'failed' | 'refunded';
+  isTest?: boolean | null;
+  /**
+   * Set when something needs a person: a chargeback, or a payment with no stock left.
+   */
+  needsAttention?: string | null;
+  /**
+   * Never shown to the customer.
+   */
+  internalNotes?: string | null;
+  email: string;
+  customer?: (number | null) | Customer;
+  items: {
+    name: string;
+    sizeLabel?: string | null;
+    image?: string | null;
+    productId: number;
+    variantId?: string | null;
+    quantity: number;
+    unitPrice: number;
+    unitPriceLkr: number;
+    lineTotal: number;
+    id?: string | null;
+  }[];
+  customerNotes?: string | null;
+  currency: 'LKR' | 'USD' | 'EUR' | 'GBP';
+  /**
+   * The rate when this order was placed.
+   */
+  exchangeRate: number;
+  subtotal: number;
+  subtotalLkr: number;
+  shippingAmount: number;
+  shippingLkr: number;
+  total: number;
+  totalLkr: number;
+  shippingMethod: string;
+  shippingEstimate?: string | null;
+  /**
+   * Shown on the customer's order page and in the shipped email.
+   */
+  tracking?: {
+    carrier?: string | null;
+    number?: string | null;
+    url?: string | null;
+  };
+  shippingAddress: {
+    fullName: string;
+    phone: string;
+    line1: string;
+    line2?: string | null;
+    city: string;
+    region?: string | null;
+    postalCode?: string | null;
+    country: string;
+  };
+  statusHistory?:
+    | {
+        from?: string | null;
+        to?: string | null;
+        at?: string | null;
+        by?: string | null;
+        note?: string | null;
+        id?: string | null;
+      }[]
+    | null;
+  paymentLog?:
+    | {
+        at?: string | null;
+        statusCode?: string | null;
+        amount?: string | null;
+        method?: string | null;
+        paymentId?: string | null;
+        message?: string | null;
+        id?: string | null;
+      }[]
+    | null;
+  paymentId?: string | null;
+  paidAt?: string | null;
+  attempts?: number | null;
+  stockHeld?: boolean | null;
+  expiresAt?: string | null;
+  publicToken: string;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "customers".
+ */
+export interface Customer {
+  id: number;
+  name?: string | null;
+  phone?: string | null;
+  addresses?:
+    | {
+        /**
+         * e.g. Home
+         */
+        label?: string | null;
+        isDefault?: boolean | null;
+        fullName: string;
+        phone: string;
+        line1: string;
+        line2?: string | null;
+        city: string;
+        region?: string | null;
+        postalCode?: string | null;
+        /**
+         * Two-letter code, e.g. LK
+         */
+        country: string;
+        id?: string | null;
+      }[]
+    | null;
+  updatedAt: string;
+  createdAt: string;
+  email: string;
+  resetPasswordToken?: string | null;
+  resetPasswordExpiration?: string | null;
+  salt?: string | null;
+  hash?: string | null;
+  resetPasswordRequestedAt?: string | null;
+  loginAttempts?: number | null;
+  lockUntil?: string | null;
+  sessions?:
+    | {
+        id: string;
+        createdAt?: string | null;
+        expiresAt: string;
+      }[]
+    | null;
+  password?: string | null;
+  collection: 'customers';
+}
+/**
+ * Where you ship and what it costs. A country in no zone can't check out unless a zone covers everywhere else.
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "shipping-zones".
+ */
+export interface ShippingZone {
+  id: number;
+  /**
+   * e.g. Sri Lanka, Europe
+   */
+  name: string;
+  /**
+   * A country's own zone is used before the catch-all one.
+   */
+  countries?:
+    | (
+        | 'AF'
+        | 'AX'
+        | 'AL'
+        | 'DZ'
+        | 'AS'
+        | 'AD'
+        | 'AO'
+        | 'AI'
+        | 'AG'
+        | 'AR'
+        | 'AM'
+        | 'AW'
+        | 'AU'
+        | 'AT'
+        | 'AZ'
+        | 'BS'
+        | 'BH'
+        | 'BD'
+        | 'BB'
+        | 'BY'
+        | 'BE'
+        | 'BZ'
+        | 'BJ'
+        | 'BM'
+        | 'BT'
+        | 'BO'
+        | 'BQ'
+        | 'BA'
+        | 'BW'
+        | 'BR'
+        | 'IO'
+        | 'VG'
+        | 'BN'
+        | 'BG'
+        | 'BF'
+        | 'BI'
+        | 'CV'
+        | 'KH'
+        | 'CM'
+        | 'CA'
+        | 'KY'
+        | 'CF'
+        | 'TD'
+        | 'CL'
+        | 'CN'
+        | 'CX'
+        | 'CC'
+        | 'CO'
+        | 'KM'
+        | 'CG'
+        | 'CD'
+        | 'CK'
+        | 'CR'
+        | 'CI'
+        | 'HR'
+        | 'CU'
+        | 'CW'
+        | 'CY'
+        | 'CZ'
+        | 'DK'
+        | 'DJ'
+        | 'DM'
+        | 'DO'
+        | 'EC'
+        | 'EG'
+        | 'SV'
+        | 'GQ'
+        | 'ER'
+        | 'EE'
+        | 'SZ'
+        | 'ET'
+        | 'FK'
+        | 'FO'
+        | 'FJ'
+        | 'FI'
+        | 'FR'
+        | 'GF'
+        | 'PF'
+        | 'GA'
+        | 'GM'
+        | 'GE'
+        | 'DE'
+        | 'GH'
+        | 'GI'
+        | 'GR'
+        | 'GL'
+        | 'GD'
+        | 'GP'
+        | 'GU'
+        | 'GT'
+        | 'GG'
+        | 'GN'
+        | 'GW'
+        | 'GY'
+        | 'HT'
+        | 'HN'
+        | 'HK'
+        | 'HU'
+        | 'IS'
+        | 'IN'
+        | 'ID'
+        | 'IR'
+        | 'IQ'
+        | 'IE'
+        | 'IM'
+        | 'IL'
+        | 'IT'
+        | 'JM'
+        | 'JP'
+        | 'JE'
+        | 'JO'
+        | 'KZ'
+        | 'KE'
+        | 'KI'
+        | 'XK'
+        | 'KW'
+        | 'KG'
+        | 'LA'
+        | 'LV'
+        | 'LB'
+        | 'LS'
+        | 'LR'
+        | 'LY'
+        | 'LI'
+        | 'LT'
+        | 'LU'
+        | 'MO'
+        | 'MG'
+        | 'MW'
+        | 'MY'
+        | 'MV'
+        | 'ML'
+        | 'MT'
+        | 'MH'
+        | 'MQ'
+        | 'MR'
+        | 'MU'
+        | 'YT'
+        | 'MX'
+        | 'FM'
+        | 'MD'
+        | 'MC'
+        | 'MN'
+        | 'ME'
+        | 'MS'
+        | 'MA'
+        | 'MZ'
+        | 'MM'
+        | 'NA'
+        | 'NR'
+        | 'NP'
+        | 'NL'
+        | 'NC'
+        | 'NZ'
+        | 'NI'
+        | 'NE'
+        | 'NG'
+        | 'NU'
+        | 'NF'
+        | 'KP'
+        | 'MK'
+        | 'MP'
+        | 'NO'
+        | 'OM'
+        | 'PK'
+        | 'PW'
+        | 'PS'
+        | 'PA'
+        | 'PG'
+        | 'PY'
+        | 'PE'
+        | 'PH'
+        | 'PL'
+        | 'PT'
+        | 'PR'
+        | 'QA'
+        | 'RE'
+        | 'RO'
+        | 'RU'
+        | 'RW'
+        | 'BL'
+        | 'SH'
+        | 'KN'
+        | 'LC'
+        | 'MF'
+        | 'PM'
+        | 'VC'
+        | 'WS'
+        | 'SM'
+        | 'ST'
+        | 'SA'
+        | 'SN'
+        | 'RS'
+        | 'SC'
+        | 'SL'
+        | 'SG'
+        | 'SX'
+        | 'SK'
+        | 'SI'
+        | 'SB'
+        | 'SO'
+        | 'ZA'
+        | 'KR'
+        | 'SS'
+        | 'ES'
+        | 'LK'
+        | 'SD'
+        | 'SR'
+        | 'SE'
+        | 'CH'
+        | 'SY'
+        | 'TW'
+        | 'TJ'
+        | 'TZ'
+        | 'TH'
+        | 'TL'
+        | 'TG'
+        | 'TK'
+        | 'TO'
+        | 'TT'
+        | 'TN'
+        | 'TR'
+        | 'TM'
+        | 'TC'
+        | 'TV'
+        | 'VI'
+        | 'UG'
+        | 'UA'
+        | 'AE'
+        | 'GB'
+        | 'US'
+        | 'UY'
+        | 'UZ'
+        | 'VU'
+        | 'VA'
+        | 'VE'
+        | 'VN'
+        | 'WF'
+        | 'YE'
+        | 'ZM'
+        | 'ZW'
+      )[]
+    | null;
+  /**
+   * Covers every country not listed in another zone. Use it on one zone only.
+   */
+  isFallback?: boolean | null;
+  methods: {
+    /**
+     * e.g. Standard, Express
+     */
+    name: string;
+    /**
+     * e.g. 2-4 working days
+     */
+    estimate?: string | null;
+    /**
+     * Optional. Free when the basket reaches this.
+     */
+    freeOverLkr?: number | null;
+    /**
+     * For a flat rate, add one band and leave Up to empty. A parcel heavier than every band can't use this method.
+     */
+    bands: {
+      /**
+       * Empty means no limit.
+       */
+      upToGrams?: number | null;
+      priceLkr: number;
+      id?: string | null;
+    }[];
+    id?: string | null;
+  }[];
+  updatedAt: string;
+  createdAt: string;
+}
+/**
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "users".
  */
@@ -436,6 +975,122 @@ export interface PayloadKv {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "payload-jobs".
+ */
+export interface PayloadJob {
+  id: number;
+  /**
+   * Input data provided to the job
+   */
+  input?:
+    | {
+        [k: string]: unknown;
+      }
+    | unknown[]
+    | string
+    | number
+    | boolean
+    | null;
+  taskStatus?:
+    | {
+        [k: string]: unknown;
+      }
+    | unknown[]
+    | string
+    | number
+    | boolean
+    | null;
+  completedAt?: string | null;
+  totalTried?: number | null;
+  /**
+   * If hasError is true this job will not be retried
+   */
+  hasError?: boolean | null;
+  /**
+   * If hasError is true, this is the error that caused it
+   */
+  error?:
+    | {
+        [k: string]: unknown;
+      }
+    | unknown[]
+    | string
+    | number
+    | boolean
+    | null;
+  /**
+   * Task execution log
+   */
+  log?:
+    | {
+        executedAt: string;
+        completedAt: string;
+        taskSlug:
+          | 'inline'
+          | 'expireUnpaidOrders'
+          | 'sendOrderEmail'
+          | 'sendNewOrderAlert'
+          | 'sendSetPasswordEmail'
+          | 'sendLowStockAlert';
+        taskID: string;
+        input?:
+          | {
+              [k: string]: unknown;
+            }
+          | unknown[]
+          | string
+          | number
+          | boolean
+          | null;
+        output?:
+          | {
+              [k: string]: unknown;
+            }
+          | unknown[]
+          | string
+          | number
+          | boolean
+          | null;
+        state: 'failed' | 'succeeded';
+        error?:
+          | {
+              [k: string]: unknown;
+            }
+          | unknown[]
+          | string
+          | number
+          | boolean
+          | null;
+        id?: string | null;
+      }[]
+    | null;
+  taskSlug?:
+    | (
+        | 'inline'
+        | 'expireUnpaidOrders'
+        | 'sendOrderEmail'
+        | 'sendNewOrderAlert'
+        | 'sendSetPasswordEmail'
+        | 'sendLowStockAlert'
+      )
+    | null;
+  queue?: string | null;
+  waitUntil?: string | null;
+  processing?: boolean | null;
+  meta?:
+    | {
+        [k: string]: unknown;
+      }
+    | unknown[]
+    | string
+    | number
+    | boolean
+    | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "payload-locked-documents".
  */
 export interface PayloadLockedDocument {
@@ -470,6 +1125,22 @@ export interface PayloadLockedDocument {
         value: number | BlogCategory;
       } | null)
     | ({
+        relationTo: 'legal-pages';
+        value: number | LegalPage;
+      } | null)
+    | ({
+        relationTo: 'orders';
+        value: number | Order;
+      } | null)
+    | ({
+        relationTo: 'customers';
+        value: number | Customer;
+      } | null)
+    | ({
+        relationTo: 'shipping-zones';
+        value: number | ShippingZone;
+      } | null)
+    | ({
         relationTo: 'media';
         value: number | Media;
       } | null)
@@ -478,10 +1149,15 @@ export interface PayloadLockedDocument {
         value: number | User;
       } | null);
   globalSlug?: string | null;
-  user: {
-    relationTo: 'users';
-    value: number | User;
-  };
+  user:
+    | {
+        relationTo: 'customers';
+        value: number | Customer;
+      }
+    | {
+        relationTo: 'users';
+        value: number | User;
+      };
   updatedAt: string;
   createdAt: string;
 }
@@ -491,10 +1167,15 @@ export interface PayloadLockedDocument {
  */
 export interface PayloadPreference {
   id: number;
-  user: {
-    relationTo: 'users';
-    value: number | User;
-  };
+  user:
+    | {
+        relationTo: 'customers';
+        value: number | Customer;
+      }
+    | {
+        relationTo: 'users';
+        value: number | User;
+      };
   key?: string | null;
   value?:
     | {
@@ -532,6 +1213,8 @@ export interface ProductsSelect<T extends boolean = true> {
   currency?: T;
   sizeValue?: T;
   sizeUnit?: T;
+  stock?: T;
+  weightGrams?: T;
   variants?:
     | T
     | {
@@ -539,6 +1222,8 @@ export interface ProductsSelect<T extends boolean = true> {
         sizeUnit?: T;
         price?: T;
         salePrice?: T;
+        stock?: T;
+        weightGrams?: T;
         image?: T;
         id?: T;
       };
@@ -552,6 +1237,8 @@ export interface ProductsSelect<T extends boolean = true> {
   rating?: T;
   reviewCount?: T;
   isBestSeller?: T;
+  domesticOnly?: T;
+  lowStockAt?: T;
   legacyId?: T;
   updatedAt?: T;
   createdAt?: T;
@@ -642,6 +1329,170 @@ export interface BlogCategoriesSelect<T extends boolean = true> {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "legal-pages_select".
+ */
+export interface LegalPagesSelect<T extends boolean = true> {
+  _order?: T;
+  title?: T;
+  slug?: T;
+  content?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "orders_select".
+ */
+export interface OrdersSelect<T extends boolean = true> {
+  orderNumber?: T;
+  status?: T;
+  isTest?: T;
+  needsAttention?: T;
+  internalNotes?: T;
+  email?: T;
+  customer?: T;
+  items?:
+    | T
+    | {
+        name?: T;
+        sizeLabel?: T;
+        image?: T;
+        productId?: T;
+        variantId?: T;
+        quantity?: T;
+        unitPrice?: T;
+        unitPriceLkr?: T;
+        lineTotal?: T;
+        id?: T;
+      };
+  customerNotes?: T;
+  currency?: T;
+  exchangeRate?: T;
+  subtotal?: T;
+  subtotalLkr?: T;
+  shippingAmount?: T;
+  shippingLkr?: T;
+  total?: T;
+  totalLkr?: T;
+  shippingMethod?: T;
+  shippingEstimate?: T;
+  tracking?:
+    | T
+    | {
+        carrier?: T;
+        number?: T;
+        url?: T;
+      };
+  shippingAddress?:
+    | T
+    | {
+        fullName?: T;
+        phone?: T;
+        line1?: T;
+        line2?: T;
+        city?: T;
+        region?: T;
+        postalCode?: T;
+        country?: T;
+      };
+  statusHistory?:
+    | T
+    | {
+        from?: T;
+        to?: T;
+        at?: T;
+        by?: T;
+        note?: T;
+        id?: T;
+      };
+  paymentLog?:
+    | T
+    | {
+        at?: T;
+        statusCode?: T;
+        amount?: T;
+        method?: T;
+        paymentId?: T;
+        message?: T;
+        id?: T;
+      };
+  paymentId?: T;
+  paidAt?: T;
+  attempts?: T;
+  stockHeld?: T;
+  expiresAt?: T;
+  publicToken?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "customers_select".
+ */
+export interface CustomersSelect<T extends boolean = true> {
+  name?: T;
+  phone?: T;
+  addresses?:
+    | T
+    | {
+        label?: T;
+        isDefault?: T;
+        fullName?: T;
+        phone?: T;
+        line1?: T;
+        line2?: T;
+        city?: T;
+        region?: T;
+        postalCode?: T;
+        country?: T;
+        id?: T;
+      };
+  updatedAt?: T;
+  createdAt?: T;
+  email?: T;
+  resetPasswordToken?: T;
+  resetPasswordExpiration?: T;
+  salt?: T;
+  hash?: T;
+  resetPasswordRequestedAt?: T;
+  loginAttempts?: T;
+  lockUntil?: T;
+  sessions?:
+    | T
+    | {
+        id?: T;
+        createdAt?: T;
+        expiresAt?: T;
+      };
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "shipping-zones_select".
+ */
+export interface ShippingZonesSelect<T extends boolean = true> {
+  name?: T;
+  countries?: T;
+  isFallback?: T;
+  methods?:
+    | T
+    | {
+        name?: T;
+        estimate?: T;
+        freeOverLkr?: T;
+        bands?:
+          | T
+          | {
+              upToGrams?: T;
+              priceLkr?: T;
+              id?: T;
+            };
+        id?: T;
+      };
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "media_select".
  */
 export interface MediaSelect<T extends boolean = true> {
@@ -705,6 +1556,38 @@ export interface UsersSelect<T extends boolean = true> {
 export interface PayloadKvSelect<T extends boolean = true> {
   key?: T;
   data?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "payload-jobs_select".
+ */
+export interface PayloadJobsSelect<T extends boolean = true> {
+  input?: T;
+  taskStatus?: T;
+  completedAt?: T;
+  totalTried?: T;
+  hasError?: T;
+  error?: T;
+  log?:
+    | T
+    | {
+        executedAt?: T;
+        completedAt?: T;
+        taskSlug?: T;
+        taskID?: T;
+        input?: T;
+        output?: T;
+        state?: T;
+        error?: T;
+        id?: T;
+      };
+  taskSlug?: T;
+  queue?: T;
+  waitUntil?: T;
+  processing?: T;
+  meta?: T;
+  updatedAt?: T;
+  createdAt?: T;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
@@ -909,6 +1792,105 @@ export interface ContactDetail {
   createdAt?: string | null;
 }
 /**
+ * Turns the online shop on and off, and sets its exchange rates and defaults.
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "shop-settings".
+ */
+export interface ShopSetting {
+  id: number;
+  mode: 'off' | 'test' | 'live';
+  /**
+   * What customers pay in each currency. PayHere pays the shop in LKR at the bank's rate and adds a fee, so keep a small margin here.
+   */
+  exchangeRates?: {
+    /**
+     * Leave empty to stop offering USD.
+     */
+    usd?: number | null;
+    /**
+     * Leave empty to stop offering EUR.
+     */
+    eur?: number | null;
+    /**
+     * Leave empty to stop offering GBP.
+     */
+    gbp?: number | null;
+  };
+  /**
+   * Used for shipping when a product has no weight.
+   */
+  defaultWeightGrams?: number | null;
+  /**
+   * Staff are alerted at or below this many left.
+   */
+  lowStockLevel?: number | null;
+  /**
+   * Set to your PayHere plan's per-payment limit. Larger orders are asked to contact you.
+   */
+  maxOrderLkr?: number | null;
+  updatedAt?: string | null;
+  createdAt?: string | null;
+}
+/**
+ * Who gets alerts and what emails say. {order} in any subject or message becomes the order number. The mail server itself is set up on the server.
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "email-settings".
+ */
+export interface EmailSetting {
+  id: number;
+  /**
+   * Where customers' replies go.
+   */
+  replyTo?: string | null;
+  /**
+   * These addresses get new-order and low-stock alerts.
+   */
+  staffAlerts?:
+    | {
+        email: string;
+        id?: string | null;
+      }[]
+    | null;
+  /**
+   * The closing line of every email.
+   */
+  signature?: string | null;
+  confirmationSubject?: string | null;
+  confirmationIntro?: string | null;
+  shippedSubject?: string | null;
+  shippedIntro?: string | null;
+  deliveredSubject?: string | null;
+  deliveredIntro?: string | null;
+  cancelledSubject?: string | null;
+  cancelledIntro?: string | null;
+  setPasswordSubject?: string | null;
+  setPasswordIntro?: string | null;
+  passwordResetSubject?: string | null;
+  passwordResetIntro?: string | null;
+  updatedAt?: string | null;
+  createdAt?: string | null;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "payload-jobs-stats".
+ */
+export interface PayloadJobsStat {
+  id: number;
+  stats?:
+    | {
+        [k: string]: unknown;
+      }
+    | unknown[]
+    | string
+    | number
+    | boolean
+    | null;
+  updatedAt?: string | null;
+  createdAt?: string | null;
+}
+/**
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "hero_select".
  */
@@ -1039,6 +2021,65 @@ export interface ContactDetailsSelect<T extends boolean = true> {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "shop-settings_select".
+ */
+export interface ShopSettingsSelect<T extends boolean = true> {
+  mode?: T;
+  exchangeRates?:
+    | T
+    | {
+        usd?: T;
+        eur?: T;
+        gbp?: T;
+      };
+  defaultWeightGrams?: T;
+  lowStockLevel?: T;
+  maxOrderLkr?: T;
+  updatedAt?: T;
+  createdAt?: T;
+  globalType?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "email-settings_select".
+ */
+export interface EmailSettingsSelect<T extends boolean = true> {
+  replyTo?: T;
+  staffAlerts?:
+    | T
+    | {
+        email?: T;
+        id?: T;
+      };
+  signature?: T;
+  confirmationSubject?: T;
+  confirmationIntro?: T;
+  shippedSubject?: T;
+  shippedIntro?: T;
+  deliveredSubject?: T;
+  deliveredIntro?: T;
+  cancelledSubject?: T;
+  cancelledIntro?: T;
+  setPasswordSubject?: T;
+  setPasswordIntro?: T;
+  passwordResetSubject?: T;
+  passwordResetIntro?: T;
+  updatedAt?: T;
+  createdAt?: T;
+  globalType?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "payload-jobs-stats_select".
+ */
+export interface PayloadJobsStatsSelect<T extends boolean = true> {
+  stats?: T;
+  updatedAt?: T;
+  createdAt?: T;
+  globalType?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "collections_widget".
  */
 export interface CollectionsWidget {
@@ -1046,6 +2087,63 @@ export interface CollectionsWidget {
     [k: string]: unknown;
   };
   width: 'full';
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "TaskExpireUnpaidOrders".
+ */
+export interface TaskExpireUnpaidOrders {
+  input?: unknown;
+  output?: unknown;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "TaskSendOrderEmail".
+ */
+export interface TaskSendOrderEmail {
+  input: {
+    orderId: number;
+    kind: string;
+  };
+  output?: unknown;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "TaskSendNewOrderAlert".
+ */
+export interface TaskSendNewOrderAlert {
+  input: {
+    orderId: number;
+  };
+  output?: unknown;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "TaskSendSetPasswordEmail".
+ */
+export interface TaskSendSetPasswordEmail {
+  input: {
+    email: string;
+  };
+  output?: unknown;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "TaskSendLowStockAlert".
+ */
+export interface TaskSendLowStockAlert {
+  input: {
+    items:
+      | {
+          [k: string]: unknown;
+        }
+      | unknown[]
+      | string
+      | number
+      | boolean
+      | null;
+  };
+  output?: unknown;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema

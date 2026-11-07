@@ -66,6 +66,23 @@ export interface GiftSetsBannerContent {
   ctaHref: string;
 }
 
+/** Exchange rates: how many LKR one unit costs. A currency with no rate isn't offered. */
+export interface ExchangeRates {
+  USD?: number;
+  EUR?: number;
+  GBP?: number;
+}
+
+export interface ShopContent {
+  mode: "off" | "test" | "live";
+  rates: ExchangeRates;
+}
+
+export interface LegalPageLink {
+  title: string;
+  slug: string;
+}
+
 export interface ContentPayload {
   products: Product[];
   categories: Category[];
@@ -74,12 +91,14 @@ export interface ContentPayload {
   gallery: GalleryImage[];
   blogPosts: BlogPost[];
   blogCategories: BlogCategory[];
+  legalPages: LegalPageLink[];
   singletons: {
     hero: HeroContent;
     story: StoryContent;
     footer: FooterContent;
     announcement: AnnouncementContent;
     contact: ContactDetails;
+    shop: ShopContent;
     /** Null until a banner with an image has been saved in the admin. */
     giftSetsBanner: GiftSetsBannerContent | null;
   };
