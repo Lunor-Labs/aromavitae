@@ -1,6 +1,7 @@
 import type { Access, CollectionConfig } from "payload";
 import { adminsOnly } from "../access";
-import { siteUrl } from "../shop/http";
+import { emailWording, getEmailSettings, passwordLink } from "../shop/email/send";
+import { renderEmail } from "../shop/email/templates";
 
 /**
  * Customers and staff are separate collections with separate id sequences, so
@@ -23,10 +24,15 @@ export const Customers: CollectionConfig = {
     maxLoginAttempts: 5,
     lockTime: FIFTEEN_MINUTES_MS,
     forgotPassword: {
-      generateEmailSubject: () => "Reset your AROMAVITAE password",
-      generateEmailHTML: (args) => {
-        const url = `${siteUrl()}/account/reset-password?token=${encodeURIComponent(args?.token ?? "")}`;
-        return `<p>Use this link to choose a new password:</p><p><a href="${url}">${url}</a></p><p>If you didn't ask for this, you can ignore this email.</p>`;
+      generateEmailSubject: async (args) => {
+        if (!args?.req) return "Reset your AROMAVITAE password";
+        return emailWording(await getEmailSettings(args.req), "passwordReset").subject;
+      },
+      generateEmailHTML: async (args) => {
+        const url = passwordLink(args?.token ?? "");
+        if (!args?.req) return `<p><a href="${url}">Choose a new password</a></p>`;
+        const { subject, intro, signature } = emailWording(await getEmailSettings(args.req), "passwordReset");
+        return renderEmail({ heading: subject, intro, signature, button: { label: "Choose a new password", url } });
       },
     },
   },

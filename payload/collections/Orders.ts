@@ -1,4 +1,4 @@
-import { APIError, type CollectionBeforeChangeHook, type CollectionConfig, type Field } from "payload";
+import { APIError, type CollectionAfterChangeHook, type CollectionBeforeChangeHook, type CollectionConfig, type Field } from "payload";
 import { adminsOnly } from "../access";
 import { returnStock } from "../shop/stock";
 import { ORDER_STATUSES, STATUS_LABELS, canChangeStatus, releasesStock, type OrderStatus } from "../../lib/shop/orderStatus";
@@ -53,6 +53,30 @@ const handleStatusChange: CollectionBeforeChangeHook<Order> = async ({ data, ori
   return data;
 };
 
+/**
+ * Tells the customer what changed. Queued with the change itself, so an email
+ * only goes out if the change really saved. A cancellation only emails someone
+ * who paid: an abandoned checkout expiring isn't news to anyone.
+ */
+const queueStatusEmails: CollectionAfterChangeHook<Order> = async ({ doc, previousDoc, operation, req }) => {
+  if (operation !== "update" || doc.status === previousDoc.status) return doc;
+
+  const email = (kind: "confirmation" | "shipped" | "delivered" | "cancelled") =>
+    req.payload.jobs.queue({ task: "sendOrderEmail", queue: "shop", input: { orderId: doc.id, kind }, req });
+
+  if (doc.status === "processing") {
+    await email("confirmation");
+    await req.payload.jobs.queue({ task: "sendNewOrderAlert", queue: "shop", input: { orderId: doc.id }, req });
+  } else if (doc.status === "shipped") {
+    await email("shipped");
+  } else if (doc.status === "delivered") {
+    await email("delivered");
+  } else if (doc.status === "cancelled" && previousDoc.paidAt) {
+    await email("cancelled");
+  }
+  return doc;
+};
+
 const statusOptions = ORDER_STATUSES.map((value) => ({ label: STATUS_LABELS[value], value }));
 
 export const Orders: CollectionConfig = {
@@ -74,7 +98,7 @@ export const Orders: CollectionConfig = {
     pagination: { defaultLimit: 25 },
   },
   defaultSort: "-createdAt",
-  hooks: { beforeChange: [handleStatusChange] },
+  hooks: { beforeChange: [handleStatusChange], afterChange: [queueStatusEmails] },
   fields: [
     locked({ name: "orderNumber", label: "Order number", type: "text", required: true, unique: true, index: true }),
     {
@@ -87,7 +111,7 @@ export const Orders: CollectionConfig = {
       index: true,
       admin: {
         position: "sidebar",
-        description: "Changing this emails the customer. Cancelling puts the items back in stock.",
+        description: "Paid, shipped, delivered and cancelled each email the customer. Cancelling puts the items back in stock.",
       },
     },
     locked({ name: "isTest", label: "Test order", type: "checkbox", defaultValue: false, admin: { position: "sidebar" } }),

@@ -7,6 +7,7 @@ import * as migration_20261107_093641_shop_inventory from './20261107_093641_sho
 import * as migration_20261107_095359_shop_customers from './20261107_095359_shop_customers';
 import * as migration_20261107_100007_shop_shipping_zones from './20261107_100007_shop_shipping_zones';
 import * as migration_20261107_100853_shop_orders from './20261107_100853_shop_orders';
+import * as migration_20261107_110943_shop_email from './20261107_110943_shop_email';
 
 export const migrations = [
   {
@@ -52,6 +53,11 @@ export const migrations = [
   {
     up: migration_20261107_100853_shop_orders.up,
     down: migration_20261107_100853_shop_orders.down,
-    name: '20261107_100853_shop_orders'
+    name: '20261107_100853_shop_orders',
+  },
+  {
+    up: migration_20261107_110943_shop_email.up,
+    down: migration_20261107_110943_shop_email.down,
+    name: '20261107_110943_shop_email'
   },
 ];

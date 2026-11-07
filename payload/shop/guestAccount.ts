@@ -11,10 +11,10 @@ import type { Order } from "../payload-types";
  * else's email at checkout, so the order is not added to that account's history:
  * the customer tracks it through the private link instead.
  *
- * Returns the new customer's id, or null when none was created.
+ * The set-password email is queued, so it goes out with retries like the rest.
  */
-export async function attachGuestAccount(req: PayloadRequest, order: Order): Promise<number | null> {
-  if (order.customer) return null;
+export async function attachGuestAccount(req: PayloadRequest, order: Order): Promise<void> {
+  if (order.customer) return;
 
   const { payload } = req;
   const { totalDocs } = await payload.count({
@@ -22,7 +22,7 @@ export async function attachGuestAccount(req: PayloadRequest, order: Order): Pro
     where: { email: { equals: order.email } },
     overrideAccess: true,
   });
-  if (totalDocs > 0) return null;
+  if (totalDocs > 0) return;
 
   const customer = await payload.create({
     collection: "customers",
@@ -54,5 +54,5 @@ export async function attachGuestAccount(req: PayloadRequest, order: Order): Pro
     overrideAccess: true,
     data: { customer: customer.id },
   });
-  return customer.id;
+  await payload.jobs.queue({ task: "sendSetPasswordEmail", queue: "shop", input: { email: order.email } });
 }

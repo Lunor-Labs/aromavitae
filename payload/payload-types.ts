@@ -120,6 +120,7 @@ export interface Config {
     footer: Footer;
     'contact-details': ContactDetail;
     'shop-settings': ShopSetting;
+    'email-settings': EmailSetting;
     'payload-jobs-stats': PayloadJobsStat;
   };
   globalsSelect: {
@@ -130,6 +131,7 @@ export interface Config {
     footer: FooterSelect<false> | FooterSelect<true>;
     'contact-details': ContactDetailsSelect<false> | ContactDetailsSelect<true>;
     'shop-settings': ShopSettingsSelect<false> | ShopSettingsSelect<true>;
+    'email-settings': EmailSettingsSelect<false> | EmailSettingsSelect<true>;
     'payload-jobs-stats': PayloadJobsStatsSelect<false> | PayloadJobsStatsSelect<true>;
   };
   locale: null;
@@ -140,6 +142,9 @@ export interface Config {
   jobs: {
     tasks: {
       expireUnpaidOrders: TaskExpireUnpaidOrders;
+      sendOrderEmail: TaskSendOrderEmail;
+      sendNewOrderAlert: TaskSendNewOrderAlert;
+      sendSetPasswordEmail: TaskSendSetPasswordEmail;
       inline: {
         input: unknown;
         output: unknown;
@@ -493,7 +498,7 @@ export interface Order {
   id: number;
   orderNumber: string;
   /**
-   * Changing this emails the customer. Cancelling puts the items back in stock.
+   * Paid, shipped, delivered and cancelled each email the customer. Cancelling puts the items back in stock.
    */
   status: 'pending_payment' | 'processing' | 'shipped' | 'delivered' | 'cancelled' | 'failed' | 'refunded';
   isTest?: boolean | null;
@@ -1019,7 +1024,7 @@ export interface PayloadJob {
     | {
         executedAt: string;
         completedAt: string;
-        taskSlug: 'inline' | 'expireUnpaidOrders';
+        taskSlug: 'inline' | 'expireUnpaidOrders' | 'sendOrderEmail' | 'sendNewOrderAlert' | 'sendSetPasswordEmail';
         taskID: string;
         input?:
           | {
@@ -1052,7 +1057,7 @@ export interface PayloadJob {
         id?: string | null;
       }[]
     | null;
-  taskSlug?: ('inline' | 'expireUnpaidOrders') | null;
+  taskSlug?: ('inline' | 'expireUnpaidOrders' | 'sendOrderEmail' | 'sendNewOrderAlert' | 'sendSetPasswordEmail') | null;
   queue?: string | null;
   waitUntil?: string | null;
   processing?: boolean | null;
@@ -1812,6 +1817,46 @@ export interface ShopSetting {
   createdAt?: string | null;
 }
 /**
+ * Who gets alerts and what emails say. {order} in any subject or message becomes the order number. The mail server itself is set up on the server.
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "email-settings".
+ */
+export interface EmailSetting {
+  id: number;
+  /**
+   * Where customers' replies go.
+   */
+  replyTo?: string | null;
+  /**
+   * These addresses get new-order and low-stock alerts.
+   */
+  staffAlerts?:
+    | {
+        email: string;
+        id?: string | null;
+      }[]
+    | null;
+  /**
+   * The closing line of every email.
+   */
+  signature?: string | null;
+  confirmationSubject?: string | null;
+  confirmationIntro?: string | null;
+  shippedSubject?: string | null;
+  shippedIntro?: string | null;
+  deliveredSubject?: string | null;
+  deliveredIntro?: string | null;
+  cancelledSubject?: string | null;
+  cancelledIntro?: string | null;
+  setPasswordSubject?: string | null;
+  setPasswordIntro?: string | null;
+  passwordResetSubject?: string | null;
+  passwordResetIntro?: string | null;
+  updatedAt?: string | null;
+  createdAt?: string | null;
+}
+/**
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "payload-jobs-stats".
  */
@@ -1980,6 +2025,35 @@ export interface ShopSettingsSelect<T extends boolean = true> {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "email-settings_select".
+ */
+export interface EmailSettingsSelect<T extends boolean = true> {
+  replyTo?: T;
+  staffAlerts?:
+    | T
+    | {
+        email?: T;
+        id?: T;
+      };
+  signature?: T;
+  confirmationSubject?: T;
+  confirmationIntro?: T;
+  shippedSubject?: T;
+  shippedIntro?: T;
+  deliveredSubject?: T;
+  deliveredIntro?: T;
+  cancelledSubject?: T;
+  cancelledIntro?: T;
+  setPasswordSubject?: T;
+  setPasswordIntro?: T;
+  passwordResetSubject?: T;
+  passwordResetIntro?: T;
+  updatedAt?: T;
+  createdAt?: T;
+  globalType?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "payload-jobs-stats_select".
  */
 export interface PayloadJobsStatsSelect<T extends boolean = true> {
@@ -2004,6 +2078,37 @@ export interface CollectionsWidget {
  */
 export interface TaskExpireUnpaidOrders {
   input?: unknown;
+  output?: unknown;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "TaskSendOrderEmail".
+ */
+export interface TaskSendOrderEmail {
+  input: {
+    orderId: number;
+    kind: string;
+  };
+  output?: unknown;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "TaskSendNewOrderAlert".
+ */
+export interface TaskSendNewOrderAlert {
+  input: {
+    orderId: number;
+  };
+  output?: unknown;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "TaskSendSetPasswordEmail".
+ */
+export interface TaskSendSetPasswordEmail {
+  input: {
+    email: string;
+  };
   output?: unknown;
 }
 /**

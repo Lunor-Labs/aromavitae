@@ -1,5 +1,6 @@
-import type { GlobalConfig } from "payload";
+import { APIError, type GlobalBeforeChangeHook, type GlobalConfig } from "payload";
 import { adminsOnly, adminsOnlyField, anyone } from "../access";
+import { payHereConfig } from "../shop/payhere";
 
 const rate = (name: string, code: string) => ({
   name,
@@ -13,10 +14,23 @@ const rate = (name: string, code: string) => ({
   },
 });
 
+/** Live means real money, so everything it depends on must already be in place. */
+const checkReadyForLive: GlobalBeforeChangeHook = ({ data }) => {
+  if (data.mode !== "live") return data;
+  if (!payHereConfig(false)) {
+    throw new APIError("Can't go live yet: the PayHere live merchant ID and secret aren't set on the server.", 400, undefined, true);
+  }
+  if (!process.env.SMTP_HOST) {
+    throw new APIError("Can't go live yet: the mail server isn't set up, so customers wouldn't get their emails.", 400, undefined, true);
+  }
+  return data;
+};
+
 export const ShopSettings: GlobalConfig = {
   slug: "shop-settings",
   access: { read: anyone, update: adminsOnly },
   label: "Shop Settings",
+  hooks: { beforeChange: [checkReadyForLive] },
   admin: {
     group: "Shop",
     description: "Turns the online shop on and off, and sets its exchange rates and defaults.",
