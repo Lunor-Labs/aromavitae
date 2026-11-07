@@ -10,6 +10,7 @@ import { Users } from "./collections/Users";
 import { LegalPages } from "./collections/LegalPages";
 import { Customers } from "./collections/Customers";
 import { ShippingZones } from "./collections/ShippingZones";
+import { Orders } from "./collections/Orders";
 import { Media } from "./collections/Media";
 import { Products } from "./collections/Products";
 import { Categories } from "./collections/Categories";
@@ -28,6 +29,10 @@ import { ShopSettings } from "./globals/ShopSettings";
 import { statusEndpoint } from "./shop/endpoints/status";
 import { registerEndpoint } from "./shop/endpoints/register";
 import { quoteEndpoint } from "./shop/endpoints/quote";
+import { checkoutEndpoint } from "./shop/endpoints/checkout";
+import { notifyEndpoint, startPaymentEndpoint } from "./shop/endpoints/payhere";
+import { myOrdersEndpoint, orderByTokenEndpoint } from "./shop/endpoints/orders";
+import { expireUnpaidOrders } from "./shop/jobs/expireUnpaidOrders";
 import { migrations } from "./migrations";
 
 const dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -55,13 +60,35 @@ export default buildConfig({
     BlogPosts,
     BlogCategories,
     LegalPages,
+    Orders,
     Customers,
     ShippingZones,
     Media,
     Users,
   ],
   globals: [Hero, Story, GiftSetsBanner, Announcement, Footer, ContactDetails, ShopSettings],
-  endpoints: [statusEndpoint, registerEndpoint, quoteEndpoint],
+  endpoints: [
+    statusEndpoint,
+    registerEndpoint,
+    quoteEndpoint,
+    checkoutEndpoint,
+    startPaymentEndpoint,
+    notifyEndpoint,
+    myOrdersEndpoint,
+    orderByTokenEndpoint,
+  ],
+  jobs: {
+    tasks: [expireUnpaidOrders],
+    autoRun: [{ cron: "* * * * *", queue: "shop", limit: 20 }],
+    // Only on the CMS's own server. `next dev` runs against the production
+    // database, and must never process real orders or send real email.
+    shouldAutoRun: () => Boolean(process.env.SITE_URL),
+    access: {
+      run: ({ req }) => req.user?.collection === "users",
+      queue: ({ req }) => req.user?.collection === "users",
+      cancel: ({ req }) => req.user?.collection === "users",
+    },
+  },
   editor: lexicalEditor(),
   sharp,
   secret: process.env.PAYLOAD_SECRET ?? "",

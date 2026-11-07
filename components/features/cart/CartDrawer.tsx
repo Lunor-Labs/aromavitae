@@ -34,7 +34,7 @@ export function CartDrawer() {
   const subtotal = sumMoney(lines.map((line) => lineTotal(convert(line.unitPriceLkr), line.quantity)));
 
   return (
-    <div className={cn("fixed inset-0 z-[60]", !open && "pointer-events-none")} aria-hidden={!open}>
+    <div className={cn("fixed inset-0 z-[60] overflow-hidden", !open && "pointer-events-none")} aria-hidden={!open}>
       <div
         onClick={() => setDrawerOpen(false)}
         className={cn("absolute inset-0 bg-charcoal/40 transition-opacity duration-300", open ? "opacity-100" : "opacity-0")}

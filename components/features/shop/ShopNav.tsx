@@ -1,7 +1,6 @@
 "use client";
 
 import { CartButton } from "@/components/features/cart/CartButton";
-import { CartDrawer } from "@/components/features/cart/CartDrawer";
 import { AccountLink } from "@/components/features/shop/AccountLink";
 import { CurrencySwitcher } from "@/components/features/shop/CurrencySwitcher";
 import { useShop } from "@/components/features/shop/ShopProvider";
@@ -16,7 +15,6 @@ export function ShopNav() {
       <CurrencySwitcher />
       <AccountLink />
       <CartButton />
-      <CartDrawer />
     </div>
   );
 }

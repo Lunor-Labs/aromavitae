@@ -76,11 +76,13 @@ export interface Config {
     'blog-posts': BlogPost;
     'blog-categories': BlogCategory;
     'legal-pages': LegalPage;
+    orders: Order;
     customers: Customer;
     'shipping-zones': ShippingZone;
     media: Media;
     users: User;
     'payload-kv': PayloadKv;
+    'payload-jobs': PayloadJob;
     'payload-locked-documents': PayloadLockedDocument;
     'payload-preferences': PayloadPreference;
     'payload-migrations': PayloadMigration;
@@ -95,11 +97,13 @@ export interface Config {
     'blog-posts': BlogPostsSelect<false> | BlogPostsSelect<true>;
     'blog-categories': BlogCategoriesSelect<false> | BlogCategoriesSelect<true>;
     'legal-pages': LegalPagesSelect<false> | LegalPagesSelect<true>;
+    orders: OrdersSelect<false> | OrdersSelect<true>;
     customers: CustomersSelect<false> | CustomersSelect<true>;
     'shipping-zones': ShippingZonesSelect<false> | ShippingZonesSelect<true>;
     media: MediaSelect<false> | MediaSelect<true>;
     users: UsersSelect<false> | UsersSelect<true>;
     'payload-kv': PayloadKvSelect<false> | PayloadKvSelect<true>;
+    'payload-jobs': PayloadJobsSelect<false> | PayloadJobsSelect<true>;
     'payload-locked-documents': PayloadLockedDocumentsSelect<false> | PayloadLockedDocumentsSelect<true>;
     'payload-preferences': PayloadPreferencesSelect<false> | PayloadPreferencesSelect<true>;
     'payload-migrations': PayloadMigrationsSelect<false> | PayloadMigrationsSelect<true>;
@@ -116,6 +120,7 @@ export interface Config {
     footer: Footer;
     'contact-details': ContactDetail;
     'shop-settings': ShopSetting;
+    'payload-jobs-stats': PayloadJobsStat;
   };
   globalsSelect: {
     hero: HeroSelect<false> | HeroSelect<true>;
@@ -125,6 +130,7 @@ export interface Config {
     footer: FooterSelect<false> | FooterSelect<true>;
     'contact-details': ContactDetailsSelect<false> | ContactDetailsSelect<true>;
     'shop-settings': ShopSettingsSelect<false> | ShopSettingsSelect<true>;
+    'payload-jobs-stats': PayloadJobsStatsSelect<false> | PayloadJobsStatsSelect<true>;
   };
   locale: null;
   widgets: {
@@ -132,7 +138,13 @@ export interface Config {
   };
   user: Customer | User;
   jobs: {
-    tasks: unknown;
+    tasks: {
+      expireUnpaidOrders: TaskExpireUnpaidOrders;
+      inline: {
+        input: unknown;
+        output: unknown;
+      };
+    };
     workflows: unknown;
   };
 }
@@ -470,6 +482,102 @@ export interface LegalPage {
     };
     [k: string]: unknown;
   };
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "orders".
+ */
+export interface Order {
+  id: number;
+  orderNumber: string;
+  /**
+   * Changing this emails the customer. Cancelling puts the items back in stock.
+   */
+  status: 'pending_payment' | 'processing' | 'shipped' | 'delivered' | 'cancelled' | 'failed' | 'refunded';
+  isTest?: boolean | null;
+  /**
+   * Set when something needs a person: a chargeback, or a payment with no stock left.
+   */
+  needsAttention?: string | null;
+  /**
+   * Never shown to the customer.
+   */
+  internalNotes?: string | null;
+  email: string;
+  customer?: (number | null) | Customer;
+  items: {
+    name: string;
+    sizeLabel?: string | null;
+    image?: string | null;
+    productId: number;
+    variantId?: string | null;
+    quantity: number;
+    unitPrice: number;
+    unitPriceLkr: number;
+    lineTotal: number;
+    id?: string | null;
+  }[];
+  customerNotes?: string | null;
+  currency: 'LKR' | 'USD' | 'EUR' | 'GBP';
+  /**
+   * The rate when this order was placed.
+   */
+  exchangeRate: number;
+  subtotal: number;
+  subtotalLkr: number;
+  shippingAmount: number;
+  shippingLkr: number;
+  total: number;
+  totalLkr: number;
+  shippingMethod: string;
+  shippingEstimate?: string | null;
+  /**
+   * Shown on the customer's order page and in the shipped email.
+   */
+  tracking?: {
+    carrier?: string | null;
+    number?: string | null;
+    url?: string | null;
+  };
+  shippingAddress: {
+    fullName: string;
+    phone: string;
+    line1: string;
+    line2?: string | null;
+    city: string;
+    region?: string | null;
+    postalCode?: string | null;
+    country: string;
+  };
+  statusHistory?:
+    | {
+        from?: string | null;
+        to?: string | null;
+        at?: string | null;
+        by?: string | null;
+        note?: string | null;
+        id?: string | null;
+      }[]
+    | null;
+  paymentLog?:
+    | {
+        at?: string | null;
+        statusCode?: string | null;
+        amount?: string | null;
+        method?: string | null;
+        paymentId?: string | null;
+        message?: string | null;
+        id?: string | null;
+      }[]
+    | null;
+  paymentId?: string | null;
+  paidAt?: string | null;
+  attempts?: number | null;
+  stockHeld?: boolean | null;
+  expiresAt?: string | null;
+  publicToken: string;
   updatedAt: string;
   createdAt: string;
 }
@@ -861,6 +969,107 @@ export interface PayloadKv {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "payload-jobs".
+ */
+export interface PayloadJob {
+  id: number;
+  /**
+   * Input data provided to the job
+   */
+  input?:
+    | {
+        [k: string]: unknown;
+      }
+    | unknown[]
+    | string
+    | number
+    | boolean
+    | null;
+  taskStatus?:
+    | {
+        [k: string]: unknown;
+      }
+    | unknown[]
+    | string
+    | number
+    | boolean
+    | null;
+  completedAt?: string | null;
+  totalTried?: number | null;
+  /**
+   * If hasError is true this job will not be retried
+   */
+  hasError?: boolean | null;
+  /**
+   * If hasError is true, this is the error that caused it
+   */
+  error?:
+    | {
+        [k: string]: unknown;
+      }
+    | unknown[]
+    | string
+    | number
+    | boolean
+    | null;
+  /**
+   * Task execution log
+   */
+  log?:
+    | {
+        executedAt: string;
+        completedAt: string;
+        taskSlug: 'inline' | 'expireUnpaidOrders';
+        taskID: string;
+        input?:
+          | {
+              [k: string]: unknown;
+            }
+          | unknown[]
+          | string
+          | number
+          | boolean
+          | null;
+        output?:
+          | {
+              [k: string]: unknown;
+            }
+          | unknown[]
+          | string
+          | number
+          | boolean
+          | null;
+        state: 'failed' | 'succeeded';
+        error?:
+          | {
+              [k: string]: unknown;
+            }
+          | unknown[]
+          | string
+          | number
+          | boolean
+          | null;
+        id?: string | null;
+      }[]
+    | null;
+  taskSlug?: ('inline' | 'expireUnpaidOrders') | null;
+  queue?: string | null;
+  waitUntil?: string | null;
+  processing?: boolean | null;
+  meta?:
+    | {
+        [k: string]: unknown;
+      }
+    | unknown[]
+    | string
+    | number
+    | boolean
+    | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "payload-locked-documents".
  */
 export interface PayloadLockedDocument {
@@ -897,6 +1106,10 @@ export interface PayloadLockedDocument {
     | ({
         relationTo: 'legal-pages';
         value: number | LegalPage;
+      } | null)
+    | ({
+        relationTo: 'orders';
+        value: number | Order;
       } | null)
     | ({
         relationTo: 'customers';
@@ -1107,6 +1320,92 @@ export interface LegalPagesSelect<T extends boolean = true> {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "orders_select".
+ */
+export interface OrdersSelect<T extends boolean = true> {
+  orderNumber?: T;
+  status?: T;
+  isTest?: T;
+  needsAttention?: T;
+  internalNotes?: T;
+  email?: T;
+  customer?: T;
+  items?:
+    | T
+    | {
+        name?: T;
+        sizeLabel?: T;
+        image?: T;
+        productId?: T;
+        variantId?: T;
+        quantity?: T;
+        unitPrice?: T;
+        unitPriceLkr?: T;
+        lineTotal?: T;
+        id?: T;
+      };
+  customerNotes?: T;
+  currency?: T;
+  exchangeRate?: T;
+  subtotal?: T;
+  subtotalLkr?: T;
+  shippingAmount?: T;
+  shippingLkr?: T;
+  total?: T;
+  totalLkr?: T;
+  shippingMethod?: T;
+  shippingEstimate?: T;
+  tracking?:
+    | T
+    | {
+        carrier?: T;
+        number?: T;
+        url?: T;
+      };
+  shippingAddress?:
+    | T
+    | {
+        fullName?: T;
+        phone?: T;
+        line1?: T;
+        line2?: T;
+        city?: T;
+        region?: T;
+        postalCode?: T;
+        country?: T;
+      };
+  statusHistory?:
+    | T
+    | {
+        from?: T;
+        to?: T;
+        at?: T;
+        by?: T;
+        note?: T;
+        id?: T;
+      };
+  paymentLog?:
+    | T
+    | {
+        at?: T;
+        statusCode?: T;
+        amount?: T;
+        method?: T;
+        paymentId?: T;
+        message?: T;
+        id?: T;
+      };
+  paymentId?: T;
+  paidAt?: T;
+  attempts?: T;
+  stockHeld?: T;
+  expiresAt?: T;
+  publicToken?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "customers_select".
  */
 export interface CustomersSelect<T extends boolean = true> {
@@ -1236,6 +1535,38 @@ export interface UsersSelect<T extends boolean = true> {
 export interface PayloadKvSelect<T extends boolean = true> {
   key?: T;
   data?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "payload-jobs_select".
+ */
+export interface PayloadJobsSelect<T extends boolean = true> {
+  input?: T;
+  taskStatus?: T;
+  completedAt?: T;
+  totalTried?: T;
+  hasError?: T;
+  error?: T;
+  log?:
+    | T
+    | {
+        executedAt?: T;
+        completedAt?: T;
+        taskSlug?: T;
+        taskID?: T;
+        input?: T;
+        output?: T;
+        state?: T;
+        error?: T;
+        id?: T;
+      };
+  taskSlug?: T;
+  queue?: T;
+  waitUntil?: T;
+  processing?: T;
+  meta?: T;
+  updatedAt?: T;
+  createdAt?: T;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
@@ -1482,6 +1813,24 @@ export interface ShopSetting {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "payload-jobs-stats".
+ */
+export interface PayloadJobsStat {
+  id: number;
+  stats?:
+    | {
+        [k: string]: unknown;
+      }
+    | unknown[]
+    | string
+    | number
+    | boolean
+    | null;
+  updatedAt?: string | null;
+  createdAt?: string | null;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "hero_select".
  */
 export interface HeroSelect<T extends boolean = true> {
@@ -1631,6 +1980,16 @@ export interface ShopSettingsSelect<T extends boolean = true> {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "payload-jobs-stats_select".
+ */
+export interface PayloadJobsStatsSelect<T extends boolean = true> {
+  stats?: T;
+  updatedAt?: T;
+  createdAt?: T;
+  globalType?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "collections_widget".
  */
 export interface CollectionsWidget {
@@ -1638,6 +1997,14 @@ export interface CollectionsWidget {
     [k: string]: unknown;
   };
   width: 'full';
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "TaskExpireUnpaidOrders".
+ */
+export interface TaskExpireUnpaidOrders {
+  input?: unknown;
+  output?: unknown;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema

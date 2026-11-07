@@ -8,6 +8,7 @@ import { getContent } from "@/lib/content";
 import { SITE_URL } from "@/lib/site";
 import { whatsappNumber } from "@/lib/whatsapp";
 import { WhatsAppNumberProvider } from "@/components/ui/WhatsAppOrderButton";
+import { ShopOverlays } from "@/components/features/shop/ShopOverlays";
 import { ShopProvider } from "@/components/features/shop/ShopProvider";
 
 const playfair = Playfair_Display({
@@ -72,6 +73,7 @@ export default async function SiteLayout({
           <WhatsAppNumberProvider number={whatsappNumber(singletons.contact)}>
             <main className="flex-1">{children}</main>
           </WhatsAppNumberProvider>
+          <ShopOverlays />
         </ShopProvider>
         <Footer content={singletons.footer} contact={singletons.contact} policies={legalPages} />
       </body>

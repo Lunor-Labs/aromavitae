@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { redirect } from "next/navigation";
 import { AccountPage } from "@/components/features/account/AccountPage";
 import { AddressBook } from "@/components/features/account/AddressBook";
@@ -14,6 +15,11 @@ export default async function AccountOverviewPage() {
   return (
     <AccountPage title="Your account" width="wide">
       <div className="space-y-12">
+        <p>
+          <Link href="/account/orders" className="text-sm text-forest underline underline-offset-2">
+            View your orders
+          </Link>
+        </p>
         <section>
           <h2 className={headingClass}>Your details</h2>
           <ProfileForm name={customer.name} phone={customer.phone} email={customer.email} />

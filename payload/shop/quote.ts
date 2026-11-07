@@ -46,17 +46,16 @@ interface LoadQuoteInput {
 export async function loadQuote(req: PayloadRequest, input: LoadQuoteInput): Promise<{ quote: Quote; maxOrderLkr: number | null }> {
   const { payload } = req;
   const settings = await payload.findGlobal({ slug: "shop-settings", req, overrideAccess: true });
-  const [products, zones] = await Promise.all([
-    payload.find({
-      collection: "products",
-      where: { id: { in: input.items.map((item) => item.productId) } },
-      depth: 1,
-      pagination: false,
-      overrideAccess: true,
-      req,
-    }),
-    payload.find({ collection: "shipping-zones", depth: 0, pagination: false, overrideAccess: true, req }),
-  ]);
+  // One after the other: during checkout these share a single database transaction.
+  const products = await payload.find({
+    collection: "products",
+    where: { id: { in: input.items.map((item) => item.productId) } },
+    depth: 1,
+    pagination: false,
+    overrideAccess: true,
+    req,
+  });
+  const zones = await payload.find({ collection: "shipping-zones", depth: 0, pagination: false, overrideAccess: true, req });
 
   const shippingZones: ShippingZone[] = zones.docs.map((zone) => ({
     countries: zone.countries ?? [],
