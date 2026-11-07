@@ -161,6 +161,9 @@ function toProduct(doc: ProductDoc): Product {
     priceMax: doc.priceMax ?? null,
     sizeValue: doc.sizeValue ?? null,
     sizeUnit: doc.sizeUnit ?? null,
+    stock: doc.stock ?? null,
+    weightGrams: doc.weightGrams ?? null,
+    domesticOnly: Boolean(doc.domesticOnly),
     currency: doc.currency,
     rating: doc.rating,
     reviewCount: doc.reviewCount,
@@ -180,6 +183,8 @@ function toProduct(doc: ProductDoc): Product {
       price: v.price,
       salePrice: v.salePrice ?? null,
       image: mediaUrl(v.image) || null,
+      stock: v.stock ?? null,
+      weightGrams: v.weightGrams ?? null,
     })),
   };
 }

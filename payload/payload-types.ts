@@ -178,6 +178,14 @@ export interface Product {
   sizeValue?: number | null;
   sizeUnit?: ('ml' | 'g' | 'kg' | 'pcs') | null;
   /**
+   * How many are left. Leave empty to not track stock: it never sells out.
+   */
+  stock?: number | null;
+  /**
+   * Packed weight. Leave empty to use the default in Shop Settings.
+   */
+  weightGrams?: number | null;
+  /**
    * Leave empty for a single-size product. The first size is selected by default on the product page.
    */
   variants?:
@@ -195,6 +203,14 @@ export interface Product {
          * Optional.
          */
         salePrice?: number | null;
+        /**
+         * How many are left. Leave empty to not track stock: it never sells out.
+         */
+        stock?: number | null;
+        /**
+         * Packed weight. Leave empty to use the default in Shop Settings.
+         */
+        weightGrams?: number | null;
         /**
          * Optional. Shown when this size is picked.
          */
@@ -221,6 +237,14 @@ export interface Product {
   rating: number;
   reviewCount: number;
   isBestSeller?: boolean | null;
+  /**
+   * Can't be shipped abroad, for example because of export rules.
+   */
+  domesticOnly?: boolean | null;
+  /**
+   * Optional. Overrides the level in Shop Settings for this product.
+   */
+  lowStockAt?: number | null;
   /**
    * ID from the old admin. Old /products/<id> links redirect here through it.
    */
@@ -572,6 +596,8 @@ export interface ProductsSelect<T extends boolean = true> {
   currency?: T;
   sizeValue?: T;
   sizeUnit?: T;
+  stock?: T;
+  weightGrams?: T;
   variants?:
     | T
     | {
@@ -579,6 +605,8 @@ export interface ProductsSelect<T extends boolean = true> {
         sizeUnit?: T;
         price?: T;
         salePrice?: T;
+        stock?: T;
+        weightGrams?: T;
         image?: T;
         id?: T;
       };
@@ -592,6 +620,8 @@ export interface ProductsSelect<T extends boolean = true> {
   rating?: T;
   reviewCount?: T;
   isBestSeller?: T;
+  domesticOnly?: T;
+  lowStockAt?: T;
   legacyId?: T;
   updatedAt?: T;
   createdAt?: T;

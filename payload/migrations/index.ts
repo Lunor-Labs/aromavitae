@@ -3,6 +3,7 @@ import * as migration_20261030_160618_product_variants from './20261030_160618_p
 import * as migration_20261102_160517_contact_details from './20261102_160517_contact_details';
 import * as migration_20261106_120000_agarwood_collection from './20261106_120000_agarwood_collection';
 import * as migration_20261107_093331_shop_foundations from './20261107_093331_shop_foundations';
+import * as migration_20261107_093641_shop_inventory from './20261107_093641_shop_inventory';
 
 export const migrations = [
   {
@@ -28,6 +29,11 @@ export const migrations = [
   {
     up: migration_20261107_093331_shop_foundations.up,
     down: migration_20261107_093331_shop_foundations.down,
-    name: '20261107_093331_shop_foundations'
+    name: '20261107_093331_shop_foundations',
+  },
+  {
+    up: migration_20261107_093641_shop_inventory.up,
+    down: migration_20261107_093641_shop_inventory.down,
+    name: '20261107_093641_shop_inventory'
   },
 ];

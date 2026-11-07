@@ -1,5 +1,5 @@
 import type { CollectionBeforeValidateHook, CollectionConfig } from "payload";
-import { anyone, staffWrites } from "../access";
+import { adminsOnlyField, anyone, staffWrites } from "../access";
 import { SIZE_UNITS } from "../../types/product";
 
 type Sizes = { sizeValue?: number | null; sizeUnit?: string | null };
@@ -28,6 +28,35 @@ const priceMax = (value: number | null | undefined, { siblingData }: { siblingDa
   if (siblingData.salePrice != null) return "A price range can't have a sale price. Clear one of them.";
   return siblingData.price == null || value > siblingData.price || "Must be higher than the price.";
 };
+
+/** How many are left, and what one weighs when shipped. On the product, or on each size. */
+const inventoryFields = (condition?: (data: Partial<{ variants: unknown[] | null }>) => boolean) => [
+  {
+    name: "stock",
+    type: "number" as const,
+    min: 0,
+    admin: {
+      step: 1,
+      width: "50%",
+      description: "How many are left. Leave empty to not track stock: it never sells out.",
+      condition,
+    },
+    validate: wholeNumber("Stock"),
+  },
+  {
+    name: "weightGrams",
+    label: "Shipping weight (g)",
+    type: "number" as const,
+    min: 0,
+    admin: {
+      step: 1,
+      width: "50%",
+      description: "Packed weight. Leave empty to use the default in Shop Settings.",
+      condition,
+    },
+    validate: wholeNumber("Shipping weight"),
+  },
+];
 
 const hasVariants = (data: Partial<{ variants: unknown[] | null }> | undefined) =>
   Boolean(data?.variants?.length);
@@ -83,6 +112,8 @@ const priceFromVariants: CollectionBeforeValidateHook = ({ data }) => {
     priceMax: null,
     sizeValue: null,
     sizeUnit: null,
+    stock: null,
+    weightGrams: null,
   };
 };
 
@@ -153,6 +184,7 @@ export const Products: CollectionConfig = {
       ],
     },
     { type: "row", fields: sizeFields(false, (data) => !hasVariants(data)) },
+    { type: "row", fields: inventoryFields((data) => !hasVariants(data)) },
     {
       name: "variants",
       label: "Sizes",
@@ -189,6 +221,7 @@ export const Products: CollectionConfig = {
             },
           ],
         },
+        { type: "row", fields: inventoryFields() },
         {
           name: "image",
           type: "upload",
@@ -256,6 +289,29 @@ export const Products: CollectionConfig = {
       type: "checkbox",
       defaultValue: false,
       admin: { position: "sidebar" },
+    },
+    {
+      name: "domesticOnly",
+      label: "Sri Lanka only",
+      type: "checkbox",
+      defaultValue: false,
+      admin: {
+        position: "sidebar",
+        description: "Can't be shipped abroad, for example because of export rules.",
+      },
+    },
+    {
+      name: "lowStockAt",
+      label: "Low-stock level",
+      type: "number",
+      min: 0,
+      access: { read: adminsOnlyField },
+      admin: {
+        position: "sidebar",
+        step: 1,
+        description: "Optional. Overrides the level in Shop Settings for this product.",
+      },
+      validate: wholeNumber("Low-stock level"),
     },
     {
       name: "legacyId",
