@@ -77,6 +77,7 @@ export interface Config {
     'blog-categories': BlogCategory;
     'legal-pages': LegalPage;
     customers: Customer;
+    'shipping-zones': ShippingZone;
     media: Media;
     users: User;
     'payload-kv': PayloadKv;
@@ -95,6 +96,7 @@ export interface Config {
     'blog-categories': BlogCategoriesSelect<false> | BlogCategoriesSelect<true>;
     'legal-pages': LegalPagesSelect<false> | LegalPagesSelect<true>;
     customers: CustomersSelect<false> | CustomersSelect<true>;
+    'shipping-zones': ShippingZonesSelect<false> | ShippingZonesSelect<true>;
     media: MediaSelect<false> | MediaSelect<true>;
     users: UsersSelect<false> | UsersSelect<true>;
     'payload-kv': PayloadKvSelect<false> | PayloadKvSelect<true>;
@@ -521,6 +523,299 @@ export interface Customer {
   collection: 'customers';
 }
 /**
+ * Where you ship and what it costs. A country in no zone can't check out unless a zone covers everywhere else.
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "shipping-zones".
+ */
+export interface ShippingZone {
+  id: number;
+  /**
+   * e.g. Sri Lanka, Europe
+   */
+  name: string;
+  /**
+   * A country's own zone is used before the catch-all one.
+   */
+  countries?:
+    | (
+        | 'AF'
+        | 'AX'
+        | 'AL'
+        | 'DZ'
+        | 'AS'
+        | 'AD'
+        | 'AO'
+        | 'AI'
+        | 'AG'
+        | 'AR'
+        | 'AM'
+        | 'AW'
+        | 'AU'
+        | 'AT'
+        | 'AZ'
+        | 'BS'
+        | 'BH'
+        | 'BD'
+        | 'BB'
+        | 'BY'
+        | 'BE'
+        | 'BZ'
+        | 'BJ'
+        | 'BM'
+        | 'BT'
+        | 'BO'
+        | 'BQ'
+        | 'BA'
+        | 'BW'
+        | 'BR'
+        | 'IO'
+        | 'VG'
+        | 'BN'
+        | 'BG'
+        | 'BF'
+        | 'BI'
+        | 'CV'
+        | 'KH'
+        | 'CM'
+        | 'CA'
+        | 'KY'
+        | 'CF'
+        | 'TD'
+        | 'CL'
+        | 'CN'
+        | 'CX'
+        | 'CC'
+        | 'CO'
+        | 'KM'
+        | 'CG'
+        | 'CD'
+        | 'CK'
+        | 'CR'
+        | 'CI'
+        | 'HR'
+        | 'CU'
+        | 'CW'
+        | 'CY'
+        | 'CZ'
+        | 'DK'
+        | 'DJ'
+        | 'DM'
+        | 'DO'
+        | 'EC'
+        | 'EG'
+        | 'SV'
+        | 'GQ'
+        | 'ER'
+        | 'EE'
+        | 'SZ'
+        | 'ET'
+        | 'FK'
+        | 'FO'
+        | 'FJ'
+        | 'FI'
+        | 'FR'
+        | 'GF'
+        | 'PF'
+        | 'GA'
+        | 'GM'
+        | 'GE'
+        | 'DE'
+        | 'GH'
+        | 'GI'
+        | 'GR'
+        | 'GL'
+        | 'GD'
+        | 'GP'
+        | 'GU'
+        | 'GT'
+        | 'GG'
+        | 'GN'
+        | 'GW'
+        | 'GY'
+        | 'HT'
+        | 'HN'
+        | 'HK'
+        | 'HU'
+        | 'IS'
+        | 'IN'
+        | 'ID'
+        | 'IR'
+        | 'IQ'
+        | 'IE'
+        | 'IM'
+        | 'IL'
+        | 'IT'
+        | 'JM'
+        | 'JP'
+        | 'JE'
+        | 'JO'
+        | 'KZ'
+        | 'KE'
+        | 'KI'
+        | 'XK'
+        | 'KW'
+        | 'KG'
+        | 'LA'
+        | 'LV'
+        | 'LB'
+        | 'LS'
+        | 'LR'
+        | 'LY'
+        | 'LI'
+        | 'LT'
+        | 'LU'
+        | 'MO'
+        | 'MG'
+        | 'MW'
+        | 'MY'
+        | 'MV'
+        | 'ML'
+        | 'MT'
+        | 'MH'
+        | 'MQ'
+        | 'MR'
+        | 'MU'
+        | 'YT'
+        | 'MX'
+        | 'FM'
+        | 'MD'
+        | 'MC'
+        | 'MN'
+        | 'ME'
+        | 'MS'
+        | 'MA'
+        | 'MZ'
+        | 'MM'
+        | 'NA'
+        | 'NR'
+        | 'NP'
+        | 'NL'
+        | 'NC'
+        | 'NZ'
+        | 'NI'
+        | 'NE'
+        | 'NG'
+        | 'NU'
+        | 'NF'
+        | 'KP'
+        | 'MK'
+        | 'MP'
+        | 'NO'
+        | 'OM'
+        | 'PK'
+        | 'PW'
+        | 'PS'
+        | 'PA'
+        | 'PG'
+        | 'PY'
+        | 'PE'
+        | 'PH'
+        | 'PL'
+        | 'PT'
+        | 'PR'
+        | 'QA'
+        | 'RE'
+        | 'RO'
+        | 'RU'
+        | 'RW'
+        | 'BL'
+        | 'SH'
+        | 'KN'
+        | 'LC'
+        | 'MF'
+        | 'PM'
+        | 'VC'
+        | 'WS'
+        | 'SM'
+        | 'ST'
+        | 'SA'
+        | 'SN'
+        | 'RS'
+        | 'SC'
+        | 'SL'
+        | 'SG'
+        | 'SX'
+        | 'SK'
+        | 'SI'
+        | 'SB'
+        | 'SO'
+        | 'ZA'
+        | 'KR'
+        | 'SS'
+        | 'ES'
+        | 'LK'
+        | 'SD'
+        | 'SR'
+        | 'SE'
+        | 'CH'
+        | 'SY'
+        | 'TW'
+        | 'TJ'
+        | 'TZ'
+        | 'TH'
+        | 'TL'
+        | 'TG'
+        | 'TK'
+        | 'TO'
+        | 'TT'
+        | 'TN'
+        | 'TR'
+        | 'TM'
+        | 'TC'
+        | 'TV'
+        | 'VI'
+        | 'UG'
+        | 'UA'
+        | 'AE'
+        | 'GB'
+        | 'US'
+        | 'UY'
+        | 'UZ'
+        | 'VU'
+        | 'VA'
+        | 'VE'
+        | 'VN'
+        | 'WF'
+        | 'YE'
+        | 'ZM'
+        | 'ZW'
+      )[]
+    | null;
+  /**
+   * Covers every country not listed in another zone. Use it on one zone only.
+   */
+  isFallback?: boolean | null;
+  methods: {
+    /**
+     * e.g. Standard, Express
+     */
+    name: string;
+    /**
+     * e.g. 2-4 working days
+     */
+    estimate?: string | null;
+    /**
+     * Optional. Free when the basket reaches this.
+     */
+    freeOverLkr?: number | null;
+    /**
+     * For a flat rate, add one band and leave Up to empty. A parcel heavier than every band can't use this method.
+     */
+    bands: {
+      /**
+       * Empty means no limit.
+       */
+      upToGrams?: number | null;
+      priceLkr: number;
+      id?: string | null;
+    }[];
+    id?: string | null;
+  }[];
+  updatedAt: string;
+  createdAt: string;
+}
+/**
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "users".
  */
@@ -606,6 +901,10 @@ export interface PayloadLockedDocument {
     | ({
         relationTo: 'customers';
         value: number | Customer;
+      } | null)
+    | ({
+        relationTo: 'shipping-zones';
+        value: number | ShippingZone;
       } | null)
     | ({
         relationTo: 'media';
@@ -845,6 +1144,32 @@ export interface CustomersSelect<T extends boolean = true> {
         createdAt?: T;
         expiresAt?: T;
       };
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "shipping-zones_select".
+ */
+export interface ShippingZonesSelect<T extends boolean = true> {
+  name?: T;
+  countries?: T;
+  isFallback?: T;
+  methods?:
+    | T
+    | {
+        name?: T;
+        estimate?: T;
+        freeOverLkr?: T;
+        bands?:
+          | T
+          | {
+              upToGrams?: T;
+              priceLkr?: T;
+              id?: T;
+            };
+        id?: T;
+      };
+  updatedAt?: T;
+  createdAt?: T;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema

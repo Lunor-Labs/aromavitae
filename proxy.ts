@@ -1,5 +1,5 @@
 import { NextResponse, type NextRequest } from "next/server";
-import { CURRENCY_COOKIE, currencyForCountry } from "@/lib/shop/money";
+import { COUNTRY_COOKIE, CURRENCY_COOKIE, currencyForCountry } from "@/lib/shop/money";
 
 /**
  * One codebase, two deployments:
@@ -32,12 +32,12 @@ export function proxy(request: NextRequest) {
   if (!target) {
     const response = NextResponse.next();
     const country = request.headers.get("x-vercel-ip-country");
-    if (country && !request.cookies.has(CURRENCY_COOKIE)) {
-      response.cookies.set(CURRENCY_COOKIE, currencyForCountry(country), {
-        maxAge: ONE_YEAR,
-        sameSite: "lax",
-        path: "/",
-      });
+    if (country && !request.cookies.has(COUNTRY_COOKIE)) {
+      const options = { maxAge: ONE_YEAR, sameSite: "lax", path: "/" } as const;
+      response.cookies.set(COUNTRY_COOKIE, country, options);
+      if (!request.cookies.has(CURRENCY_COOKIE)) {
+        response.cookies.set(CURRENCY_COOKIE, currencyForCountry(country), options);
+      }
     }
     return response;
   }

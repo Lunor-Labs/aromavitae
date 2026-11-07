@@ -7,6 +7,8 @@ export type CurrencyCode = (typeof CURRENCIES)[number];
 
 /** Readable by the browser; set by proxy.ts on the first visit and by the switcher after that. */
 export const CURRENCY_COOKIE = "av_currency";
+/** The country Vercel reported, so shipping starts on the right one. */
+export const COUNTRY_COOKIE = "av_country";
 
 const EUROZONE = new Set([
   "AT", "BE", "BG", "HR", "CY", "EE", "FI", "FR", "DE", "GR", "IE", "IT",
@@ -18,6 +20,17 @@ export function currencyForCountry(country: string): CurrencyCode {
   if (country === "LK") return "LKR";
   if (country === "GB") return "GBP";
   return EUROZONE.has(country) ? "EUR" : "USD";
+}
+
+/** The rates as stored in Shop Settings. An empty rate means that currency isn't offered. */
+export function ratesFromSettings(
+  stored: { usd?: number | null; eur?: number | null; gbp?: number | null } | null | undefined
+): ExchangeRates {
+  return {
+    ...(stored?.usd ? { USD: stored.usd } : {}),
+    ...(stored?.eur ? { EUR: stored.eur } : {}),
+    ...(stored?.gbp ? { GBP: stored.gbp } : {}),
+  };
 }
 
 /** The currencies on offer: LKR, and any with a rate in Shop Settings. */

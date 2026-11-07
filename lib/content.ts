@@ -29,6 +29,7 @@ import type {
   StoryContent,
 } from "@/types/content";
 import type { BlogPost, Product } from "@/types/product";
+import { ratesFromSettings } from "@/lib/shop/money";
 import { CONTACT, type ContactDetails } from "@/lib/site";
 
 /**
@@ -246,15 +247,7 @@ function toContact(doc: ContactDetailsDoc | null): ContactDetails {
 
 /** No document (a site deployed ahead of the CMS) means the shop is off. */
 function toShop(doc: ShopSettingsDoc | null): ShopContent {
-  const rates = doc?.exchangeRates;
-  return {
-    mode: doc?.mode ?? "off",
-    rates: {
-      ...(rates?.usd ? { USD: rates.usd } : {}),
-      ...(rates?.eur ? { EUR: rates.eur } : {}),
-      ...(rates?.gbp ? { GBP: rates.gbp } : {}),
-    },
-  };
+  return { mode: doc?.mode ?? "off", rates: ratesFromSettings(doc?.exchangeRates) };
 }
 
 /**
