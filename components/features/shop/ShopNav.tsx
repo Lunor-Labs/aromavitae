@@ -1,5 +1,6 @@
 "use client";
 
+import { AccountLink } from "@/components/features/shop/AccountLink";
 import { CurrencySwitcher } from "@/components/features/shop/CurrencySwitcher";
 import { useShop } from "@/components/features/shop/ShopProvider";
 
@@ -11,6 +12,7 @@ export function ShopNav() {
   return (
     <div className="flex items-center gap-3">
       <CurrencySwitcher />
+      <AccountLink />
     </div>
   );
 }

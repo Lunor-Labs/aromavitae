@@ -8,6 +8,7 @@ import sharp from "sharp";
 
 import { Users } from "./collections/Users";
 import { LegalPages } from "./collections/LegalPages";
+import { Customers } from "./collections/Customers";
 import { Media } from "./collections/Media";
 import { Products } from "./collections/Products";
 import { Categories } from "./collections/Categories";
@@ -24,6 +25,7 @@ import { Footer } from "./globals/Footer";
 import { ContactDetails } from "./globals/ContactDetails";
 import { ShopSettings } from "./globals/ShopSettings";
 import { statusEndpoint } from "./shop/endpoints/status";
+import { registerEndpoint } from "./shop/endpoints/register";
 import { migrations } from "./migrations";
 
 const dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -51,11 +53,12 @@ export default buildConfig({
     BlogPosts,
     BlogCategories,
     LegalPages,
+    Customers,
     Media,
     Users,
   ],
   globals: [Hero, Story, GiftSetsBanner, Announcement, Footer, ContactDetails, ShopSettings],
-  endpoints: [statusEndpoint],
+  endpoints: [statusEndpoint, registerEndpoint],
   editor: lexicalEditor(),
   sharp,
   secret: process.env.PAYLOAD_SECRET ?? "",
