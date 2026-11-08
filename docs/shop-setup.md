@@ -12,7 +12,7 @@ The admin refuses `live` until the PayHere live credentials and the mail server 
 
 ## 1. Server settings (Coolify)
 
-Add these to the CMS resource, and paste `deploy/docker-compose.prod.yml` into its Compose editor again, because the file now lists them. Nothing new goes on Vercel.
+Add these to the CMS resource, and paste `deploy/docker-compose.prod.yml` into its Compose editor again, because the file now lists them. The only storefront setting is the Turnstile site key (below).
 
 | Variable | Value |
 |---|---|
@@ -22,6 +22,9 @@ Add these to the CMS resource, and paste `deploy/docker-compose.prod.yml` into i
 | `PAYHERE_MERCHANT_ID`, `PAYHERE_MERCHANT_SECRET` | From the live account, once PayHere approves it |
 | `SMTP_HOST`, `SMTP_PORT`, `SMTP_SECURE`, `SMTP_USER`, `SMTP_PASS` | From the developer setting up email |
 | `EMAIL_FROM_ADDRESS`, `EMAIL_FROM_NAME` | The sender customers see |
+| `TURNSTILE_SECRET_KEY` | The secret key of a Cloudflare Turnstile widget (below) |
+
+**Turnstile** stops scripts placing fake orders to hold stock. In Cloudflare, go to **Turnstile > Add widget**, add the hostname `www.ceylonaromavitae.lk`, and choose **Managed**. Put its secret key on the CMS as above, and its site key in GitHub under **Settings > Secrets and variables > Actions > Variables** as `NEXT_PUBLIC_TURNSTILE_SITE_KEY`, then redeploy the site. Set both or neither: a secret on the CMS with no site key on the site refuses every checkout. The admin refuses `live` until the secret is set.
 
 PayHere's merchant secret belongs to a domain. Add `www.ceylonaromavitae.lk` under Integrations in PayHere, in both the sandbox and live accounts, and use the secret it shows there.
 
@@ -47,6 +50,8 @@ PayHere's merchant secret belongs to a domain. Add `www.ceylonaromavitae.lk` und
 - [ ] Pay in LKR, USD, EUR and GBP. Each order turns "Paid, being prepared" by itself, and PayHere charged what the site showed.
 - [ ] Decline a payment: the cart stays and **Try again** works. The 4th attempt shows contact details.
 - [ ] Leave an order unpaid for an hour: it's cancelled and its stock returns.
+- [ ] On PayHere's page, press back: checkout offers **Continue to payment** for the same order, not a new one.
+- [ ] Leave 3 orders unpaid with one email (**Start a new order instead** each time): the 4th is refused.
 - [ ] Buy as a guest with a new email: the set-password email arrives and the link works.
 - [ ] Mark an order shipped with tracking: the email arrives and the order page shows it.
 - [ ] Take stock below the low-stock level: the dashboard and alert email both show it.

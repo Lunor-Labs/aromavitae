@@ -20,6 +20,9 @@ const checkReadyForLive: GlobalBeforeChangeHook = ({ data }) => {
   if (!payHereConfig(false)) {
     throw new APIError("Can't go live yet: the PayHere live merchant ID and secret aren't set on the server.", 400, undefined, true);
   }
+  if (!process.env.TURNSTILE_SECRET_KEY) {
+    throw new APIError("Can't go live yet: the Turnstile secret key isn't set on the server, so checkout has no bot protection.", 400, undefined, true);
+  }
   if (!process.env.SMTP_HOST) {
     throw new APIError("Can't go live yet: the mail server isn't set up, so customers wouldn't get their emails.", 400, undefined, true);
   }

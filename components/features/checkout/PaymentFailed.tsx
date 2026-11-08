@@ -6,7 +6,7 @@ import { FormMessage } from "@/components/ui/FormMessage";
 import { primaryButtonClass } from "@/components/ui/SubmitButton";
 import { retryPaymentAction } from "@/lib/shop/actions/checkout";
 import type { OrderView } from "@/lib/shop/orderView";
-import { submitPayHereForm } from "@/lib/shop/submitPayHereForm";
+import { usePayHereRedirect } from "@/hooks/usePayHereRedirect";
 
 interface PaymentFailedProps {
   order: OrderView;
@@ -20,12 +20,13 @@ const contactLink = "text-forest underline underline-offset-2";
 export function PaymentFailed({ order, whatsapp, email }: PaymentFailedProps) {
   const [error, setError] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
+  const { redirecting, redirect } = usePayHereRedirect();
 
   const retry = () => {
     setError(null);
     startTransition(async () => {
       const result = await retryPaymentAction(order.token);
-      if (result.ok) submitPayHereForm(result.data);
+      if (result.ok) redirect(result.data);
       else setError(result.message);
     });
   };
@@ -43,8 +44,8 @@ export function PaymentFailed({ order, whatsapp, email }: PaymentFailedProps) {
 
       {order.canRetry ? (
         <>
-          <button type="button" onClick={retry} disabled={pending} className={primaryButtonClass}>
-            {pending ? "Taking you to PayHere…" : "Try again"}
+          <button type="button" onClick={retry} disabled={pending || redirecting} className={primaryButtonClass}>
+            {pending || redirecting ? "Taking you to PayHere…" : "Try again"}
           </button>
           <p className="text-xs text-muted">
             {order.attemptsLeft === 1 ? "This is your last attempt for this order." : `${order.attemptsLeft} attempts left.`}

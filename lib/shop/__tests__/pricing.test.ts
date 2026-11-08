@@ -123,6 +123,19 @@ describe("buildQuote", () => {
     expect(q.subtotalLkr).toBe(0);
   });
 
+  it("never sells anything at a zero or negative price", () => {
+    const item = [{ productId: 1, variantId: null, quantity: 1 }];
+    for (const bad of [{ ...oil, price: 0 }, { ...oil, price: -1500 }, { ...oil, salePrice: 0 }]) {
+      const q = quote({ products: [bad], items: item });
+      expect(q.lines[0].problem).toBe("No longer available");
+      expect(q.subtotalLkr).toBe(0);
+    }
+    const freeSize = { ...spice, variants: [{ ...spice.variants[0], price: 0, salePrice: null }] };
+    expect(quote({ products: [freeSize], items: [{ productId: 2, variantId: "small", quantity: 1 }] }).lines[0].problem).toBe(
+      "No longer available"
+    );
+  });
+
   it("says sold out at zero, and treats empty stock as untracked", () => {
     const soldOut = { ...oil, stock: 0 };
     expect(quote({ products: [soldOut], items: [{ productId: 1, variantId: null, quantity: 1 }] }).lines[0].problem).toBe("Sold out");

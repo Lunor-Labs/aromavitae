@@ -22,6 +22,9 @@ const locked = (field: Field): Field =>
 const money = (name: string, label: string): Field =>
   locked({ name, label, type: "number", required: true, admin: { width: "50%" } });
 
+/** Whether this line's stock is held. Orders from before the flag existed took every line at checkout. */
+export const holdsStock = (item: { stockTaken?: boolean | null }) => item.stockTaken !== false;
+
 const handleStatusChange: CollectionBeforeChangeHook<Order> = async ({ data, originalDoc, req, operation, context }) => {
   if (operation !== "update" || !originalDoc || !data.status || data.status === originalDoc.status) return data;
 
@@ -34,7 +37,8 @@ const handleStatusChange: CollectionBeforeChangeHook<Order> = async ({ data, ori
   }
 
   if (originalDoc.stockHeld && releasesStock(from, to)) {
-    for (const item of originalDoc.items ?? []) {
+    // Only what this order really took. A late payment can find some items sold out.
+    for (const item of (originalDoc.items ?? []).filter(holdsStock)) {
       await returnStock(req, { productId: item.productId, variantId: item.variantId, quantity: item.quantity });
     }
     data.stockHeld = false;
@@ -155,6 +159,12 @@ export const Orders: CollectionConfig = {
                 { name: "unitPrice", label: "Price each", type: "number", required: true },
                 { name: "unitPriceLkr", label: "Price each (LKR)", type: "number", required: true },
                 { name: "lineTotal", label: "Line total", type: "number", required: true },
+                {
+                  name: "stockTaken",
+                  label: "Stock taken",
+                  type: "checkbox",
+                  admin: { description: "Unticked when a late payment found this item sold out." },
+                },
               ],
             }),
             locked({ name: "customerNotes", label: "Customer's notes", type: "textarea" }),

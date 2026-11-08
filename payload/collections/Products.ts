@@ -13,9 +13,19 @@ type Variant = Prices & Sizes;
 const wholeNumber = (label: string) => (value: number | null | undefined) =>
   value == null || Number.isInteger(value) || `${label} must be a whole number.`;
 
-const salePrice = (value: number | null | undefined, { siblingData }: { siblingData: Prices }) => {
-  const whole = wholeNumber("Sale price")(value);
+/**
+ * A price above zero. A custom `validate` replaces Payload's own checks, `min`
+ * included, so a typed -1500 or 0 would otherwise save and sell at that price.
+ */
+const positivePrice = (label: string) => (value: number | null | undefined) => {
+  const whole = wholeNumber(label)(value);
   if (whole !== true) return whole;
+  return value == null || value > 0 || `${label} must be more than 0.`;
+};
+
+const salePrice = (value: number | null | undefined, { siblingData }: { siblingData: Prices }) => {
+  const positive = positivePrice("Sale price")(value);
+  if (positive !== true) return positive;
   return (
     value == null ||
     siblingData.price == null ||
@@ -172,7 +182,7 @@ export const Products: CollectionConfig = {
             description: "Whole amount, no cents. With a range, the lowest price.",
             condition: (data) => !hasVariants(data),
           },
-          validate: wholeNumber("Price"),
+          validate: positivePrice("Price"),
         },
         {
           name: "salePrice",
@@ -236,7 +246,7 @@ export const Products: CollectionConfig = {
               required: true,
               min: 0,
               admin: { step: 1, width: "50%", description: "Whole amount, no cents." },
-              validate: wholeNumber("Price"),
+              validate: positivePrice("Price"),
             },
             {
               name: "salePrice",

@@ -2,7 +2,7 @@ import { randomBytes } from "node:crypto";
 import { commitTransaction, initTransaction, killTransaction, type Endpoint, type PayloadRequest } from "payload";
 import { z } from "zod";
 import { crossedLowStock, type LowStockItem } from "../../../lib/shop/lowStock";
-import { PAYMENT_WINDOW_MINUTES } from "../../../lib/shop/orderStatus";
+import { MAX_UNPAID_ORDERS_PER_EMAIL, PAYMENT_WINDOW_MINUTES } from "../../../lib/shop/orderStatus";
 import type { CheckoutResult } from "../../../lib/shop/orderView";
 import { sumMoney } from "../../../lib/shop/money";
 import { cartItemSchema, type Quote, type QuoteShippingOption } from "../../../lib/shop/pricing";
@@ -13,6 +13,7 @@ import { payHereConfig, payHereForm } from "../payhere";
 import { queueLowStockAlert } from "../jobs/lowStockAlert";
 import { loadQuote } from "../quote";
 import { takeStock } from "../stock";
+import { checkTurnstile } from "../turnstile";
 
 const checkoutSchema = z.object({
   items: z.array(cartItemSchema).min(1, "Your cart is empty.").max(50),
@@ -21,6 +22,7 @@ const checkoutSchema = z.object({
   address: addressSchema,
   shippingMethodId: z.string().min(1, "Choose a shipping method.").max(64),
   notes: z.string().trim().max(500).optional().default(""),
+  turnstileToken: z.string().max(2048).optional(),
 });
 
 /** Thrown to abandon the order and everything done so far, with a message for the customer. */
@@ -78,6 +80,7 @@ async function createOrder(
         unitPrice: line.unitPrice,
         unitPriceLkr: line.unitPriceLkr,
         lineTotal: line.lineTotal,
+        stockTaken: true,
       })),
     },
   });
@@ -114,8 +117,35 @@ export const checkoutEndpoint: Endpoint = {
     const payhere = payHereConfig(isTest);
     if (!payhere) return fail(503, "Online payments aren't available right now. Please contact us.");
 
+    // Before the transaction: it's a call to Cloudflare, and nothing should be held open for it.
+    const human = await checkTurnstile(input.turnstileToken);
+    if (!human.ok) {
+      req.payload.logger.warn({ reason: human.reason }, "Checkout refused by Turnstile");
+      return fail(403, "We couldn't confirm you're not a robot. Please try again.");
+    }
+
     const shouldCommit = await initTransaction(req);
     try {
+      // Each unpaid order holds stock for an hour, so one email can't hold more than a few.
+      const { totalDocs: unpaid } = await req.payload.count({
+        collection: "orders",
+        where: {
+          and: [
+            { email: { equals: email } },
+            { status: { equals: "pending_payment" } },
+            { expiresAt: { greater_than: new Date().toISOString() } },
+          ],
+        },
+        overrideAccess: true,
+        req,
+      });
+      if (unpaid >= MAX_UNPAID_ORDERS_PER_EMAIL) {
+        throw new CheckoutProblem(
+          429,
+          `You already have ${unpaid} orders waiting for payment. Please finish paying for one, or try again within the hour once they've expired.`
+        );
+      }
+
       const { quote, maxOrderLkr, lowStockLevel } = await loadQuote(req, {
         items: input.items,
         currency: input.currency,
@@ -147,7 +177,11 @@ export const checkoutEndpoint: Endpoint = {
       await queueLowStockAlert(req, lowStock);
       if (shouldCommit) await commitTransaction(req);
 
-      const result: CheckoutResult = { token: order.publicToken, payhere: payHereForm(payhere, order) };
+      const result: CheckoutResult = {
+        token: order.publicToken,
+        orderNumber: order.orderNumber,
+        payhere: payHereForm(payhere, order),
+      };
       return Response.json(result, { status: 201 });
     } catch (error) {
       await killTransaction(req);

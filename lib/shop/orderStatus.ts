@@ -53,6 +53,9 @@ export const MAX_PAYMENT_ATTEMPTS = 3;
 /** How long an unpaid order holds its stock. */
 export const PAYMENT_WINDOW_MINUTES = 60;
 
+/** How many orders one email can have waiting for payment, each holding stock, at once. */
+export const MAX_UNPAID_ORDERS_PER_EMAIL = 3;
+
 interface RetryCheck {
   status: OrderStatus;
   attempts: number;

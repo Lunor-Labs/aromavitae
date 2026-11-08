@@ -19,9 +19,23 @@ export interface CartLine {
   quantity: number;
 }
 
+/**
+ * The order last placed from this cart, until it's paid. Coming back from
+ * PayHere leaves the cart as it was, so without this, pressing pay again would
+ * place, and charge, a second order.
+ */
+export interface PendingOrder {
+  token: string;
+  orderNumber: string;
+  /** The cart it was placed from. Once the cart changes, it's a different purchase. */
+  cartKey: string;
+}
+
 interface CartState {
   lines: CartLine[];
   drawerOpen: boolean;
+  pendingOrder: PendingOrder | null;
+  setPendingOrder: (order: PendingOrder | null) => void;
   add: (line: Omit<CartLine, "quantity">, quantity?: number) => void;
   setQuantity: (productId: number, variantId: string | null, quantity: number) => void;
   remove: (productId: number, variantId: string | null) => void;
@@ -41,6 +55,8 @@ export const useCartStore = create<CartState>()(
     (set) => ({
       lines: [],
       drawerOpen: false,
+      pendingOrder: null,
+      setPendingOrder: (pendingOrder) => set({ pendingOrder }),
       add: (line, quantity = 1) =>
         set((state) => {
           const exists = state.lines.some((l) => same(l, line.productId, line.variantId));
@@ -59,7 +75,7 @@ export const useCartStore = create<CartState>()(
         })),
       remove: (productId, variantId) =>
         set((state) => ({ lines: state.lines.filter((l) => !same(l, productId, variantId)) })),
-      clear: () => set({ lines: [] }),
+      clear: () => set({ lines: [], pendingOrder: null }),
       setDrawerOpen: (open) => set({ drawerOpen: open }),
       syncFromQuote: (quoteLines) =>
         set((state) => {
@@ -87,7 +103,7 @@ export const useCartStore = create<CartState>()(
           return changed ? { lines } : state;
         }),
     }),
-    { name: "av-cart", partialize: (state) => ({ lines: state.lines }) }
+    { name: "av-cart", partialize: (state) => ({ lines: state.lines, pendingOrder: state.pendingOrder }) }
   )
 );
 
@@ -96,3 +112,10 @@ export const selectItemCount = (state: { lines: CartLine[] }) =>
 
 export const toCartItems = (lines: CartLine[]): CartItemInput[] =>
   lines.map(({ productId, variantId, quantity }) => ({ productId, variantId, quantity }));
+
+/** What's in the cart, ignoring the order of lines and the display-only details. */
+export const cartKey = (lines: CartLine[]): string =>
+  lines
+    .map((line) => `${line.productId}:${line.variantId ?? ""}:${line.quantity}`)
+    .sort()
+    .join("|");

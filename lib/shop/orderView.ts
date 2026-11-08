@@ -39,5 +39,6 @@ export interface PayHereForm {
 
 export interface CheckoutResult {
   token: string;
+  orderNumber: string;
   payhere: PayHereForm;
 }

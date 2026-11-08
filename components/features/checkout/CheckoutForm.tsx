@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useRef, useState, useTransition } from "react";
 import Link from "next/link";
 import { AddressChooser } from "@/components/features/checkout/AddressChooser";
 import { CheckoutSummary } from "@/components/features/checkout/CheckoutSummary";
@@ -9,12 +9,15 @@ import { FormField, inputClass, labelClass } from "@/components/ui/FormField";
 import { FormMessage } from "@/components/ui/FormMessage";
 import { primaryButtonClass } from "@/components/ui/SubmitButton";
 import { useHasMounted } from "@/hooks/useHasMounted";
+import { usePayHereRedirect } from "@/hooks/usePayHereRedirect";
+import { usePendingOrder } from "@/hooks/usePendingOrder";
 import { useQuote } from "@/hooks/useQuote";
+import { AlreadyPaidNotice, PendingOrderNotice } from "@/components/features/checkout/PendingOrderNotice";
+import { TURNSTILE_SITE_KEY, TurnstileWidget, type TurnstileHandle } from "@/components/features/checkout/TurnstileWidget";
 import { placeOrderAction } from "@/lib/shop/actions/checkout";
-import { toCartItems, useCartStore } from "@/lib/shop/cartStore";
+import { cartKey, toCartItems, useCartStore } from "@/lib/shop/cartStore";
 import { HOME_COUNTRY, isCountryCode } from "@/lib/shop/countries";
 import type { Address, SavedAddress } from "@/lib/shop/schemas";
-import { submitPayHereForm } from "@/lib/shop/submitPayHereForm";
 import { useBrowserCookie } from "@/hooks/useBrowserCookie";
 import { COUNTRY_COOKIE } from "@/lib/shop/money";
 import { cn } from "@/lib/utils";
@@ -28,6 +31,12 @@ const sectionHeading = "font-heading text-lg font-bold text-charcoal mb-4";
 export function CheckoutForm({ customer }: CheckoutFormProps) {
   const mounted = useHasMounted();
   const lines = useCartStore((state) => state.lines);
+  const setPendingOrder = useCartStore((state) => state.setPendingOrder);
+  const pendingOrder = usePendingOrder(lines, mounted);
+  const { redirecting, redirect } = usePayHereRedirect();
+  const [turnstileToken, setTurnstileToken] = useState<string | null>(null);
+  const turnstile = useRef<TurnstileHandle>(null);
+  const awaitingCheck = Boolean(TURNSTILE_SITE_KEY) && !turnstileToken;
   const saved = customer?.addresses ?? [];
   const defaultIndex = saved.findIndex((a) => a.isDefault);
   const visitorCountry = useBrowserCookie(COUNTRY_COOKIE);
@@ -58,6 +67,8 @@ export function CheckoutForm({ customer }: CheckoutFormProps) {
 
   if (!mounted) return <p className="text-sm text-muted">Loading checkout…</p>;
 
+  if (pendingOrder.state.kind === "paid") return <AlreadyPaidNotice order={pendingOrder.state.order} />;
+
   if (lines.length === 0) {
     return (
       <div className="text-center py-10">
@@ -67,6 +78,11 @@ export function CheckoutForm({ customer }: CheckoutFormProps) {
         </Link>
       </div>
     );
+  }
+
+  if (pendingOrder.state.kind === "checking") return <p className="text-sm text-muted">Loading checkout…</p>;
+  if (pendingOrder.state.kind === "waiting") {
+    return <PendingOrderNotice order={pendingOrder.state.order} onStartNew={pendingOrder.startNew} />;
   }
 
   if (!quote) return quoteError ? <FormMessage error={quoteError} /> : <p className="text-sm text-muted">Checking prices…</p>;
@@ -85,9 +101,15 @@ export function CheckoutForm({ customer }: CheckoutFormProps) {
         address,
         shippingMethodId: shipping.id,
         notes,
+        turnstileToken: turnstileToken ?? undefined,
       });
-      if (result.ok) submitPayHereForm(result.data.payhere);
-      else setError(result.message);
+      if (result.ok) {
+        setPendingOrder({ token: result.data.token, orderNumber: result.data.orderNumber, cartKey: cartKey(lines) });
+        redirect(result.data.payhere);
+      } else {
+        setError(result.message);
+        turnstile.current?.reset(); // the token was used up by this attempt
+      }
     });
   };
 
@@ -145,8 +167,19 @@ export function CheckoutForm({ customer }: CheckoutFormProps) {
 
       <CheckoutSummary quote={quote} shipping={shipping}>
         <FormMessage error={error ?? undefined} />
-        <button type="submit" disabled={pending || blocked} className={cn(primaryButtonClass, "w-full mt-3")}>
-          {pending ? "Placing order…" : "Pay with PayHere"}
+        {TURNSTILE_SITE_KEY && <TurnstileWidget ref={turnstile} onToken={setTurnstileToken} />}
+        <button
+          type="submit"
+          disabled={pending || blocked || redirecting || awaitingCheck}
+          className={cn(primaryButtonClass, "w-full mt-3")}
+        >
+          {redirecting
+            ? "Taking you to PayHere…"
+            : pending
+              ? "Placing order…"
+              : awaitingCheck
+                ? "Checking your browser…"
+                : "Pay with PayHere"}
         </button>
         <p className="text-xs text-muted text-center mt-3">
           You&apos;ll pay in {quote.currency} on PayHere&apos;s secure page. We never see your card details.
