@@ -209,7 +209,7 @@ export interface Product {
    */
   salePrice?: number | null;
   /**
-   * Optional. Shows a range, e.g. LKR 18,000–24,000, with no discount badge.
+   * Optional. Shows a range, e.g. LKR 18,000–24,000. A range can't be bought online: it keeps the WhatsApp button until it has one exact price or sizes.
    */
   priceMax?: number | null;
   currency: string;
@@ -523,6 +523,10 @@ export interface Order {
     unitPrice: number;
     unitPriceLkr: number;
     lineTotal: number;
+    /**
+     * Unticked when a late payment found this item sold out.
+     */
+    stockTaken?: boolean | null;
     id?: string | null;
   }[];
   customerNotes?: string | null;
@@ -1363,6 +1367,7 @@ export interface OrdersSelect<T extends boolean = true> {
         unitPrice?: T;
         unitPriceLkr?: T;
         lineTotal?: T;
+        stockTaken?: T;
         id?: T;
       };
   customerNotes?: T;

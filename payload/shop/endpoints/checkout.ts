@@ -78,6 +78,7 @@ async function createOrder(
         unitPrice: line.unitPrice,
         unitPriceLkr: line.unitPriceLkr,
         lineTotal: line.lineTotal,
+        stockTaken: true,
       })),
     },
   });

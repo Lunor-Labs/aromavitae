@@ -1,6 +1,6 @@
 import { commitTransaction, initTransaction, killTransaction, type Endpoint, type PayloadRequest } from "payload";
 import { z } from "zod";
-import type { OrderContext } from "../../collections/Orders";
+import { holdsStock, type OrderContext } from "../../collections/Orders";
 import type { Order } from "../../payload-types";
 import { isPaidStatus, type OrderStatus } from "../../../lib/shop/orderStatus";
 import type { PayHereForm } from "../../../lib/shop/orderView";
@@ -70,13 +70,15 @@ async function applyReport(req: PayloadRequest, order: Order, code: string, amou
       // The payment arrived after the order expired and gave its stock back.
       if (!order.stockHeld) {
         context.statusNote = "Payment arrived after the order had expired.";
-        let gotAll = true;
+        const items: NonNullable<Order["items"]> = [];
         for (const item of order.items ?? []) {
           const taken = await takeStock(req, { productId: item.productId, variantId: item.variantId, quantity: item.quantity });
-          if (!taken) gotAll = false;
+          items.push({ ...item, stockTaken: Boolean(taken) });
         }
+        // Recorded per line, so cancelling or refunding later only returns what was taken.
+        update.items = items;
         update.stockHeld = true;
-        if (!gotAll) {
+        if (!items.every(holdsStock)) {
           update.needsAttention =
             "Paid after the order expired, and some items had sold out in the meantime. Please contact the customer.";
         }
