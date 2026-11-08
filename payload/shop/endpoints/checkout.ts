@@ -148,7 +148,11 @@ export const checkoutEndpoint: Endpoint = {
       await queueLowStockAlert(req, lowStock);
       if (shouldCommit) await commitTransaction(req);
 
-      const result: CheckoutResult = { token: order.publicToken, payhere: payHereForm(payhere, order) };
+      const result: CheckoutResult = {
+        token: order.publicToken,
+        orderNumber: order.orderNumber,
+        payhere: payHereForm(payhere, order),
+      };
       return Response.json(result, { status: 201 });
     } catch (error) {
       await killTransaction(req);

@@ -5,6 +5,7 @@ import type { Order } from "../../payload-types";
 import { isPaidStatus, type OrderStatus } from "../../../lib/shop/orderStatus";
 import type { PayHereForm } from "../../../lib/shop/orderView";
 import { getShopAccess } from "../access";
+import { DUPLICATE_WINDOW_MINUTES, addNote, sameItems } from "../attention";
 import { attachGuestAccount } from "../guestAccount";
 import { fail, readJson, shopClosed } from "../http";
 import { canRetry } from "../orderView";
@@ -53,15 +54,42 @@ export const startPaymentEndpoint: Endpoint = {
   },
 };
 
+/**
+ * Another paid order from the same email, for exactly the same things, in the
+ * last hour: most likely the customer went back from PayHere and ordered again.
+ */
+async function findDuplicate(req: PayloadRequest, order: Order): Promise<string | null> {
+  const since = new Date(Date.now() - DUPLICATE_WINDOW_MINUTES * 60_000).toISOString();
+  const { docs } = await req.payload.find({
+    collection: "orders",
+    where: {
+      and: [{ email: { equals: order.email } }, { id: { not_equals: order.id } }, { paidAt: { greater_than: since } }],
+    },
+    limit: 10,
+    depth: 0,
+    overrideAccess: true,
+    req,
+  });
+  return docs.find((other) => sameItems(other.items ?? [], order.items ?? []))?.orderNumber ?? null;
+}
+
 /** What a genuine PayHere report does to the order. Null status means it stays as it is. */
 async function applyReport(req: PayloadRequest, order: Order, code: string, amount: string, currency: string, paymentId: string) {
   const update: Partial<Order> = {};
   const context: OrderContext = { systemStatusChange: true };
   const alreadyPaid = isPaidStatus(order.status as OrderStatus) || Boolean(order.paidAt);
+  const flag = (note: string) => {
+    update.needsAttention = addNote(update.needsAttention ?? order.needsAttention, note);
+  };
 
-  if (code === PAID && !alreadyPaid) {
+  if (code === PAID && alreadyPaid) {
+    // The same report again changes nothing. A different payment means they were charged twice.
+    if (paymentId && paymentId !== order.paymentId) {
+      flag(`Paid twice: PayHere payments ${order.paymentId ?? "(unknown)"} and ${paymentId}. Refund one in the PayHere dashboard.`);
+    }
+  } else if (code === PAID) {
     if (!matchesOrder(order, amount, currency)) {
-      update.needsAttention = `PayHere took ${currency} ${amount}, but this order costs ${order.currency} ${order.total}. It has not been marked paid.`;
+      flag(`PayHere took ${currency} ${amount}, but this order costs ${order.currency} ${order.total}. It has not been marked paid.`);
     } else {
       update.status = "processing";
       update.paidAt = new Date().toISOString();
@@ -79,9 +107,15 @@ async function applyReport(req: PayloadRequest, order: Order, code: string, amou
         update.items = items;
         update.stockHeld = true;
         if (!items.every(holdsStock)) {
-          update.needsAttention =
-            "Paid after the order expired, and some items had sold out in the meantime. Please contact the customer.";
+          flag("Paid after the order expired, and some items had sold out in the meantime. Please contact the customer.");
         }
+      }
+
+      const duplicate = await findDuplicate(req, order);
+      if (duplicate) {
+        flag(
+          `Possibly ordered twice: ${duplicate} was paid from the same email for the same items in the last hour. Check with the customer, and refund one if so.`
+        );
       }
     }
   } else if ((code === FAILED || code === CANCELLED) && order.status === "pending_payment" && !canRetry(order)) {
@@ -89,7 +123,7 @@ async function applyReport(req: PayloadRequest, order: Order, code: string, amou
     update.status = "failed";
     context.statusNote = "The last payment attempt didn't go through.";
   } else if (code === CHARGED_BACK) {
-    update.needsAttention = "PayHere reported a chargeback on this order. Check the PayHere dashboard.";
+    flag("PayHere reported a chargeback on this order. Check the PayHere dashboard.");
   }
 
   return { update, context };
