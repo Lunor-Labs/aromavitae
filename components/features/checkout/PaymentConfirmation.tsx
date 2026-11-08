@@ -31,8 +31,10 @@ export function PaymentConfirmation({ initial }: { initial: OrderView }) {
     {
       fallbackData: initial,
       revalidateOnMount: true,
+      // Until it's paid, not only while it's waiting: a payment just after the order
+      // expired finds it cancelled for a moment before PayHere's report revives it.
       // SWR passes undefined here until its first fetch, even with fallback data.
-      refreshInterval: (latest) => ((latest ?? initial).status === "pending_payment" && !waitedTooLong ? POLL_MS : 0),
+      refreshInterval: (latest) => (!(latest ?? initial).isPaid && !waitedTooLong ? POLL_MS : 0),
     }
   );
   const order = data ?? initial;
