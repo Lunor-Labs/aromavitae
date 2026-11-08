@@ -135,6 +135,8 @@ function priceLine(item: CartItemInput, input: QuoteInput, currency: CurrencyCod
 
   const domesticOnly = product.domesticOnly && Boolean(input.country) && input.country !== HOME_COUNTRY;
   const hasRange = !variant && product.priceMax != null;
+  // The admin refuses these now, but one saved earlier must never sell for nothing.
+  const noPrice = !(effectivePrice(priced) > 0);
   return {
     productId: product.id,
     variantId: variant?.id ?? null,
@@ -145,7 +147,9 @@ function priceLine(item: CartItemInput, input: QuoteInput, currency: CurrencyCod
     ...base(effectivePrice(priced)),
     weightGrams: (priced.weightGrams ?? input.defaultWeightGrams) * item.quantity,
     available: priced.stock,
-    problem: hasRange
+    problem: noPrice
+      ? UNAVAILABLE
+      : hasRange
       ? "Please contact us for the exact price"
       : domesticOnly
         ? "Can only be shipped within Sri Lanka"
