@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useRef, useState, useTransition } from "react";
 import Link from "next/link";
 import { AddressChooser } from "@/components/features/checkout/AddressChooser";
 import { CheckoutSummary } from "@/components/features/checkout/CheckoutSummary";
@@ -13,6 +13,7 @@ import { usePayHereRedirect } from "@/hooks/usePayHereRedirect";
 import { usePendingOrder } from "@/hooks/usePendingOrder";
 import { useQuote } from "@/hooks/useQuote";
 import { AlreadyPaidNotice, PendingOrderNotice } from "@/components/features/checkout/PendingOrderNotice";
+import { TURNSTILE_SITE_KEY, TurnstileWidget, type TurnstileHandle } from "@/components/features/checkout/TurnstileWidget";
 import { placeOrderAction } from "@/lib/shop/actions/checkout";
 import { cartKey, toCartItems, useCartStore } from "@/lib/shop/cartStore";
 import { HOME_COUNTRY, isCountryCode } from "@/lib/shop/countries";
@@ -33,6 +34,9 @@ export function CheckoutForm({ customer }: CheckoutFormProps) {
   const setPendingOrder = useCartStore((state) => state.setPendingOrder);
   const pendingOrder = usePendingOrder(lines, mounted);
   const { redirecting, redirect } = usePayHereRedirect();
+  const [turnstileToken, setTurnstileToken] = useState<string | null>(null);
+  const turnstile = useRef<TurnstileHandle>(null);
+  const awaitingCheck = Boolean(TURNSTILE_SITE_KEY) && !turnstileToken;
   const saved = customer?.addresses ?? [];
   const defaultIndex = saved.findIndex((a) => a.isDefault);
   const visitorCountry = useBrowserCookie(COUNTRY_COOKIE);
@@ -97,11 +101,15 @@ export function CheckoutForm({ customer }: CheckoutFormProps) {
         address,
         shippingMethodId: shipping.id,
         notes,
+        turnstileToken: turnstileToken ?? undefined,
       });
       if (result.ok) {
         setPendingOrder({ token: result.data.token, orderNumber: result.data.orderNumber, cartKey: cartKey(lines) });
         redirect(result.data.payhere);
-      } else setError(result.message);
+      } else {
+        setError(result.message);
+        turnstile.current?.reset(); // the token was used up by this attempt
+      }
     });
   };
 
@@ -159,8 +167,19 @@ export function CheckoutForm({ customer }: CheckoutFormProps) {
 
       <CheckoutSummary quote={quote} shipping={shipping}>
         <FormMessage error={error ?? undefined} />
-        <button type="submit" disabled={pending || blocked || redirecting} className={cn(primaryButtonClass, "w-full mt-3")}>
-          {redirecting ? "Taking you to PayHere…" : pending ? "Placing order…" : "Pay with PayHere"}
+        {TURNSTILE_SITE_KEY && <TurnstileWidget ref={turnstile} onToken={setTurnstileToken} />}
+        <button
+          type="submit"
+          disabled={pending || blocked || redirecting || awaitingCheck}
+          className={cn(primaryButtonClass, "w-full mt-3")}
+        >
+          {redirecting
+            ? "Taking you to PayHere…"
+            : pending
+              ? "Placing order…"
+              : awaitingCheck
+                ? "Checking your browser…"
+                : "Pay with PayHere"}
         </button>
         <p className="text-xs text-muted text-center mt-3">
           You&apos;ll pay in {quote.currency} on PayHere&apos;s secure page. We never see your card details.

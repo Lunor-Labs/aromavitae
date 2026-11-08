@@ -13,6 +13,8 @@ interface PlaceOrderInput {
   address: Address;
   shippingMethodId: string;
   notes: string;
+  /** Cloudflare Turnstile's proof of a real browser. The CMS checks it. */
+  turnstileToken?: string;
 }
 
 export async function placeOrderAction(input: PlaceOrderInput): Promise<CmsResult<CheckoutResult>> {
